@@ -20,11 +20,20 @@ import {
   TrendingDown,
   Gem,
   X as CloseIcon,
+  ShoppingBag,
+  Link2,
+  CandlestickChart,
+  DollarSign,
+  Check,
+  CheckCircle2,
+  UserCheck,
+  Sparkles,
 } from 'lucide-react';
 import { EarningRewardData } from './EarningRewardModal';
 import { HowItWorksModal } from './dashboard/HowItWorksModal';
 import { WidgetPickerModal } from './dashboard/WidgetPickerModal';
 import { CustomizableWidget } from './dashboard/CustomizableWidgets';
+import { EmptyStateDashboardView } from './dashboard/EmptyStateDashboardView';
 import { DashboardRow, DashboardSlot, WidgetType, WidgetSize } from '../types/dashboardWidgets';
 
 interface ReferenceDashboardProps {
@@ -45,6 +54,7 @@ interface ReferenceDashboardProps {
   onTriggerEarningModal?: (data: EarningRewardData) => void;
   onOpenSearchModal?: () => void;
   onShowToast?: (msg: string) => void;
+  onNavigateToConnectBroker?: (broker?: Broker) => void;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -119,6 +129,112 @@ function CumulativeCashbackIcon() {
         {/* Dollar Symbol */}
         <span className="font-extrabold text-white text-lg font-mono relative z-10 drop-shadow-xs">$</span>
       </div>
+    </div>
+  );
+}
+
+/**
+ * 3D Wallet & Coin Icon for Empty State
+ */
+function WalletCoin3DIcon() {
+  return (
+    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#818cf8] via-[#6366f1] to-[#4f46e5] p-2 shadow-sm flex items-center justify-center relative shrink-0">
+      <svg viewBox="0 0 36 36" fill="none" className="w-8 h-8 drop-shadow-xs">
+        <path
+          d="M 8 14 C 8 10, 12 8, 18 8 C 24 8, 28 10, 28 14 L 30 26 C 30 30, 26 32, 18 32 C 10 32, 6 30, 6 26 Z"
+          fill="url(#walletGradient)"
+        />
+        <path
+          d="M 10 14 C 10 12, 13 10, 18 10 C 23 10, 26 12, 26 14 C 26 16, 23 17, 18 17 C 13 17, 10 16, 10 14 Z"
+          fill="#c7d2fe"
+        />
+        <circle cx="18" cy="22" r="5" fill="#fde047" stroke="#ca8a04" strokeWidth="1" />
+        <text x="18" y="24.5" textAnchor="middle" fontSize="6" fontWeight="bold" fill="#854d0e">$</text>
+        <defs>
+          <linearGradient id="walletGradient" x1="6" y1="8" x2="30" y2="32">
+            <stop offset="0%" stopColor="#a5b4fc" />
+            <stop offset="100%" stopColor="#4338ca" />
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+  );
+}
+
+/**
+ * 3D Coin Swap Icon for Top Earning Assets Empty State
+ */
+function CoinSwap3DIcon() {
+  return (
+    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#c084fc] via-[#a855f7] to-[#7e22ce] p-2 shadow-sm flex items-center justify-center relative shrink-0">
+      <svg viewBox="0 0 36 36" fill="none" className="w-8 h-8 drop-shadow-xs">
+        <circle cx="18" cy="18" r="14" fill="url(#swapGradient)" />
+        <path
+          d="M 11 15 C 13 11, 18 10, 22 12 L 20 14 M 22 12 L 23 9"
+          stroke="white"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M 25 21 C 23 25, 18 26, 14 24 L 16 22 M 14 24 L 13 27"
+          stroke="white"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx="18" cy="18" r="4.5" fill="#fde047" stroke="#ca8a04" strokeWidth="0.8" />
+        <text x="18" y="20" textAnchor="middle" fontSize="5" fontWeight="bold" fill="#854d0e">$</text>
+        <defs>
+          <linearGradient id="swapGradient" x1="4" y1="4" x2="32" y2="32">
+            <stop offset="0%" stopColor="#d8b4fe" />
+            <stop offset="100%" stopColor="#6b21a8" />
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+  );
+}
+
+/**
+ * 3D Empty Performance Chart Graphic
+ */
+function EmptyPerformanceChartGraphic() {
+  return (
+    <div className="relative w-28 h-24 flex items-center justify-center">
+      <svg viewBox="0 0 100 80" fill="none" className="w-full h-full drop-shadow-md">
+        <ellipse cx="50" cy="70" rx="42" ry="7" fill="#e2e8f0" />
+        <rect x="20" y="38" width="12" height="30" rx="5" fill="url(#pinkBarGrad)" />
+        <rect x="36" y="26" width="12" height="42" rx="5" fill="url(#greenBarGrad)" />
+        <rect x="52" y="16" width="12" height="52" rx="5" fill="url(#yellowBarGrad)" />
+        <rect x="68" y="8" width="12" height="60" rx="5" fill="url(#purpleBarGrad)" />
+        <path
+          d="M 16 52 Q 44 42 74 16"
+          stroke="#16a34a"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          fill="none"
+        />
+        <polygon points="76,14 66,16 74,24" fill="#16a34a" />
+        <defs>
+          <linearGradient id="pinkBarGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#f472b6" />
+            <stop offset="100%" stopColor="#db2777" />
+          </linearGradient>
+          <linearGradient id="greenBarGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#86efac" />
+            <stop offset="100%" stopColor="#16a34a" />
+          </linearGradient>
+          <linearGradient id="yellowBarGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#fde047" />
+            <stop offset="100%" stopColor="#ca8a04" />
+          </linearGradient>
+          <linearGradient id="purpleBarGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#c084fc" />
+            <stop offset="100%" stopColor="#7c3aed" />
+          </linearGradient>
+        </defs>
+      </svg>
     </div>
   );
 }
@@ -484,6 +600,7 @@ export const ReferenceDashboard: React.FC<ReferenceDashboardProps> = ({
   onTriggerEarningModal,
   onOpenSearchModal,
   onShowToast,
+  onNavigateToConnectBroker,
 }) => {
   const [selectedTimeframe, setSelectedTimeframe] = useState<'1D' | '1W' | '1M' | 'All'>('1M');
   const [connectedPage, setConnectedPage] = useState<number>(1);
@@ -710,11 +827,12 @@ export const ReferenceDashboard: React.FC<ReferenceDashboardProps> = ({
         <div className="flex items-start justify-between gap-4 pt-1">
           <div>
             <h1 className="font-display text-2xl sm:text-3xl lg:text-[32px] font-extrabold tracking-tight leading-tight">
-              <span className="text-[#5945F1]">Oh look, you're </span>
-              <span className="text-[#FD02B0]">back!</span>
+              <span>👋 </span>
+              <span className="text-[#5945F1]">Welcome, </span>
+              <span className="text-[#FD02B0]">Josh!</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-1 font-normal">
-              The market kept moving. Good thing you did too.
+              Look alive. The market won't wait, and we'd hate for you to miss what's next.
             </p>
           </div>
 
@@ -852,719 +970,17 @@ export const ReferenceDashboard: React.FC<ReferenceDashboardProps> = ({
           </div>
         </div>
       ) : (
-        <>
-          {/* ─── 2. TOP ROW BENTO CARDS (3 Cards) ─── */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        {/* ── CARD 1: Ready to Trade (Left Wide Card ~ 6 cols) ── */}
-        <div className="lg:col-span-6 rounded-2xl bg-white border border-[#f0abfc]/80 p-5 shadow-2xs flex flex-col justify-between hover:shadow-xs transition-shadow">
-          <div>
-            {/* Header with Title and Links */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-              <div>
-                <h2 className="font-display font-extrabold text-lg sm:text-xl tracking-tight leading-snug">
-                  <span className="text-[#5945F1]">Ready </span>
-                  <span className="text-[#FD02B0]">to Trade</span>
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Account connected and ready for trading.
-                </p>
-              </div>
-
-              {/* Tag & Actions */}
-              <div className="flex flex-col items-start sm:items-end gap-1">
-                <span className="px-3 py-0.5 rounded-full text-[11px] font-semibold text-[#5945F1] border border-[#5945F1]/30 bg-white shadow-2xs">
-                  Connected Accounts
-                </span>
-                <div className="flex items-center gap-2 text-[11px] font-semibold text-[#5945F1] pt-0.5">
-                  <button
-                    onClick={() => onOpenConnectModal()}
-                    className="hover:underline cursor-pointer flex items-center gap-0.5"
-                  >
-                    + Add More Accounts ,
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (onOpenSearchModal) {
-                        onOpenSearchModal();
-                      } else {
-                        onNavigateToTab('brokers');
-                      }
-                    }}
-                    className="hover:underline cursor-pointer flex items-center gap-1"
-                  >
-                    <Search className="w-3 h-3" />
-                    <span>Explore Brokers</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* 3 Connected Account Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-2">
-              {/* Account 1: HFM */}
-              <div className="rounded-xl p-3 bg-white border border-slate-200/80 flex flex-col justify-between space-y-3 shadow-2xs hover:border-slate-300 transition-all">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-black text-white flex flex-col items-center justify-center p-0.5 shrink-0 shadow-xs">
-                    <span className="font-black text-[9px] tracking-tight leading-none">HFM</span>
-                    <span className="text-[5px] uppercase font-semibold text-slate-400 leading-none scale-75">HF MARKETS</span>
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-bold text-xs text-[#0b1c30] truncate">Premium</div>
-                    <div className="text-[10px] text-slate-400 font-mono">1100045789</div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#fffbeb] border border-[#fef3c7] text-[#d97706] text-[10px] font-semibold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]" />
-                    <span>Pending Approval</span>
-                  </div>
-
-                  {/* Dual-color progress indicator */}
-                  <div className="w-full bg-slate-100 rounded-full h-1 overflow-hidden flex">
-                    <div className="w-1/2 bg-gradient-to-r from-[#5945F1] to-[#FD02B0] h-full" />
-                  </div>
-                  <div className="text-[10px] text-slate-400 text-center font-medium">
-                    Takes 2–3 days
-                  </div>
-                </div>
-              </div>
-
-              {/* Account 2: XM */}
-              <div className="rounded-xl p-3 bg-white border border-slate-200/80 flex flex-col justify-between space-y-3 shadow-2xs hover:border-slate-300 transition-all">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center shrink-0 shadow-xs relative overflow-hidden">
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#E11928] rounded-full" />
-                    <span className="font-black text-[11px] tracking-tighter">XM</span>
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-bold text-xs text-[#0b1c30] truncate">Ultra Low</div>
-                    <div className="text-[10px] text-slate-400 font-mono">1100098765</div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#fffbeb] border border-[#fef3c7] text-[#d97706] text-[10px] font-semibold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#f59e0b]" />
-                    <span>Pending Approval</span>
-                  </div>
-
-                  {/* Dual-color progress indicator */}
-                  <div className="w-full bg-slate-100 rounded-full h-1 overflow-hidden flex">
-                    <div className="w-1/2 bg-gradient-to-r from-[#5945F1] to-[#FD02B0] h-full" />
-                  </div>
-                  <div className="text-[10px] text-slate-400 text-center font-medium">
-                    Takes 2–3 days
-                  </div>
-                </div>
-              </div>
-
-              {/* Account 3: FxPro (Approved & Ready) */}
-              <div className="rounded-xl p-3 bg-white border border-slate-200/80 flex flex-col justify-between space-y-3 shadow-2xs hover:border-slate-300 transition-all">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-[#E11928] text-white flex flex-col items-center justify-center p-0.5 shrink-0 shadow-xs">
-                    <span className="font-black text-[9px] tracking-tight leading-none">FxPro</span>
-                    <span className="text-[5px] font-medium text-white/80 leading-none scale-75">Trade Like a Pro</span>
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-bold text-xs text-[#0b1c30] truncate">Raw+</div>
-                    <div className="text-[10px] text-slate-400 font-mono">1100034521</div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#ecfdf5] border border-[#d1fae5] text-[#16a34a] text-[10px] font-semibold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#16a34a]" />
-                    <span>Approved</span>
-                  </div>
-
-                  <button
-                    onClick={() => handleTradeNow('FxPro')}
-                    className="w-full py-2 px-2 rounded-xl bg-[#5945F1] hover:bg-[#492CED] text-white font-bold text-xs shadow-xs transition-all active:scale-95 cursor-pointer text-center"
-                  >
-                    Trade Now
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Pagination */}
-          <div className="flex items-center justify-center gap-2 pt-3 text-slate-400">
-            <button
-              onClick={() => setReadyPage((p) => Math.max(1, p - 1))}
-              className="p-1 hover:text-slate-600 transition-colors cursor-pointer"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-            </button>
-            <div className="flex items-center gap-1.5">
-              <span className={`w-1.5 h-1.5 rounded-full ${readyPage === 1 ? 'bg-slate-300' : 'bg-slate-200'}`} />
-              <span className={`w-2 h-2 rounded-full ${readyPage === 2 ? 'bg-[#5945F1]' : 'bg-[#5945F1]'}`} />
-              <span className={`w-1.5 h-1.5 rounded-full ${readyPage === 3 ? 'bg-slate-300' : 'bg-slate-200'}`} />
-            </div>
-            <button
-              onClick={() => setReadyPage((p) => Math.min(3, p + 1))}
-              className="p-1 hover:text-slate-600 transition-colors cursor-pointer"
-            >
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        {/* ── CARD 2: Rookie Card (Middle Purple Card ~ 3.5 cols) ── */}
-        <div className="lg:col-span-3 rounded-2xl bg-[#5945F1] p-5 text-white flex flex-col justify-between shadow-sm relative overflow-hidden">
-          <div>
-            {/* Top Row: Ghost Icon & Title */}
-            <div className="flex items-start gap-4">
-              <RookieGhostIcon />
-
-              <div className="flex-1 min-w-0">
-                <h3 className="font-display font-extrabold text-2xl text-white tracking-tight leading-none">
-                  {user.rankTitle || 'Rookie'}
-                </h3>
-
-                {/* Dual-color Progress Bar */}
-                <div className="w-full bg-white/25 rounded-full h-2 mt-3 mb-1.5 overflow-hidden">
-                  <div
-                    className="h-full bg-[#FD02B0] rounded-full"
-                    style={{ width: `${Math.min(100, (user.currentPoints / 150) * 100)}%` }}
-                  />
-                </div>
-
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-white/95">
-                  <Gem className="w-3.5 h-3.5 text-white shrink-0" />
-                  <span>{user.currentPoints}/150 points.</span>
-                </div>
-
-                <div className="text-xs font-extrabold text-[#CAEB0E] mt-0.5 tracking-tight">
-                  Don't Stop Now
-                </div>
-              </div>
-            </div>
-
-            {/* Subtle Divider */}
-            <div className="border-t border-white/20 my-4" />
-
-            {/* Bottom Perks & View Plan */}
-            <div className="flex items-end justify-between gap-2">
-              <div className="space-y-1.5">
-                <div className="text-[11px] font-medium text-white/80">
-                  Next level at 50 Points
-                </div>
-                <div className="flex items-center gap-2 text-xs font-medium text-white">
-                  <span className="font-bold text-sm leading-none">$</span>
-                  <span>+{user.boostPercentage || 10}% Cashback Boost</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs font-medium text-white">
-                  <span className="font-bold text-sm leading-none">%</span>
-                  <span>Higher Confidence Signals</span>
-                </div>
-              </div>
-
-              <button
-                onClick={onOpenViewPlan}
-                className="px-3.5 py-1.5 rounded-full border border-white/90 hover:bg-white/15 text-white font-bold text-xs transition-all shadow-2xs whitespace-nowrap cursor-pointer active:scale-95"
-              >
-                View Plan
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* ── CARD 3: You're Connected. Nice! (Top-Right Milestone Card ~ 2.5 cols) ── */}
-        <div className="lg:col-span-3 rounded-2xl bg-white border-2 border-[#5945F1] p-4 relative flex flex-col justify-between shadow-2xs">
-          {/* Milestone Badge Floating on Top Right Border */}
-          <div className="absolute -top-3.5 right-4 px-3 py-0.5 rounded-full bg-[#FD02B0] text-white text-[11px] font-bold shadow-xs flex items-center gap-1.5 z-10">
-            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-            <span>Next Milestone</span>
-          </div>
-
-          <div className="pt-2">
-            <div className="flex items-center gap-3">
-              {/* Exness Icon */}
-              <div className="w-11 h-11 rounded-xl bg-[#0055FF] text-white flex items-center justify-center font-black text-xl shadow-xs shrink-0">
-                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
-                  <path d="M 6 6 L 11 12 L 6 18 L 9 18 L 13 13 L 17 18 L 20 18 L 15 12 L 20 6 L 17 6 L 13 11 L 9 6 Z" />
-                </svg>
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="font-bold text-sm text-[#0b1c30] leading-snug">
-                  You're Connected. Nice!
-                </div>
-                <div className="text-xs text-slate-500 mt-0.5 leading-snug">
-                  Start trading to get cashback
-                </div>
-              </div>
-
-              <button
-                onClick={() => handleTradeNow('Exness')}
-                className="py-1.5 px-3 rounded-xl bg-[#5945F1] hover:bg-[#492CED] text-white font-bold text-xs shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
-              >
-                Trade Now
-              </button>
-            </div>
-          </div>
-
-          {/* Bottom Pagination */}
-          <div className="flex items-center justify-center gap-2 pt-3 text-slate-400">
-            <button
-              onClick={() => setConnectedPage((p) => Math.max(1, p - 1))}
-              className="p-1 hover:text-slate-600 transition-colors cursor-pointer"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-            </button>
-            <div className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${connectedPage === 1 ? 'bg-[#5945F1]' : 'bg-slate-300'}`} />
-              <span className={`w-1.5 h-1.5 rounded-full ${connectedPage === 2 ? 'bg-[#5945F1]' : 'bg-slate-300'}`} />
-              <span className={`w-1.5 h-1.5 rounded-full ${connectedPage === 3 ? 'bg-[#5945F1]' : 'bg-slate-300'}`} />
-            </div>
-            <button
-              onClick={() => setConnectedPage((p) => Math.min(3, p + 1))}
-              className="p-1 hover:text-slate-600 transition-colors cursor-pointer"
-            >
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* ─── 3. LOWER SECTION (2 Columns: Left 8 cols, Right 4 cols) ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* ════════════ LEFT COLUMN: Your Stats: March 2026 ════════════ */}
-        <div className="lg:col-span-8 rounded-2xl bg-white border border-slate-200/90 p-5 sm:p-6 shadow-2xs space-y-5">
-          {/* Header Row: Title & Timeframe Filters */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
-            <h2 className="font-display text-lg sm:text-xl font-bold text-slate-700 tracking-tight">
-              Your Stats: <span className="text-[#0b1c30] font-black">March 2026</span>
-            </h2>
-
-            {/* Timeframe & Calendar Controls */}
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <div className="flex items-center gap-1 text-xs font-bold text-slate-600">
-                <button
-                  onClick={() => setSelectedTimeframe('1D')}
-                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                    selectedTimeframe === '1D'
-                      ? 'bg-[#CAEB0E] text-[#0b1c30] font-black shadow-xs'
-                      : 'hover:text-[#0b1c30]'
-                  }`}
-                >
-                  1D
-                </button>
-                <button
-                  onClick={() => setSelectedTimeframe('1W')}
-                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                    selectedTimeframe === '1W'
-                      ? 'bg-[#CAEB0E] text-[#0b1c30] font-black shadow-xs'
-                      : 'hover:text-[#0b1c30]'
-                  }`}
-                >
-                  1W
-                </button>
-                <button
-                  onClick={() => setSelectedTimeframe('1M')}
-                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-                    selectedTimeframe === '1M'
-                      ? 'bg-[#CAEB0E] text-[#0b1c30] font-black shadow-xs'
-                      : 'hover:text-[#0b1c30]'
-                  }`}
-                >
-                  1M
-                </button>
-                <button
-                  onClick={() => setSelectedTimeframe('All')}
-                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                    selectedTimeframe === 'All'
-                      ? 'bg-[#CAEB0E] text-[#0b1c30] font-black shadow-xs'
-                      : 'hover:text-[#0b1c30]'
-                  }`}
-                >
-                  All
-                </button>
-              </div>
-
-              {/* Date View Icons */}
-              <div className="flex items-center gap-1 pl-1 border-l border-slate-200">
-                <button className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer">
-                  <Calendar className="w-4 h-4" />
-                </button>
-                <button className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer">
-                  <Grid className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* 3 Metric Blocks in a Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-3 pb-5 border-b border-slate-100 items-stretch">
-            {/* Block 1: ACTIVE STREAK */}
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <ActiveStreakCalendarIcon />
-                <div>
-                  <div className="text-[11px] font-bold text-slate-400 tracking-wider uppercase">
-                    ACTIVE STREAK
-                  </div>
-                  <div className="text-2xl font-black font-display text-[#0b1c30] leading-tight">
-                    12 days
-                  </div>
-                  <div className="text-xs text-slate-400 mt-0.5 font-normal">
-                    Track your consistency
-                  </div>
-                </div>
-              </div>
-
-              {/* Heatmap Grid (2 Rows of Squares) */}
-              <div className="space-y-1 pt-1">
-                {/* Row 1: 14 squares */}
-                <div className="flex items-center gap-1">
-                  {[...Array(14)].map((_, i) => (
-                    <span
-                      key={`sq1-${i}`}
-                      className={`w-2.5 h-2.5 rounded-xs transition-colors ${
-                        i < 11
-                          ? 'bg-[#A3E635] shadow-2xs'
-                          : 'border border-slate-300 bg-white'
-                      }`}
-                    />
-                  ))}
-                </div>
-                {/* Row 2: 14 squares */}
-                <div className="flex items-center gap-1">
-                  {[...Array(14)].map((_, i) => (
-                    <span
-                      key={`sq2-${i}`}
-                      className={`w-2.5 h-2.5 rounded-xs transition-colors ${
-                        i < 8
-                          ? 'bg-[#A3E635] shadow-2xs'
-                          : 'border border-slate-300 bg-white'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Block 2: CUMULATIVE CASHBACK */}
-            <div className="space-y-2 relative overflow-hidden flex flex-col justify-between">
-              <div className="flex items-start gap-3">
-                <CumulativeCashbackIcon />
-                <div>
-                  <div className="text-[11px] font-bold text-slate-400 tracking-wider uppercase">
-                    CUMULATIVE CASHBACK
-                  </div>
-                  <div className="text-2xl font-black font-display text-[#0b1c30] leading-tight">
-                    ${user.totalCashbackEarned.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </div>
-                  <div className="text-xs text-slate-400 mt-0.5 font-normal">
-                    163.6 Lots
-                  </div>
-                </div>
-              </div>
-
-              {/* Wave Chart Graphic Filling Bottom */}
-              <div className="w-full h-10 mt-2 relative">
-                <svg viewBox="0 0 200 40" className="w-full h-full preserve-3d" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="cashbackWave" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#CAEB0E" stopOpacity="0.8" />
-                      <stop offset="100%" stopColor="#CAEB0E" stopOpacity="0.05" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M 0 35 Q 35 32 60 28 T 120 22 T 170 14 T 200 8 L 200 40 L 0 40 Z"
-                    fill="url(#cashbackWave)"
-                  />
-                  <path
-                    d="M 0 35 Q 35 32 60 28 T 120 22 T 170 14 T 200 8"
-                    fill="none"
-                    stroke="#CAEB0E"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-            </div>
-
-            {/* Block 3: TOP 3 PERFORMERS */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-1">
-                <span className="text-[11px] font-bold text-slate-800 tracking-wider uppercase">
-                  TOP 3 PERFORMERS
-                </span>
-                <button
-                  onClick={() => {
-                    const filters = ['Earning Assets', 'Top Volume', 'Forex Only'];
-                    const next = filters[(filters.indexOf(activeAssetFilter) + 1) % filters.length];
-                    setActiveAssetFilter(next);
-                  }}
-                  className="px-2.5 py-0.5 rounded-full border border-[#5945F1]/30 text-[#5945F1] text-[10px] font-semibold flex items-center gap-1 hover:bg-indigo-50/50 transition-colors cursor-pointer"
-                >
-                  <span>{activeAssetFilter}</span>
-                  <ChevronDown className="w-3 h-3" />
-                </button>
-              </div>
-
-              {/* Donut Chart & List */}
-              <div className="flex items-center gap-3 pt-1">
-                <TopPerformersDonutChart />
-
-                <div className="flex-1 min-w-0 space-y-1.5 text-xs">
-                  {/* Performer 1: XAU/USD */}
-                  <div className="flex items-center justify-between gap-1">
-                    <div className="flex items-center gap-1.5 truncate">
-                      <span className="w-2 h-2 rounded-full bg-[#F59E0B] shrink-0" />
-                      <span className="font-semibold text-slate-800 truncate">🪙 XAU/USD</span>
-                    </div>
-                    <span className="font-bold text-[#0b1c30] text-xs font-mono">$1,150.00</span>
-                  </div>
-
-                  {/* Performer 2: Dow Jones */}
-                  <div className="flex items-center justify-between gap-1">
-                    <div className="flex items-center gap-1.5 truncate">
-                      <span className="w-2 h-2 rounded-full bg-[#4F46E5] shrink-0" />
-                      <span className="font-semibold text-slate-800 truncate">🇬🇧 Dow Jones</span>
-                    </div>
-                    <span className="font-bold text-[#0b1c30] text-xs font-mono">$1,035.00</span>
-                  </div>
-
-                  {/* Performer 3: AUDUSD */}
-                  <div className="flex items-center justify-between gap-1">
-                    <div className="flex items-center gap-1.5 truncate">
-                      <span className="w-2 h-2 rounded-full bg-[#FD02B0] shrink-0" />
-                      <span className="font-semibold text-slate-800 truncate">🇦🇺 AUDUSD</span>
-                    </div>
-                    <span className="font-bold text-[#0b1c30] text-xs font-mono">$943.00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Secondary 4-Column Stats Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-1 text-left border-b border-slate-100">
-            <div>
-              <div className="text-xs text-slate-500 font-medium">Total Cashback (1M)</div>
-              <div className="text-sm sm:text-base font-bold text-[#0b1c30] mt-1 font-mono">
-                $0.00
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-slate-500 font-medium">Lots Traded</div>
-              <div className="text-sm sm:text-base font-bold text-[#0b1c30] mt-1 font-mono">
-                0
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-slate-500 font-medium">Avg Cashback / Lot</div>
-              <div className="text-sm sm:text-base font-bold text-[#0b1c30] mt-1 font-mono">
-                $0.00
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-slate-500 font-medium">Best Day</div>
-              <div className="text-sm sm:text-base font-bold text-[#0b1c30] mt-1 font-mono">
-                $0.00
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Chart Grid with Dashed Lines */}
-          <div className="space-y-4 pt-2">
-            {[
-              { dollar: '$100', lot: '10 lots' },
-              { dollar: '$90', lot: '9 lots' },
-              { dollar: '$80', lot: '8 lots' },
-              { dollar: '$70', lot: '7 lots' },
-            ].map((row) => (
-              <div key={row.dollar} className="flex items-center justify-between gap-3 text-xs text-slate-400 font-medium font-mono">
-                <span className="w-10 shrink-0 text-left">{row.dollar}</span>
-                <div className="flex-1 border-b border-dashed border-slate-300 h-0" />
-                <span className="w-14 shrink-0 text-right">{row.lot}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ════════════ RIGHT COLUMN (Two Stacked Cards) ════════════ */}
-        <div className="lg:col-span-4 space-y-5">
-          {/* ── CARD A: Your Winning Signals. ── */}
-          <div className="rounded-2xl bg-[#F8FAFC] border border-slate-200/80 p-5 shadow-2xs space-y-4">
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <h3 className="font-display font-extrabold text-base text-[#0b1c30]">
-                  Your <span className="text-[#5945F1]">Winning Signals.</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Signals from your actual money-makers.
-                </p>
-              </div>
-
-              <button
-                onClick={() => onNavigateToTab('signals')}
-                className="text-xs font-bold text-slate-600 hover:text-[#5945F1] transition-colors cursor-pointer flex items-center gap-0.5 shrink-0"
-              >
-                <span>All Signals</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {/* 2x2 Grid of White Signal Cards */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Item 1: EUR/USD */}
-              <div
-                onClick={() => {
-                  const s = signals.find((item) => item.ticker === 'EUR/USD') || signals[0];
-                  if (s) onSelectSignal(s);
-                }}
-                className="bg-white rounded-xl p-3 border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all cursor-pointer space-y-2"
-              >
-                <div className="flex items-center gap-1.5 font-bold text-xs text-[#0b1c30]">
-                  <span className="text-sm">🇪🇺</span>
-                  <span>EUR/USD</span>
-                </div>
-                <div className="flex items-center justify-between gap-1">
-                  <MiniSparkline trend="up" color="#16a34a" />
-                  <span className="text-xs font-bold text-[#16a34a] font-mono">+0.33%</span>
-                </div>
-              </div>
-
-              {/* Item 2: Dow Jones */}
-              <div
-                onClick={() => {
-                  const s = signals.find((item) => item.ticker.includes('Dow') || item.ticker.includes('US30')) || signals[1];
-                  if (s) onSelectSignal(s);
-                }}
-                className="bg-white rounded-xl p-3 border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all cursor-pointer space-y-2"
-              >
-                <div className="flex items-center gap-1.5 font-bold text-xs text-[#0b1c30]">
-                  <span className="text-sm">🇬🇧</span>
-                  <span className="truncate">Dow Jones</span>
-                </div>
-                <div className="flex items-center justify-between gap-1">
-                  <MiniSparkline trend="down" color="#5945F1" />
-                  <span className="text-xs font-bold text-[#5945F1] font-mono">-0.11%</span>
-                </div>
-              </div>
-
-              {/* Item 3: AUDUSD */}
-              <div
-                onClick={() => {
-                  const s = signals.find((item) => item.ticker.includes('AUD')) || signals[2];
-                  if (s) onSelectSignal(s);
-                }}
-                className="bg-white rounded-xl p-3 border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all cursor-pointer space-y-2"
-              >
-                <div className="flex items-center gap-1.5 font-bold text-xs text-[#0b1c30]">
-                  <span className="text-sm">🇦🇺</span>
-                  <span>AUDUSD</span>
-                </div>
-                <div className="flex items-center justify-between gap-1">
-                  <MiniSparkline trend="up" color="#16a34a" />
-                  <span className="text-xs font-bold text-[#16a34a] font-mono">+0.44%</span>
-                </div>
-              </div>
-
-              {/* Item 4: BTC/USD (Your next win?) */}
-              <div
-                onClick={() => {
-                  const s = signals.find((item) => item.ticker === 'BTC/USD') || signals[0];
-                  if (s) onSelectSignal(s);
-                }}
-                className="bg-white rounded-xl p-3 border border-slate-200/80 shadow-2xs hover:shadow-xs hover:border-slate-300 transition-all cursor-pointer flex flex-col justify-between space-y-1.5"
-              >
-                <div className="flex items-center gap-1.5 font-bold text-xs text-[#0b1c30]">
-                  <span className="text-sm">₿</span>
-                  <span>BTC/USD</span>
-                </div>
-                <div className="text-xs font-black text-[#FD02B0] tracking-tight">
-                  Your next win?
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── CARD B: Tops Earning Points. ── */}
-          <div className="rounded-2xl bg-white border-2 border-[#FD02B0]/80 p-5 shadow-2xs space-y-4">
-            <div>
-              <h3 className="font-display font-extrabold text-base text-[#0b1c30]">
-                Tops Earning Points<span className="text-[#FD02B0]">.</span>
-              </h3>
-              <p className="text-xs text-slate-600 mt-1 leading-snug">
-                Get rewarded for trading your usual assets.{' '}
-                <strong className="text-slate-800 font-bold">No extra effort required.</strong>
-              </p>
-            </div>
-
-            {/* List of 4 Assets */}
-            <div className="space-y-3.5 pt-1">
-              {/* Asset 1: EUR/USD */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-lg">🇪🇺</span>
-                  <span className="font-bold text-sm text-[#0b1c30]">EUR/USD</span>
-                </div>
-                <div className="flex items-center gap-1 text-[#5945F1] font-bold text-sm">
-                  <Gem className="w-3.5 h-3.5 fill-[#5945F1]/20 stroke-[#5945F1]" />
-                  <span>50</span>
-                </div>
-              </div>
-
-              {/* Asset 2: GOOGL */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs font-black shadow-2xs">
-                    <span className="text-[#4285F4]">G</span>
-                  </div>
-                  <span className="font-bold text-sm text-[#0b1c30]">GOOGL</span>
-                </div>
-                <div className="flex items-center gap-1 text-[#5945F1] font-bold text-sm">
-                  <Gem className="w-3.5 h-3.5 fill-[#5945F1]/20 stroke-[#5945F1]" />
-                  <span>35</span>
-                </div>
-              </div>
-
-              {/* Asset 3: XAU/USD */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-lg">🪙</span>
-                  <span className="font-bold text-sm text-[#0b1c30]">XAU/USD</span>
-                </div>
-                <div className="flex items-center gap-1 text-[#5945F1] font-bold text-sm">
-                  <Gem className="w-3.5 h-3.5 fill-[#5945F1]/20 stroke-[#5945F1]" />
-                  <span>20</span>
-                </div>
-              </div>
-
-              {/* Asset 4: S&P 500 */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-[#E11928] text-white flex items-center justify-center text-[9px] font-black shadow-2xs">
-                    500
-                  </div>
-                  <span className="font-bold text-sm text-[#0b1c30]">S&P 500</span>
-                </div>
-                <div className="flex items-center gap-1 text-[#5945F1] font-bold text-sm">
-                  <Gem className="w-3.5 h-3.5 fill-[#5945F1]/20 stroke-[#5945F1]" />
-                  <span>20</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Full-width View More Button */}
-            <button
-              onClick={() => onNavigateToTab('points-credits')}
-              className="w-full mt-2 py-2.5 px-4 rounded-xl bg-[#5945F1] hover:bg-[#492CED] text-white font-bold text-xs sm:text-sm shadow-xs transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>View More</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
-  )}
+        <EmptyStateDashboardView
+          user={user}
+          brokers={brokers}
+          signals={signals}
+          onOpenViewPlan={onOpenViewPlan}
+          onOpenConnectModal={onOpenConnectModal}
+          onNavigateToTab={onNavigateToTab}
+          onNavigateToConnectBroker={onNavigateToConnectBroker}
+          onSelectSignal={onSelectSignal}
+        />
+      )}
 
       {/* ─── HOW IT WORKS RULES MODAL ─── */}
       <HowItWorksModal

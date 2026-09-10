@@ -36,6 +36,7 @@ import { LevelPointsGuideView } from './components/LevelPointsGuideView';
 import { CreditEarningGuideView } from './components/CreditEarningGuideView';
 import { ActivityLogsView } from './components/ActivityLogsView';
 import { CashbackOverviewPage } from './components/CashbackOverviewPage';
+import { ConnectToTruvoPage } from './components/ConnectToTruvoPage';
 import { TradingSignalsPage } from './components/TradingSignalsPage';
 import { LeverageCalculatorPage } from './components/calculators/LeverageCalculatorPage';
 import { TradingCalculatorsModal, CalculatorType } from './components/calculators/TradingCalculatorsModal';
@@ -377,6 +378,10 @@ export default function App() {
               setIsSignalModalOpen(true);
             }}
             onNavigateToTab={setActiveTab}
+            onNavigateToConnectBroker={(broker) => {
+              if (broker) setSelectedBrokerForConnect(broker);
+              setActiveTab('connect-to-truvo');
+            }}
             onTriggerEarningModal={handleTriggerEarningReward}
             onOpenSearchModal={() => setIsSearchModalOpen(true)}
             onShowToast={showToast}
@@ -457,6 +462,10 @@ export default function App() {
               setSelectedSignal(sig);
               setIsSignalModalOpen(true);
             }}
+            onNavigateToConnectBroker={(broker) => {
+              if (broker) setSelectedBrokerForConnect(broker);
+              setActiveTab('connect-to-truvo');
+            }}
             onBackToDashboard={() => setActiveTab('dashboard')}
             onSimulateTradeCashback={() => {
               handleRewardPoints(50, 'Live Broker Trade Rebate Credited');
@@ -466,6 +475,22 @@ export default function App() {
               }));
               showToast('🎉 +$12.00 Cashback added to your balance!');
             }}
+          />
+        )}
+
+        {/* ─── TAB: Connect to Truvo Page (Broker Partnership & Verification) ─── */}
+        {activeTab === 'connect-to-truvo' && (
+          <ConnectToTruvoPage
+            broker={selectedBrokerForConnect || brokers[0]}
+            brokers={brokers}
+            onSelectBroker={(b) => setSelectedBrokerForConnect(b)}
+            onBackToDashboard={() => setActiveTab('dashboard')}
+            onNavigateToCashback={() => setActiveTab('cashback-overview')}
+            onOpenConnectModal={(b) => {
+              setSelectedBrokerForConnect(b);
+              setIsConnectModalOpen(true);
+            }}
+            onShowToast={showToast}
           />
         )}
 
