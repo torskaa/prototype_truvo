@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src/features/market/**/*.ts", "src/features/market/**/*.tsx"]
+}

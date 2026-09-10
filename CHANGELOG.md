@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.11.0] - 2026-09-10
+### Added
+- Integrated Market Explorer, Market Screener, Instrument Overview, and Advanced Chart from the trading-intelligence prototype.
+- Desktop Trade menu and mobile navigation entries, shareable `?view=`/`symbol=` links, and browser back/forward support.
+- Lazy-loaded market module with scoped component styles, mock market datasets, chart tools, indicators, and TradingView adapter.
+- Preserved the main project's dashboard, broker directory, rewards, community, theme, and account header.
+### Notes
+- Market data and alerts remain demo features. Licensed TradingView Charting Library assets and live data are not bundled.
+- The module maps existing member tiers to market feature tiers. No accounts, credentials, or user data are migrated.
+
 All notable changes to this project will be documented in this file.
 
 ## [0.5.0] - 2026-09-09

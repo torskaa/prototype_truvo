@@ -706,6 +706,14 @@ export const Header: React.FC<HeaderProps> = ({
                     <div className="text-sm font-medium text-slate-700 font-sans">
                       Products
                     </div>
+                    <div className="space-y-3">
+                      {[
+                        ['explorer', 'Market Explorer'],
+                        ['screener', 'Market Screener'],
+                        ['instrument', 'Instrument Overview'],
+                        ['chart', 'Advanced Chart'],
+                      ].map(([view, label]) => <button key={view} onClick={() => { setActiveTab(view); handleCloseImmediately(); }} className="block text-left font-bold text-[15px] text-[#0b1c30] hover:text-[#5338ec]">{label}</button>)}
+                    </div>
                     <div>
                       <button
                         onClick={() => {
@@ -1108,6 +1116,10 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-slate-200 px-4 py-3 space-y-2">
+          {[
+            ['explorer', 'Market Explorer'], ['screener', 'Market Screener'],
+            ['instrument', 'Instrument Overview'], ['chart', 'Advanced Chart'],
+          ].map(([view, label]) => <button key={view} onClick={() => {setActiveTab(view); setMobileMenuOpen(false);}} className={`block w-full py-2 text-left text-sm font-semibold ${activeTab === view ? 'text-[#5338ec]' : 'text-slate-700'}`}>{label}</button>)}
           <button
             onClick={() => {
               setActiveTab('dashboard');

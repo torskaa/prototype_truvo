@@ -1,7 +1,7 @@
 {
   "name": "marketsyde",
   "private": true,
-  "version": "0.10.0",
+  "version": "0.11.0",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -11,6 +11,14 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@base-ui/react": "1.7.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "d3-hierarchy": "^3.1.2",
+    "react-resizable-panels": "4.5.8",
+    "recharts": "3.8.0",
+    "tailwind-merge": "3.6.0",
+    "three": "^0.186.0",
     "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
@@ -23,6 +31,10 @@
     "motion": "^12.23.24"
   },
   "devDependencies": {
+    "@types/d3-hierarchy": "^3.1.7",
+    "@types/three": "^0.185.4",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",

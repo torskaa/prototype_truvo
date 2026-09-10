@@ -1,0 +1,16 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { Cable, Check, Info, LoaderCircle } from 'lucide-react';
+import { createMockTradingViewDatafeed } from '@market/lib/tradingview/mock-datafeed';
+import { createTradingViewWidgetOptions } from '@market/lib/tradingview/widget-config';
+
+declare global { interface Window { TradingView?:{widget:new(options:unknown)=>{remove?:()=>void;onChartReady?:(cb:()=>void)=>void}} } }
+export type ChartEngine='prototype'|'tradingview';
+
+export function TradingViewChartHost({engine,symbol,resolution,children}:{engine:ChartEngine;symbol:string;resolution:string;children:React.ReactNode}){
+ const container=useRef<HTMLDivElement>(null); const [status,setStatus]=useState<'idle'|'loading'|'ready'|'missing'>('idle');
+ useEffect(()=>{if(engine!=='tradingview'||!container.current){setStatus('idle');return}let disposed=false;let widget:{remove?:()=>void}|undefined;const libraryPath=(window as unknown as {__MARKETSYDE_TV_LIBRARY_PATH__?:string}).__MARKETSYDE_TV_LIBRARY_PATH__??'/charting_library/';const mount=()=>{if(disposed||!container.current||!window.TradingView?.widget){setStatus('missing');return}widget=new window.TradingView.widget(createTradingViewWidgetOptions({container:container.current,datafeed:createMockTradingViewDatafeed(),symbol,resolution,libraryPath}));setStatus('ready')};if(window.TradingView?.widget){mount()}else{setStatus('loading');const existing=document.querySelector<HTMLScriptElement>('script[data-marketsyde-tv]');if(existing){existing.addEventListener('load',mount,{once:true});existing.addEventListener('error',()=>setStatus('missing'),{once:true})}else{const script=document.createElement('script');script.src=`${libraryPath}charting_library.standalone.js`;script.async=true;script.dataset.marketsydeTv='true';script.onload=mount;script.onerror=()=>setStatus('missing');document.head.appendChild(script)}}return()=>{disposed=true;widget?.remove?.()}},[engine,symbol,resolution]);
+ if(engine==='prototype')return <>{children}</>;
+ return <div className="relative size-full"><div ref={container} className={status==='ready'?'size-full':'hidden'}/>{status!=='ready'&&<><div className="size-full opacity-30">{children}</div><div className="absolute left-1/2 top-1/2 w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-cyan-400/20 bg-[#101a26]/95 p-4 shadow-2xl"><div className="flex items-center gap-2 text-xs font-semibold text-cyan-300">{status==='loading'?<LoaderCircle className="size-4 animate-spin"/>:<Cable className="size-4"/>}{status==='loading'?'Loading TradingView assets…':'TradingView adapter is ready'}</div><p className="mt-2 text-[10px] leading-relaxed text-slate-400">{status==='loading'?'Checking the configured self-hosted Charting Library path.':'Add your licensed Charting Library files at /public/charting_library. The widget will mount automatically and use the mock Datafeed API adapter until your production market-data backend is connected.'}</p><div className="mt-3 flex items-center gap-2 rounded bg-emerald-400/5 p-2 text-[9px] text-emerald-300"><Check className="size-3"/>Datafeed, widget configuration, theme and feature flags prepared</div><div className="mt-2 flex items-center gap-2 text-[8px] text-slate-600"><Info className="size-3"/>Licensed library assets are intentionally not bundled.</div></div></>}</div>
+}

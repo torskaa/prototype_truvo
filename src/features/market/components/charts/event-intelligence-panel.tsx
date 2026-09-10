@@ -1,0 +1,24 @@
+'use client';
+
+import { AlertTriangle, ArrowDownRight, ArrowUpRight, Globe2, Lock, MapPin, Radio, Sparkles } from 'lucide-react';
+import type { EventScope, MarketEvent } from '@market/data/mock-market-events';
+import { eventScopeLabels } from '@market/data/mock-market-events';
+
+export type EventScopeFilter='ALL'|EventScope;
+const scopes:EventScopeFilter[]=['ALL','GLOBAL','REGIONAL','COUNTRY','SECTOR','INSTRUMENT'];
+const tone=(event:MarketEvent)=>event.direction==='RISK-ON'?'text-emerald-300 border-emerald-400/25 bg-emerald-400/8':event.direction==='RISK-OFF'?'text-rose-300 border-rose-400/25 bg-rose-400/8':'text-amber-300 border-amber-400/25 bg-amber-400/8';
+const DotIcon=({direction}:{direction:MarketEvent['direction']})=>direction==='RISK-ON'?<ArrowUpRight/>:direction==='RISK-OFF'?<ArrowDownRight/>:<AlertTriangle/>;
+
+export function EventFilter({scope,setScope,locked,requestAccess}:{scope:EventScopeFilter;setScope:(scope:EventScopeFilter)=>void;locked:boolean;requestAccess:()=>void}){
+ return <div className="flex flex-wrap items-center gap-1"><span className="mr-1 flex items-center gap-1 text-[8px] uppercase tracking-wider text-slate-600"><Globe2 className="size-3"/>Event scope</span>{scopes.map(s=><button key={s} onClick={()=>locked&&s!=='ALL'?requestAccess():setScope(s)} className={`rounded border px-2 py-1 text-[8px] ${scope===s?'border-cyan-400/35 bg-cyan-400/10 text-cyan-300':'border-white/8 text-slate-500 hover:text-slate-300'}`}>{eventScopeLabels[s]}{locked&&s!=='ALL'&&<Lock className="ml-1 inline size-2"/>}</button>)}</div>
+}
+
+export function EventTimelinePanel({events,selected,onSelect,scope,setScope,locked,requestAccess}:{events:MarketEvent[];selected:MarketEvent|null;onSelect:(event:MarketEvent)=>void;scope:EventScopeFilter;setScope:(scope:EventScopeFilter)=>void;locked:boolean;requestAccess:()=>void}){
+ return <div className="h-40 p-3"><div className="flex items-center justify-between"><EventFilter {...{scope,setScope,locked,requestAccess}}/><span className="text-[8px] text-slate-600">MOCK EVENT INTELLIGENCE · {events.length} MATCHES</span></div><div className="relative mt-4"><div className="absolute left-3 right-3 top-3 h-px bg-white/10"/><div className="relative grid grid-cols-6 gap-2">{events.map(event=><button key={event.id} onClick={()=>locked?requestAccess():onSelect(event)} className="group min-w-0 text-left"><span className={`relative z-10 grid size-6 place-items-center rounded-full border ${tone(event)} ${selected?.id===event.id?'ring-2 ring-cyan-300/30':''}`}><DotIcon direction={event.direction}/></span><span className="mt-2 block font-mono text-[8px] text-slate-600">{event.time}</span><b className="mt-1 block truncate text-[8px] text-slate-300 group-hover:text-white">{event.title}</b><span className="mt-1 block text-[7px] text-slate-600">{eventScopeLabels[event.scope]} · impact {event.severity}/5</span></button>)}</div></div></div>
+}
+
+export function EventDetail({event,compact=false}:{event:MarketEvent;compact?:boolean}){
+ return <div className={`rounded-md border p-3 ${tone(event)}`}><div className="flex items-start justify-between gap-3"><div><div className="flex items-center gap-1 text-[8px] font-semibold uppercase tracking-wider"><DotIcon direction={event.direction}/>{event.direction} · {event.category}</div><b className="mt-2 block text-[11px] leading-snug text-slate-100">{event.title}</b></div><span className="shrink-0 rounded bg-black/20 px-1.5 py-1 font-mono text-[8px]">{event.time}</span></div>{!compact&&<p className="mt-2 text-[9px] leading-relaxed text-slate-400">{event.summary}</p>}<div className="mt-2 rounded bg-black/20 p-2"><div className="text-[7px] uppercase tracking-wider text-slate-600">Observed market reaction</div><div className="mt-1 text-[9px] text-slate-200">{event.reaction}</div></div><div className="mt-2 flex flex-wrap items-center gap-1 text-[7px] text-slate-500"><span className="flex items-center gap-1"><MapPin className="size-2.5"/>{event.region}</span><span>·</span><span>{eventScopeLabels[event.scope]}</span><span>·</span><span>{event.confidence}% confidence</span></div>{!compact&&<><div className="mt-2 flex flex-wrap gap-1">{event.affected.map(item=><span key={item} className="rounded bg-white/5 px-1.5 py-1 text-[7px] text-slate-400">{item}</span>)}</div><div className="mt-2 flex items-center gap-1 text-[7px] text-slate-600"><Radio className="size-2.5"/>{event.source} · demo attribution</div></>}</div>
+}
+
+export function EventIntelligenceIntro(){return <div className="rounded border border-cyan-400/15 bg-cyan-400/5 p-3"><div className="flex items-center gap-2 text-[9px] text-cyan-300"><Sparkles className="size-3"/><b>EVENT INTELLIGENCE</b></div><p className="mt-2 text-[8px] leading-relaxed text-slate-500">Connect price behavior to macro, geopolitical, policy, sector, and company events. Reactions describe observed co-movement—not proven causation.</p></div>}

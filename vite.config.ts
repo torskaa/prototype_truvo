@@ -8,6 +8,7 @@ export default defineConfig(() => {
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
+        '@market': path.resolve(__dirname, 'src/features/market'),
         '@': path.resolve(__dirname, '.'),
       },
     },

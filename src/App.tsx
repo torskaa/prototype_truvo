@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
+const MarketWorkspace = lazy(() => import('./features/market/MarketWorkspace'));
+const marketViews = ['explorer', 'screener', 'instrument', 'chart'];
 import {
   INITIAL_USER,
   INITIAL_BROKERS,
@@ -58,7 +60,22 @@ export default function App() {
   const [quickSteps, setQuickSteps] = useState(QUICK_START_STEPS);
   const [missions, setMissions] = useState<Mission[]>(INITIAL_MISSIONS);
   const [activityLogs, setActivityLogs] = useState<ActivityLogItem[]>(INITIAL_ACTIVITY_LOGS);
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [activeTab, updateActiveTab] = useState<string>(() => new URLSearchParams(window.location.search).get('view') || 'dashboard');
+  const [routeSearch, setRouteSearch] = useState(window.location.search);
+  const setActiveTab = (next: string, symbol?: string) => {
+    const params = new URLSearchParams();
+    params.set('view', next);
+    if (symbol) params.set('symbol', symbol);
+    window.history.pushState(null, '', `?${params}`);
+    setRouteSearch(window.location.search);
+    updateActiveTab(next);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+  useEffect(() => {
+    const onPopState = () => { updateActiveTab(new URLSearchParams(window.location.search).get('view') || 'dashboard'); setRouteSearch(window.location.search); };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Community state
@@ -249,8 +266,9 @@ export default function App() {
 
       {/* Main App Container */}
       <main className="flex-1 w-full px-4 sm:px-8 lg:px-[56px] py-6 space-y-6">
+        {marketViews.includes(activeTab) && <Suspense fallback={<div className="p-10 text-center text-slate-500">Loading market workspace…</div>}><MarketWorkspace view={activeTab} locationSearch={routeSearch} onNavigate={setActiveTab} tierLevel={user.tierLevel} onToast={showToast} /></Suspense>}
         {/* Welcome Bar / Subheader for other tabs */}
-        {activeTab !== 'dashboard' && activeTab !== 'points-credits' && activeTab !== 'cashback-overview' && activeTab !== 'signals' && activeTab !== 'level-points-guide' && activeTab !== 'credit-earning-guide' && activeTab !== 'activity-logs' && activeTab !== 'leverage-calculator' && activeTab !== 'volatility-calculator' && activeTab !== 'spread-calculator' && activeTab !== 'pip-calculator' && activeTab !== 'pips-calculator' && activeTab !== 'margin-calculator' && activeTab !== 'rebate-calculator' && activeTab !== 'calculators' && (
+        {!marketViews.includes(activeTab) && activeTab !== 'dashboard' && activeTab !== 'points-credits' && activeTab !== 'cashback-overview' && activeTab !== 'signals' && activeTab !== 'level-points-guide' && activeTab !== 'credit-earning-guide' && activeTab !== 'activity-logs' && activeTab !== 'leverage-calculator' && activeTab !== 'volatility-calculator' && activeTab !== 'spread-calculator' && activeTab !== 'pip-calculator' && activeTab !== 'pips-calculator' && activeTab !== 'margin-calculator' && activeTab !== 'rebate-calculator' && activeTab !== 'calculators' && (
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
             <div>
               <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">

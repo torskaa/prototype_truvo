@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./features/market/market.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
