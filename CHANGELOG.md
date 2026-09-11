@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.50.0] - 2026-09-11
+### Changed
+- Kept Instrument section navigation visible while switching between all analysis tabs.
+
 ## [0.49.0] - 2026-09-11
 ### Changed
 - Moved Instrument section navigation into the Performance analysis panel.
