@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.47.0] - 2026-09-11
+### Changed
+- Removed the redundant Sponsored example card from the market workspace.
+- Kept broker comparison and partner incentives in the dedicated results-area campaign section.
+
 ## [0.46.0] - 2026-09-11
 ### Added
 - Added a broker comparison panel below the market results area.

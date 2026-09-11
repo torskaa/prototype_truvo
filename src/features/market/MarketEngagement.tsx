@@ -42,7 +42,6 @@ export function MarketEngagement({ children, view, instrument, symbols, brokers,
   const value: Engagement = { brokers, symbol: instrument.symbol, requestQuest, requestUnlock: setPurchase, openBrokerAccess: () => setBrokerOpen(true), connect, compare: () => { setBrokerOpen(false); onCompareBrokers(); }, estimate: () => setEstimatorOpen(true), navigateSymbol: symbol => onNavigate('instrument', symbol) };
   return <EngagementContext.Provider value={value}>
     {children}
-    {view !== 'instrument' && <div className="mt-5"><SponsoredExample /></div>}
     {quest && <QuestDialog key={`${quest.id}-${quest.symbols.join(',')}`} request={quest} instrument={instrument} onClose={() => setQuest(null)} />}
     {purchase && <UnlockDialog key={purchase} feature={purchase} onClose={() => setPurchase(null)} onPlans={() => { setPurchase(null); onOpenPlans(); }} />}
     <Dialog open={brokerOpen} onOpenChange={setBrokerOpen}><DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl"><DialogTitle>Broker access · {instrument.symbol}</DialogTitle><DialogDescription>Compare account conditions and product availability.</DialogDescription><BrokerDirectory /><p className="text-xs text-slate-500">{terms}</p></DialogContent></Dialog>
