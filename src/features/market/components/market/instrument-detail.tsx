@@ -1530,6 +1530,7 @@ function TechnicalSummaryMini({ instrument }: { instrument: Instrument }) {
 }
 
 function MarketDataSnapshot({ instrument }: { instrument: Instrument }) {
+  const [selectedPeriod, setSelectedPeriod] = useState('1d');
   const price = instrument.price;
   const dayChange = instrument.change / 100;
   const open = price / (1 + dayChange);
@@ -1547,6 +1548,7 @@ function MarketDataSnapshot({ instrument }: { instrument: Instrument }) {
     label: String(label),
     value: Number(value),
   }));
+  const selected = periods.find((period) => period.label === selectedPeriod) ?? periods[6];
   const formatPrice = (value: number) =>
     value >= 1000 ? value.toLocaleString(undefined, { maximumFractionDigits: 0 }) : value.toFixed(2);
   return (
@@ -1556,7 +1558,12 @@ function MarketDataSnapshot({ instrument }: { instrument: Instrument }) {
           <p className="concept-eyebrow">MARKET DATA</p>
           <h2>Price range & activity</h2>
         </div>
-        <span>11 Sep 2026 · demo</span>
+        <div className="market-snapshot__filter">
+          <label htmlFor="market-range">Range</label>
+          <select id="market-range" value={selectedPeriod} onChange={(event) => setSelectedPeriod(event.target.value)}>
+            {periods.map((period) => <option key={period.label} value={period.label}>{period.label}</option>)}
+          </select>
+        </div>
       </div>
       <div className="market-snapshot__headline">
         <div><small>24H OPEN / CLOSE</small><b>{formatPrice(open)} → {formatPrice(price)}</b></div>
@@ -1564,15 +1571,23 @@ function MarketDataSnapshot({ instrument }: { instrument: Instrument }) {
         <div><small>VALUE CHANGE</small><b className={instrument.change >= 0 ? 'concept-up' : 'concept-down'}>{absoluteChange >= 0 ? '+' : ''}{formatPrice(absoluteChange)} ({instrument.change >= 0 ? '+' : ''}{instrument.change.toFixed(2)}%)</b></div>
         <div><small>VOLUME CHANGE</small><b>{instrument.rvol >= 1 ? '+' : ''}{((instrument.rvol - 1) * 100).toFixed(1)}% · {instrument.volume.toLocaleString()}M</b></div>
       </div>
+      <div className="market-snapshot__selected">
+        <span>{selected.label} change</span>
+        <b className={selected.value >= 0 ? 'concept-up' : 'concept-down'}>
+          {selected.value >= 0 ? '+' : ''}{(selected.value * 100).toFixed(2)}%
+          {' · '}{selected.value >= 0 ? '+' : ''}{formatPrice(price * selected.value)}
+        </b>
+        <small>As of 11 Sep 2026 · demo snapshot</small>
+      </div>
       <div className="market-snapshot__periods">
         {periods.map((period) => (
-          <div key={period.label}>
+          <button key={period.label} type="button" className={period.label === selectedPeriod ? 'selected' : ''} onClick={() => setSelectedPeriod(period.label)}>
             <span>{period.label}</span>
             <b className={period.value >= 0 ? 'concept-up' : 'concept-down'}>
               {period.value >= 0 ? '+' : ''}{(period.value * 100).toFixed(2)}%
             </b>
             <small>{period.value >= 0 ? '+' : ''}{formatPrice(price * period.value)}</small>
-          </div>
+          </button>
         ))}
       </div>
     </section>

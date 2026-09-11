@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.57.0] - 2026-09-11
+### Changed
+- Added an in-place market range filter with selected-period highlighting and change details.
+
 ## [0.56.0] - 2026-09-11
 ### Added
 - Added dated 24-hour OHLC, absolute and percentage changes, volume change, and multi-period market data beneath the instrument identity.
