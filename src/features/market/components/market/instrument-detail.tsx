@@ -1514,6 +1514,34 @@ function TechnicalSummary({ instrument }: { instrument: Instrument }) {
       : instrument.rvol >= 1
         ? 'Moderate participation'
         : 'Light participation';
+  const signalDate = '11 Sep 2026';
+  const signalMethods = [
+    {
+      method: 'Trend structure',
+      reading: instrument.return1m >= 0 ? 'Bullish' : 'Bearish',
+      summary: `1M return is ${instrument.return1m >= 0 ? '+' : ''}${instrument.return1m}%, indicating ${instrument.return1m >= 0 ? 'rising' : 'weakening'} directional structure.`,
+    },
+    {
+      method: 'RSI momentum',
+      reading: instrument.rsi < 35 ? 'Oversold' : instrument.rsi > 65 ? 'Overbought' : 'Balanced',
+      summary: `RSI 14 is ${instrument.rsi.toFixed(1)}, placing momentum in the ${instrument.rsi < 35 ? 'oversold' : instrument.rsi > 65 ? 'overbought' : 'middle'} range.`,
+    },
+    {
+      method: 'Relative volume',
+      reading: confirmation,
+      summary: `Trading activity is ${instrument.rvol.toFixed(2)}x the reference level, which is treated as ${instrument.rvol >= 1.5 ? 'strong confirmation' : 'moderate confirmation'} in this snapshot.`,
+    },
+    {
+      method: 'Volatility regime',
+      reading: Math.abs(instrument.change) >= 3 ? 'Elevated' : 'Contained',
+      summary: `The daily move is ${instrument.change >= 0 ? '+' : ''}${instrument.change.toFixed(2)}%, suggesting ${Math.abs(instrument.change) >= 3 ? 'elevated' : 'contained'} short-term volatility.`,
+    },
+    {
+      method: 'Support / resistance',
+      reading: instrument.signal === 'LONG' ? 'Supportive' : 'Watch level',
+      summary: `The current ${instrument.signal === 'LONG' ? 'positive' : 'mixed'} evidence suggests monitoring the next price reaction around recent reference levels.`,
+    },
+  ];
   return (
     <>
       <section className="panel p-5">
@@ -1588,6 +1616,35 @@ function TechnicalSummary({ instrument }: { instrument: Instrument }) {
             <p className="mt-1 text-xs font-semibold text-slate-800">
               {confirmation}
             </p>
+          </div>
+        </div>
+        <div className="mt-5">
+          <div className="flex items-center justify-between">
+            <p className="label">Method breakdown</p>
+            <span className="text-[10px] text-slate-400">As of {signalDate}</span>
+          </div>
+          <div className="mt-3 grid gap-2">
+            {signalMethods.map((item) => (
+              <div
+                key={item.method}
+                className="rounded-lg border border-border bg-white p-3"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs font-semibold text-slate-800">
+                    {item.method}
+                  </p>
+                  <span className="text-[10px] font-semibold text-violet-700">
+                    {item.reading}
+                  </span>
+                </div>
+                <p className="mt-1 text-[10px] leading-4 text-slate-500">
+                  {item.summary}
+                </p>
+                <p className="mt-1 text-[9px] text-slate-400">
+                  Observation date: {signalDate}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
         <p className="mt-4 text-[10px] text-slate-400">

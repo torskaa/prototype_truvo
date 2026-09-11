@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.52.0] - 2026-09-11
+### Added
+- Added five dated technical signal methods covering trend, RSI momentum, relative volume, volatility, and support/resistance.
+
 ## [0.51.0] - 2026-09-11
 ### Added
 - Added a second dynamic Technical signal card with description, confidence, direction, and participation summary.
