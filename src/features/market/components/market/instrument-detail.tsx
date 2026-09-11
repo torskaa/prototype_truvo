@@ -292,7 +292,7 @@ export function InstrumentDetail({ instrument, onBack, onChart, onToast, chartOp
   return <div className="concept-instrument">
     <section className="concept-bounty"><div className="concept-bounty-icon"><TrendingUp /></div><div><span className="concept-gold-label">DAILY MARKET FOCUS</span><h2>Explore {instrument.symbol}, from price to perspective</h2><p>Review the chart, market context, and community outlook.</p></div></section>
     <section className="concept-quote">
-      <div className="concept-identity"><button onClick={onBack} className="concept-back"><ArrowLeft size={14} /> Markets / {kind}</button><div className="concept-name"><div className="concept-symbol">{instrument.symbol.slice(0, 4)}</div><div><h1>{instrument.name}</h1><div className="concept-tags"><span>{instrument.primaryMarket ?? instrument.market}: {instrument.symbol}</span><span>{instrument.subSector ?? instrument.sector}</span></div><p>Demo quote · {kind === 'Crypto' ? '24/7 market' : 'Regular market session'} · USD</p></div></div></div>
+      <div className="concept-identity"><button onClick={onBack} className="concept-back"><ArrowLeft size={14} /> Markets / {kind}</button><div className="concept-name"><div className="concept-symbol">{instrument.symbol.slice(0, 4)}</div><div><h1>{instrument.name}</h1><div className="concept-tags"><span>{instrument.primaryMarket ?? instrument.market}: {instrument.symbol}</span><span>{instrument.subSector ?? instrument.sector}</span></div><p>Demo quote · {kind === 'Crypto' ? '24/7 market' : 'Regular market session'} · USD</p></div></div><MarketDataSnapshot instrument={instrument} /></div>
       <div className="concept-price"><h2>{kind === 'Forex' ? '' : '$'}{displayValue(instrument)}</h2><span className={positive ? 'concept-up' : 'concept-down'}>{positive ? '↗ +' : '↘ '}{instrument.change.toFixed(2)}%</span><small> Today · demo snapshot</small><div className="concept-quote-stats"><div><small>MARKET CAP</small><b>{instrument.marketCap ? `$${instrument.marketCap.toLocaleString()}B` : '—'}</b></div><div><small>VOLUME</small><b>{instrument.volume.toLocaleString()}M</b></div><div><small>RELATIVE VOLUME</small><b>{instrument.rvol.toFixed(2)}×</b></div><div><small>1 MONTH RETURN</small><b>{instrument.return1m > 0 ? '+' : ''}{instrument.return1m}%</b></div></div><div className="concept-actions"><button onClick={() => { setWatching(!watching); onToast(watching ? 'Removed from watchlist' : 'Added to watchlist'); }}><Star size={15} fill={watching ? 'currentColor' : 'none'} />{watching ? 'Watching' : 'Watchlist'}</button><button onClick={() => onToast(`Demo price alert created for ${instrument.symbol}`)}><Bell size={15} /> Alert</button><button className="concept-primary" onClick={openBrokerAccess}>Broker access <ArrowRight size={16} /></button></div><TechnicalSummaryMini instrument={instrument} /></div>
     </section>
     <div className="concept-columns">
@@ -1524,6 +1524,56 @@ function TechnicalSummaryMini({ instrument }: { instrument: Instrument }) {
           score={overallScore}
           detail={`Confidence - ${instrument.confidence}%`}
         />
+      </div>
+    </section>
+  );
+}
+
+function MarketDataSnapshot({ instrument }: { instrument: Instrument }) {
+  const price = instrument.price;
+  const dayChange = instrument.change / 100;
+  const open = price / (1 + dayChange);
+  const high = Math.max(open, price) * 1.006;
+  const low = Math.min(open, price) * 0.994;
+  const absoluteChange = price - open;
+  const periods = [
+    ['1m', 0.004], ['5m', 0.009], ['10m', 0.014], ['1h', 0.021],
+    ['3h', 0.031], ['6h', 0.046], ['1d', instrument.change / 100],
+    ['3d', instrument.change / 100 * 1.35], ['7d', instrument.change / 100 * 1.8],
+    ['2w', instrument.return1m / 100 * 0.55], ['1mo', instrument.return1m / 100],
+    ['6mo', instrument.return1m / 100 * 3.7], ['1y', instrument.return1m / 100 * 6.2],
+    ['3y', instrument.return1m / 100 * 13.5], ['5y', instrument.return1m / 100 * 21],
+  ].map(([label, value]) => ({
+    label: String(label),
+    value: Number(value),
+  }));
+  const formatPrice = (value: number) =>
+    value >= 1000 ? value.toLocaleString(undefined, { maximumFractionDigits: 0 }) : value.toFixed(2);
+  return (
+    <section className="market-snapshot">
+      <div className="market-snapshot__heading">
+        <div>
+          <p className="concept-eyebrow">MARKET DATA</p>
+          <h2>Price range & activity</h2>
+        </div>
+        <span>11 Sep 2026 · demo</span>
+      </div>
+      <div className="market-snapshot__headline">
+        <div><small>24H OPEN / CLOSE</small><b>{formatPrice(open)} → {formatPrice(price)}</b></div>
+        <div><small>LOW / HIGH</small><b>{formatPrice(low)} — {formatPrice(high)}</b></div>
+        <div><small>VALUE CHANGE</small><b className={instrument.change >= 0 ? 'concept-up' : 'concept-down'}>{absoluteChange >= 0 ? '+' : ''}{formatPrice(absoluteChange)} ({instrument.change >= 0 ? '+' : ''}{instrument.change.toFixed(2)}%)</b></div>
+        <div><small>VOLUME CHANGE</small><b>{instrument.rvol >= 1 ? '+' : ''}{((instrument.rvol - 1) * 100).toFixed(1)}% · {instrument.volume.toLocaleString()}M</b></div>
+      </div>
+      <div className="market-snapshot__periods">
+        {periods.map((period) => (
+          <div key={period.label}>
+            <span>{period.label}</span>
+            <b className={period.value >= 0 ? 'concept-up' : 'concept-down'}>
+              {period.value >= 0 ? '+' : ''}{(period.value * 100).toFixed(2)}%
+            </b>
+            <small>{period.value >= 0 ? '+' : ''}{formatPrice(price * period.value)}</small>
+          </div>
+        ))}
       </div>
     </section>
   );

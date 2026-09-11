@@ -93,6 +93,19 @@ main:has(.concept-instrument) > div:first-of-type { max-width:1600px; padding:24
 .concept-tags span { background:#f0efff; color:#6046ff; border:1px solid #dedaff; border-radius:5px; padding:3px 7px; font-size:12px; }
 .concept-tags span:first-child { background:#f2f5f9; border-color:#e0e7f0; color:#465570; }
 .concept-name p { color:#73809a; font-size:12px; }
+.market-snapshot { margin-top:22px; border-top:1px solid #edf0f6; padding-top:16px; }
+.market-snapshot__heading { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+.market-snapshot__heading h2 { margin-top:4px; color:#13213a; font-size:14px; font-weight:700; }
+.market-snapshot__heading>span { color:#8a98af; font-size:9px; white-space:nowrap; }
+.market-snapshot__headline { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:13px; }
+.market-snapshot__headline>div { min-width:0; border:1px solid #e3e9f2; border-radius:9px; background:#f8fafc; padding:9px; }
+.market-snapshot small { display:block; color:#8493ae; font-size:9px; font-weight:650; letter-spacing:.03em; }
+.market-snapshot b { display:block; margin-top:4px; color:#263650; font-size:11px; }
+.market-snapshot__periods { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin-top:10px; }
+.market-snapshot__periods>div { border:1px solid #edf0f6; border-radius:7px; padding:7px; }
+.market-snapshot__periods span { display:block; color:#64738d; font-size:10px; font-weight:700; }
+.market-snapshot__periods b { margin-top:3px; font-size:10px; }
+.market-snapshot__periods small { margin-top:2px; font-size:8px; }
 .concept-price h2 { font-size:38px; line-height:1.2; font-weight:750; letter-spacing:-1.4px; }
 .concept-price>small { color:#8a98af; font-size:12px; }
 .concept-up { color:#00a579; }.concept-down { color:#ee3564; }
@@ -124,6 +137,6 @@ main:has(.concept-instrument) > div:first-of-type { max-width:1600px; padding:24
 .concept-modal-backdrop { position:fixed; inset:0; z-index:60; display:grid; place-items:center; padding:24px; background:#141b3655; backdrop-filter:blur(4px); }.concept-article { width:100%; max-width:600px; padding:28px; }.concept-article>button { margin-left:auto; }.concept-article h2 { font-size:24px; margin:15px 0; font-weight:700; }.concept-article p { margin-top:15px; line-height:1.7; color:#6b7891; }
 @media(min-width:1600px) { .concept-columns { grid-template-columns:300px minmax(0,1fr) 300px; } }
 @media(max-width:1150px) { .concept-columns { grid-template-columns:240px minmax(0,1fr); gap:18px; }.concept-community { grid-column:1/-1; }.concept-quote { grid-template-columns:1fr 1.2fr; }.concept-name h1 { font-size:25px; }.concept-quote-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media(max-width:760px) { main:has(.concept-instrument)>div:first-of-type { padding:16px; }.concept-quote { grid-template-columns:1fr; padding:20px 16px 12px; gap:20px; }.concept-back { margin-bottom:16px; }.concept-columns { display:flex; flex-direction:column; }.concept-columns>* { width:100%; }.concept-analysis { order:0; }.concept-news { order:1; }.concept-community { order:2; }.concept-bounty,.concept-cashback { flex-wrap:wrap; padding:20px; }.concept-bounty>button,.concept-cashback>button { margin-left:0; }.concept-bounty-icon { display:none; }.concept-tabs { max-width:100%; }.concept-price h2 { font-size:34px; }.concept-footer small { margin-left:0; }.concept-summary-top { flex-wrap:wrap; } }
+@media(max-width:760px) { main:has(.concept-instrument)>div:first-of-type { padding:16px; }.concept-quote { grid-template-columns:1fr; padding:20px 16px 12px; gap:20px; }.concept-back { margin-bottom:16px; }.concept-columns { display:flex; flex-direction:column; }.concept-columns>* { width:100%; }.concept-analysis { order:0; }.concept-news { order:1; }.concept-community { order:2; }.concept-bounty,.concept-cashback { flex-wrap:wrap; padding:20px; }.concept-bounty>button,.concept-cashback>button { margin-left:0; }.concept-bounty-icon { display:none; }.concept-tabs { max-width:100%; }.concept-price h2 { font-size:34px; }.concept-footer small { margin-left:0; }.concept-summary-top { flex-wrap:wrap; }.market-snapshot__periods { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 
 }

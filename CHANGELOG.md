@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.56.0] - 2026-09-11
+### Added
+- Added dated 24-hour OHLC, absolute and percentage changes, volume change, and multi-period market data beneath the instrument identity.
+
 ## [0.55.0] - 2026-09-11
 ### Changed
 - Removed the duplicate full Technical Summary from the Technicals workspace, keeping the compact summary in the price area and the detailed signal methods in Technicals.
