@@ -94,6 +94,10 @@ main:has(.concept-instrument) > div:first-of-type { max-width:1600px; padding:24
 .concept-tags span:first-child { background:#f2f5f9; border-color:#e0e7f0; color:#465570; }
 .concept-name p { color:#73809a; font-size:12px; }
 .market-snapshot { margin-top:22px; border-top:1px solid #edf0f6; padding-top:16px; }
+.concept-price .market-snapshot { margin-top:13px; padding-top:11px; }
+.concept-price .market-snapshot__heading h2 { font-size:12px; }
+.concept-price .market-snapshot__headline { gap:7px; margin-top:9px; }
+.concept-price .market-snapshot__headline>div { padding:7px; }
 .market-snapshot__heading { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
 .market-snapshot__heading h2 { margin-top:4px; color:#13213a; font-size:14px; font-weight:700; }
 .market-snapshot__heading>span { color:#8a98af; font-size:9px; white-space:nowrap; }

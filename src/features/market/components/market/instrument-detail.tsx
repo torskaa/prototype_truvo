@@ -292,8 +292,8 @@ export function InstrumentDetail({ instrument, onBack, onChart, onToast, chartOp
   return <div className="concept-instrument">
     <section className="concept-bounty"><div className="concept-bounty-icon"><TrendingUp /></div><div><span className="concept-gold-label">DAILY MARKET FOCUS</span><h2>Explore {instrument.symbol}, from price to perspective</h2><p>Review the chart, market context, and community outlook.</p></div></section>
     <section className="concept-quote">
-      <div className="concept-identity"><button onClick={onBack} className="concept-back"><ArrowLeft size={14} /> Markets / {kind}</button><div className="concept-name"><div className="concept-symbol">{instrument.symbol.slice(0, 4)}</div><div><h1>{instrument.name}</h1><div className="concept-tags"><span>{instrument.primaryMarket ?? instrument.market}: {instrument.symbol}</span><span>{instrument.subSector ?? instrument.sector}</span></div><p>Demo quote · {kind === 'Crypto' ? '24/7 market' : 'Regular market session'} · USD</p></div></div><MarketDataSnapshot instrument={instrument} /></div>
-      <div className="concept-price"><h2>{kind === 'Forex' ? '' : '$'}{displayValue(instrument)}</h2><span className={positive ? 'concept-up' : 'concept-down'}>{positive ? '↗ +' : '↘ '}{instrument.change.toFixed(2)}%</span><small> Today · demo snapshot</small><div className="concept-quote-stats"><div><small>MARKET CAP</small><b>{instrument.marketCap ? `$${instrument.marketCap.toLocaleString()}B` : '—'}</b></div><div><small>VOLUME</small><b>{instrument.volume.toLocaleString()}M</b></div><div><small>RELATIVE VOLUME</small><b>{instrument.rvol.toFixed(2)}×</b></div><div><small>1 MONTH RETURN</small><b>{instrument.return1m > 0 ? '+' : ''}{instrument.return1m}%</b></div></div><div className="concept-actions"><button onClick={() => { setWatching(!watching); onToast(watching ? 'Removed from watchlist' : 'Added to watchlist'); }}><Star size={15} fill={watching ? 'currentColor' : 'none'} />{watching ? 'Watching' : 'Watchlist'}</button><button onClick={() => onToast(`Demo price alert created for ${instrument.symbol}`)}><Bell size={15} /> Alert</button><button className="concept-primary" onClick={openBrokerAccess}>Broker access <ArrowRight size={16} /></button></div><TechnicalSummaryMini instrument={instrument} /></div>
+      <div className="concept-identity"><button onClick={onBack} className="concept-back"><ArrowLeft size={14} /> Markets / {kind}</button><div className="concept-name"><div className="concept-symbol">{instrument.symbol.slice(0, 4)}</div><div><h1>{instrument.name}</h1><div className="concept-tags"><span>{instrument.primaryMarket ?? instrument.market}: {instrument.symbol}</span><span>{instrument.subSector ?? instrument.sector}</span></div><p>Demo quote · {kind === 'Crypto' ? '24/7 market' : 'Regular market session'} · USD</p></div></div></div>
+      <div className="concept-price"><h2>{kind === 'Forex' ? '' : '$'}{displayValue(instrument)}</h2><span className={positive ? 'concept-up' : 'concept-down'}>{positive ? '↗ +' : '↘ '}{instrument.change.toFixed(2)}%</span><small> Today · demo snapshot</small><div className="concept-quote-stats"><div><small>MARKET CAP</small><b>{instrument.marketCap ? `$${instrument.marketCap.toLocaleString()}B` : '—'}</b></div><div><small>VOLUME</small><b>{instrument.volume.toLocaleString()}M</b></div><div><small>RELATIVE VOLUME</small><b>{instrument.rvol.toFixed(2)}×</b></div><div><small>1 MONTH RETURN</small><b>{instrument.return1m > 0 ? '+' : ''}{instrument.return1m}%</b></div></div><div className="concept-actions"><button onClick={() => { setWatching(!watching); onToast(watching ? 'Removed from watchlist' : 'Added to watchlist'); }}><Star size={15} fill={watching ? 'currentColor' : 'none'} />{watching ? 'Watching' : 'Watchlist'}</button><button onClick={() => onToast(`Demo price alert created for ${instrument.symbol}`)}><Bell size={15} /> Alert</button><button className="concept-primary" onClick={openBrokerAccess}>Broker access <ArrowRight size={16} /></button></div><MarketDataSnapshot instrument={instrument} /><TechnicalSummaryMini instrument={instrument} /></div>
     </section>
     <div className="concept-columns">
       <aside className="concept-news concept-card"><div className="concept-section-title"><Newspaper size={19} /><div><h2>Latest news</h2><p>Market context for {instrument.symbol}</p></div><span className="concept-demo">DEMO</span></div><div className="concept-news-filters">{['All news', 'Market', 'Research'].map(item => <button key={item} className={newsFilter === item ? 'selected' : ''} onClick={() => setNewsFilter(item)}>{item}</button>)}</div>{news.filter((_, index) => newsFilter === 'All news' || (newsFilter === 'Market' ? index < 3 : index >= 3)).map(item => <article key={item.title}><div className="concept-news-meta"><span>{item.source}</span><small>{item.time}</small></div><h3>{item.title}</h3><p>{item.summary}</p><button onClick={() => setArticle(item)}>Read full <ArrowRight size={12} /></button></article>)}<button className="concept-outline" onClick={() => setTab('News')}>View all {instrument.symbol} news <ArrowRight size={14} /></button></aside>
@@ -1530,25 +1530,12 @@ function TechnicalSummaryMini({ instrument }: { instrument: Instrument }) {
 }
 
 function MarketDataSnapshot({ instrument }: { instrument: Instrument }) {
-  const [selectedPeriod, setSelectedPeriod] = useState('1d');
   const price = instrument.price;
   const dayChange = instrument.change / 100;
   const open = price / (1 + dayChange);
   const high = Math.max(open, price) * 1.006;
   const low = Math.min(open, price) * 0.994;
   const absoluteChange = price - open;
-  const periods = [
-    ['1m', 0.004], ['5m', 0.009], ['10m', 0.014], ['1h', 0.021],
-    ['3h', 0.031], ['6h', 0.046], ['1d', instrument.change / 100],
-    ['3d', instrument.change / 100 * 1.35], ['7d', instrument.change / 100 * 1.8],
-    ['2w', instrument.return1m / 100 * 0.55], ['1mo', instrument.return1m / 100],
-    ['6mo', instrument.return1m / 100 * 3.7], ['1y', instrument.return1m / 100 * 6.2],
-    ['3y', instrument.return1m / 100 * 13.5], ['5y', instrument.return1m / 100 * 21],
-  ].map(([label, value]) => ({
-    label: String(label),
-    value: Number(value),
-  }));
-  const selected = periods.find((period) => period.label === selectedPeriod) ?? periods[6];
   const formatPrice = (value: number) =>
     value >= 1000 ? value.toLocaleString(undefined, { maximumFractionDigits: 0 }) : value.toFixed(2);
   return (
@@ -1558,36 +1545,13 @@ function MarketDataSnapshot({ instrument }: { instrument: Instrument }) {
           <p className="concept-eyebrow">MARKET DATA</p>
           <h2>Price range & activity</h2>
         </div>
-        <div className="market-snapshot__filter">
-          <label htmlFor="market-range">Range</label>
-          <select id="market-range" value={selectedPeriod} onChange={(event) => setSelectedPeriod(event.target.value)}>
-            {periods.map((period) => <option key={period.label} value={period.label}>{period.label}</option>)}
-          </select>
-        </div>
+        <span>24H · 11 Sep 2026</span>
       </div>
       <div className="market-snapshot__headline">
         <div><small>24H OPEN / CLOSE</small><b>{formatPrice(open)} → {formatPrice(price)}</b></div>
         <div><small>LOW / HIGH</small><b>{formatPrice(low)} — {formatPrice(high)}</b></div>
-        <div><small>VALUE CHANGE</small><b className={instrument.change >= 0 ? 'concept-up' : 'concept-down'}>{absoluteChange >= 0 ? '+' : ''}{formatPrice(absoluteChange)} ({instrument.change >= 0 ? '+' : ''}{instrument.change.toFixed(2)}%)</b></div>
-        <div><small>VOLUME CHANGE</small><b>{instrument.rvol >= 1 ? '+' : ''}{((instrument.rvol - 1) * 100).toFixed(1)}% · {instrument.volume.toLocaleString()}M</b></div>
-      </div>
-      <div className="market-snapshot__selected">
-        <span>{selected.label} change</span>
-        <b className={selected.value >= 0 ? 'concept-up' : 'concept-down'}>
-          {selected.value >= 0 ? '+' : ''}{(selected.value * 100).toFixed(2)}%
-          {' · '}{selected.value >= 0 ? '+' : ''}{formatPrice(price * selected.value)}
-        </b>
-        <small>As of 11 Sep 2026 · demo snapshot</small>
-      </div>
-      <div className="market-snapshot__filters" aria-label="Market performance range filters">
-        {periods.map((period) => (
-          <button key={period.label} type="button" className={period.label === selectedPeriod ? 'selected' : ''} onClick={() => setSelectedPeriod(period.label)}>
-            <small>{period.label}</small>
-            <b className={period.value >= 0 ? 'concept-up' : 'concept-down'}>
-              {period.value >= 0 ? '+' : ''}{(period.value * 100).toFixed(2)}%
-            </b>
-          </button>
-        ))}
+        <div><small>24H VALUE CHANGE</small><b className={instrument.change >= 0 ? 'concept-up' : 'concept-down'}>{absoluteChange >= 0 ? '+' : ''}{formatPrice(absoluteChange)} ({instrument.change >= 0 ? '+' : ''}{instrument.change.toFixed(2)}%)</b></div>
+        <div><small>24H VOLUME CHANGE</small><b>{instrument.rvol >= 1 ? '+' : ''}{((instrument.rvol - 1) * 100).toFixed(1)}% · {instrument.volume.toLocaleString()}M</b></div>
       </div>
     </section>
   );
