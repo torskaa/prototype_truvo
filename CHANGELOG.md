@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.59.1] - 2026-09-11
+### Changed
+- Synced the preferred Instrument detail page and styling from `codex/integrate-market-intelligence`.
+
 ## [0.59.0] - 2026-09-11
 ### Changed
 - Removed the multi-period filter strip, relabeled the remaining values as 24-hour data, and moved the compact market snapshot into the price area.
