@@ -86,3 +86,11 @@ flowchart TD
 npm install
 npm run dev
 ```
+
+Market research is available at `/?view=screener`,
+`/?view=instrument&symbol=NVDA`. Use `?view=instrument&mode=chart&symbol=NVDA` to open
+the integrated advanced chart mode.
+The shared reward beta includes research quests, temporary tool access, four
+90-day membership levels and 5:1 Credit-to-Point conversion. All rewards,
+campaigns and broker connections are local simulations; use only `DEMO-` account
+identifiers. See [market integration and economy rules](docs/MARKET_INTEGRATION.md).

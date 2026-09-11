@@ -142,20 +142,20 @@ export const CustomizableWidget: React.FC<CustomizableWidgetProps> = ({
               <RookieGhostIcon />
               <div className="flex-1 min-w-0">
                 <h3 className="font-display font-extrabold text-2xl text-white tracking-tight leading-none">
-                  {user.rankTitle || 'Rookie'}
+                  {user.rankTitle}
                 </h3>
                 <div className="w-full bg-white/25 rounded-full h-2 mt-3 mb-1.5 overflow-hidden">
                   <div
                     className="h-full bg-[#FD02B0] rounded-full"
-                    style={{ width: `${Math.min(100, (user.currentPoints / 150) * 100)}%` }}
+                    style={{ width: `${Math.min(100, (user.currentPoints / user.maxPoints) * 100)}%` }}
                   />
                 </div>
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-white/95">
                   <Gem className="w-3.5 h-3.5 text-white shrink-0" />
-                  <span>{user.currentPoints}/150 points.</span>
+                  <span>{user.currentPoints}{user.tierLevel < 4 ? `/${user.maxPoints}` : ''} active Points.</span>
                 </div>
                 <div className="text-xs font-extrabold text-[#CAEB0E] mt-0.5 tracking-tight">
-                  Don't Stop Now
+                  Research at your own pace
                 </div>
               </div>
             </div>
@@ -164,7 +164,7 @@ export const CustomizableWidget: React.FC<CustomizableWidgetProps> = ({
 
             <div className="flex items-end justify-between gap-2">
               <div className="space-y-1">
-                <div className="text-[11px] font-medium text-white/80">Next level at 50 Points</div>
+                <div className="text-[11px] font-medium text-white/80">{user.tierLevel < 4 ? `Next level at ${user.maxPoints} Points` : 'Elite level - rolling 90-day Points'}</div>
                 <div className="flex items-center gap-1.5 text-xs font-medium text-white">
                   <span className="font-bold text-sm leading-none">$</span>
                   <span>+{user.boostPercentage || 10}% Cashback Boost</span>
@@ -428,7 +428,7 @@ export const CustomizableWidget: React.FC<CustomizableWidgetProps> = ({
               {brokers.slice(0, 3).map((b) => (
                 <div key={b.id} className="p-2.5 rounded-xl bg-white border border-slate-200 text-center space-y-1">
                   <div className="font-bold text-xs text-[#0b1c30]">{b.name}</div>
-                  <div className="text-[10px] text-emerald-600 font-bold">${b.maxCashbackRate}/lot</div>
+                  <div className="text-[10px] text-emerald-600 font-bold">Demo ${b.cashbackPerLot}/lot</div>
                   <button
                     onClick={() => onOpenConnectModal(b)}
                     className="w-full py-1 rounded-lg bg-[#5945F1] text-white text-[10px] font-bold"

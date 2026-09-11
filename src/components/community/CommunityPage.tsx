@@ -74,8 +74,7 @@ export const CommunityPage: React.FC<CommunityPageProps> = ({
           const hasLiked = !p.hasLiked;
           const delta = hasLiked ? 1 : -1;
           if (hasLiked) {
-            onRewardPoints(5, 'Liked community post');
-            showToast('❤️ Post upvoted! +5 Points awarded');
+            showToast('Post upvoted. Reactions do not earn rewards.');
           }
           return { ...p, likes: p.likes + delta, hasLiked };
         }
@@ -126,8 +125,7 @@ export const CommunityPage: React.FC<CommunityPageProps> = ({
         return p;
       })
     );
-    onRewardPoints(10, 'Commented on market alpha');
-    showToast('💬 Comment posted! +10 Points awarded');
+    showToast('Comment posted locally. Credit rewards require moderation, which is not connected in this demo.');
   };
 
   // Reaction Emoji click
@@ -188,8 +186,7 @@ export const CommunityPage: React.FC<CommunityPageProps> = ({
 
     setPosts([newPost, ...posts]);
     setUserPosts([newPost, ...userPosts]);
-    onRewardPoints(25, 'Published community post');
-    showToast('🚀 Post published to Community Feed and My Page! +25 Points awarded');
+    showToast('Post published locally to Feed and My Page. Credit rewards require moderation, which is not connected in this demo.');
   };
 
   // Navigate to Influencer Profile
@@ -439,7 +436,7 @@ export const CommunityPage: React.FC<CommunityPageProps> = ({
               <CommunityTopicsView
                 topics={COMMUNITY_TOPICS}
                 onAnswerTopic={(topicId, answer) => {
-                  onRewardPoints(15, 'Answered community debate');
+                  showToast('Answer saved locally. Credit rewards require moderation, which is not connected in this demo.');
                 }}
                 onShowToast={showToast}
               />
@@ -514,7 +511,7 @@ export const CommunityPage: React.FC<CommunityPageProps> = ({
                   setSelectedInfluencer(null);
                 }}
                 onToggleFollow={(id) => {
-                  onRewardPoints(10, 'Followed community alpha creator');
+                  showToast('Creator followed. Following does not earn rewards.');
                 }}
                 onShowToast={showToast}
               />

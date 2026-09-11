@@ -219,95 +219,25 @@ export const ActivityLogsView: React.FC<ActivityLogsViewProps> = ({
   const [isYesterdayExpanded, setIsYesterdayExpanded] = useState<boolean>(false);
   const [isEarlierExpanded, setIsEarlierExpanded] = useState<boolean>(false);
 
-  // Group logs by timeframes
-  const todayLogs = [
-    {
-      id: 'today-1',
-      title: 'Points expired',
-      subtitle: '',
-      pointsChange: -25,
-      creditsChange: null,
-      time: '10:30 am',
-      type: 'expired',
-      category: 'Expirations',
-    },
-    {
-      id: 'today-2',
-      title: 'Completed first trade',
-      subtitle: 'First trade completed successfully',
-      pointsChange: 10,
-      creditsChange: 35,
-      time: '10:30 am',
-      type: 'trade',
-      category: 'Trades & Rebates',
-    },
-    {
-      id: 'today-3',
-      title: 'Daily login',
-      subtitle: 'Logged in to the app',
-      pointsChange: null,
-      creditsChange: 5,
-      time: '10:30 am',
-      type: 'login',
-      category: 'Daily Check-in',
-    },
-    {
-      id: 'today-4',
-      title: "Viewed today's Signals",
-      subtitle: 'Checked daily signals feed',
-      pointsChange: null,
-      creditsChange: 5,
-      time: '10:30 am',
-      type: 'signals',
-      category: 'Missions',
-    },
-  ];
-
-  const yesterdayLogs = [
-    {
-      id: 'yesterday-1',
-      title: 'Connected Broker Account: Exness Pro',
-      subtitle: 'Account #EX-9281048 verified & synced',
-      pointsChange: 20,
-      creditsChange: 30,
-      time: '04:15 pm',
-      type: 'trade',
-      category: 'Trades & Rebates',
-    },
-    {
-      id: 'yesterday-2',
-      title: 'Daily Streak Check-In (Day 14)',
-      subtitle: 'Maintained consecutive login milestone',
-      pointsChange: 5,
-      creditsChange: 5,
-      time: '09:12 am',
-      type: 'login',
-      category: 'Daily Check-in',
-    },
-  ];
-
-  const earlierLogs = [
-    {
-      id: 'earlier-1',
-      title: 'Converted Syde Credits to Points',
-      subtitle: 'Exchanged 500 credits for 100 points',
-      pointsChange: 100,
-      creditsChange: -500,
-      time: 'Apr 23, 2026',
-      type: 'trade',
-      category: 'Conversions',
-    },
-    {
-      id: 'earlier-2',
-      title: 'Completed Mission: Portfolio Power-Up',
-      subtitle: 'Rebalanced holdings & diversified across classes',
-      pointsChange: 15,
-      creditsChange: 25,
-      time: 'Apr 22, 2026',
-      type: 'signals',
-      category: 'Missions',
-    },
-  ];
+  const now = Date.now();
+  const today = new Date(now).toISOString().slice(0, 10);
+  const yesterday = new Date(now - 86_400_000).toISOString().slice(0, 10);
+  const monthStart = Date.parse(`${today.slice(0, 7)}-01T00:00:00Z`);
+  const rangeStart = selectedRange === 'All Time' ? 0 : selectedRange === 'This Month' ? monthStart : now - (selectedRange === 'Past 7 Days' ? 7 : 30) * 86_400_000;
+  const logs = activityLogs.filter(log => Date.parse(log.timestamp) >= rangeStart).map(log => ({
+    id: log.id, title: log.title, subtitle: log.description,
+    pointsChange: log.pointsChange || null, creditsChange: log.creditsChange || null,
+    day: log.timestamp.slice(0, 10),
+    time: new Date(log.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    type: log.category === 'Expiration' ? 'expired' : log.category === 'Bonus' ? 'login' : log.category === 'Conversion' ? 'trade' : 'signals',
+    category: log.category === 'Expiration' ? 'Expirations' : log.category === 'Conversion' ? 'Conversions' : log.category === 'Unlock' ? 'Tool Unlocks' : log.category === 'Bonus' ? 'Daily Check-in' : 'Missions',
+  }));
+  const todayLogs = logs.filter(log => log.day === today);
+  const yesterdayLogs = logs.filter(log => log.day === yesterday);
+  const earlierLogs = logs.filter(log => log.day < yesterday);
+  const weeklyLogs = activityLogs.filter(log => Date.parse(log.timestamp) >= now - 7 * 86_400_000);
+  const sumPoints = (items: typeof logs) => items.reduce((sum, item) => sum + (item.pointsChange ?? 0), 0);
+  const sumCredits = (items: typeof logs) => items.reduce((sum, item) => sum + (item.creditsChange ?? 0), 0);
 
   // Helper to filter items based on Category & Movement
   const filterList = (items: typeof todayLogs) => {
@@ -349,7 +279,7 @@ export const ActivityLogsView: React.FC<ActivityLogsViewProps> = ({
         </button>
 
         <div className="text-xs font-semibold text-slate-400 hidden sm:block">
-          Synchronized in real-time
+          Reward ledger - UTC day groups
         </div>
       </div>
 
@@ -442,6 +372,7 @@ export const ActivityLogsView: React.FC<ActivityLogsViewProps> = ({
                     <option value="Daily Check-in">Daily Check-in</option>
                     <option value="Expirations">Expirations</option>
                     <option value="Conversions">Conversions</option>
+                    <option value="Tool Unlocks">Tool Unlocks</option>
                   </select>
                   <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
                 </div>
@@ -487,7 +418,7 @@ export const ActivityLogsView: React.FC<ActivityLogsViewProps> = ({
           <StarWithUpArrowIcon />
           <div className="min-w-0">
             <div className="text-2xl sm:text-3xl font-extrabold font-display text-[#1e1b4b] leading-tight">
-              24
+              {weeklyLogs.length}
             </div>
             <div className="text-xs sm:text-sm font-medium text-slate-500 mt-0.5">
               Activities this week
@@ -500,7 +431,7 @@ export const ActivityLogsView: React.FC<ActivityLogsViewProps> = ({
           <FacetedDiamondIcon />
           <div className="min-w-0">
             <div className="text-2xl sm:text-3xl font-extrabold font-display text-[#5945F1] leading-tight">
-              +29
+              {weeklyLogs.reduce((sum, log) => sum + (log.pointsChange ?? 0), 0)}
             </div>
             <div className="text-xs sm:text-sm font-medium text-slate-500 mt-0.5">
               Points this week
@@ -513,10 +444,10 @@ export const ActivityLogsView: React.FC<ActivityLogsViewProps> = ({
           <CreditCoinsIcon />
           <div className="min-w-0">
             <div className="text-2xl sm:text-3xl font-extrabold font-display text-[#5945F1] leading-tight">
-              +35
+              {weeklyLogs.reduce((sum, log) => sum + (log.creditsChange ?? 0), 0)}
             </div>
             <div className="text-xs sm:text-sm font-medium text-slate-500 mt-0.5">
-              Credits this week
+              Net Credits this week
             </div>
           </div>
         </div>
@@ -532,12 +463,12 @@ export const ActivityLogsView: React.FC<ActivityLogsViewProps> = ({
             className="w-full bg-[#edf0fe] px-5 sm:px-6 py-3.5 flex items-center justify-between cursor-pointer hover:bg-[#e6eafd] transition-colors select-none"
           >
             <div className="text-xs sm:text-sm font-semibold text-[#5945F1]">
-              Today – Apr 26, 2026
+              Today - {today}
             </div>
 
             <div className="flex items-center gap-6 sm:gap-10">
               <div className="text-xs sm:text-sm font-medium text-[#5945F1]">
-                -15 Points
+                {sumPoints(filteredToday)} Points / {sumCredits(filteredToday)} Credits
               </div>
               <button
                 type="button"
@@ -646,13 +577,13 @@ export const ActivityLogsView: React.FC<ActivityLogsViewProps> = ({
             className="w-full bg-[#edf0fe] px-5 sm:px-6 py-3.5 flex items-center justify-between cursor-pointer hover:bg-[#e6eafd] transition-colors select-none"
           >
             <div className="text-xs sm:text-sm font-semibold text-[#5945F1]">
-              Yesterday – Apr 25, 2026
+              Yesterday - {yesterday}
             </div>
 
             <div className="flex items-center gap-4 sm:gap-8">
               <div className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-medium">
-                <span className="text-[#5945F1]">+25 Points</span>
-                <span className="text-[#FE01B1]">+35 Credits</span>
+                <span className="text-[#5945F1]">{sumPoints(filteredYesterday)} Points</span>
+                <span className="text-[#FE01B1]">{sumCredits(filteredYesterday)} Credits</span>
               </div>
               <button
                 type="button"
@@ -707,7 +638,7 @@ export const ActivityLogsView: React.FC<ActivityLogsViewProps> = ({
                       <div className="w-14 sm:w-16 text-right">
                         {item.pointsChange !== null ? (
                           <span className="text-xs sm:text-sm font-bold text-[#5945F1]">
-                            +{item.pointsChange}
+                            {item.pointsChange > 0 ? `+${item.pointsChange}` : item.pointsChange}
                           </span>
                         ) : (
                           <span className="text-slate-300 font-medium">—</span>
@@ -717,7 +648,7 @@ export const ActivityLogsView: React.FC<ActivityLogsViewProps> = ({
                       <div className="w-14 sm:w-16 text-right">
                         {item.creditsChange !== null ? (
                           <span className="text-xs sm:text-sm font-bold text-[#FE01B1]">
-                            +{item.creditsChange}
+                            {item.creditsChange > 0 ? `+${item.creditsChange}` : item.creditsChange}
                           </span>
                         ) : (
                           <span className="text-slate-300 font-medium">—</span>
@@ -743,13 +674,13 @@ export const ActivityLogsView: React.FC<ActivityLogsViewProps> = ({
             className="w-full bg-[#edf0fe] px-5 sm:px-6 py-3.5 flex items-center justify-between cursor-pointer hover:bg-[#e6eafd] transition-colors select-none"
           >
             <div className="text-xs sm:text-sm font-semibold text-[#5945F1]">
-              Earlier – Apr 23, 2026
+              Earlier
             </div>
 
             <div className="flex items-center gap-4 sm:gap-8">
               <div className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-medium">
-                <span className="text-[#5945F1]">+115 Points</span>
-                <span className="text-[#FE01B1]">-475 Credits</span>
+                <span className="text-[#5945F1]">{sumPoints(filteredEarlier)} Points</span>
+                <span className="text-[#FE01B1]">{sumCredits(filteredEarlier)} Credits</span>
               </div>
               <button
                 type="button"

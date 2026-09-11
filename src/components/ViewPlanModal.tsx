@@ -1,7 +1,8 @@
-import React from 'react';
-import { UserProfile } from '../types';
-import { GAMIFICATION_TIERS } from '../data/mockData';
-import { X, Check, Lock, Sparkles, Award, Zap, HelpCircle } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { Check, X } from 'lucide-react';
+import type { UserProfile } from '../types';
+import { LEVELS, PREMIUM_FEATURES } from '../features/rewards/economy';
+import { useRewards } from '../features/rewards/RewardProvider';
 
 interface ViewPlanModalProps {
   isOpen: boolean;
@@ -9,187 +10,25 @@ interface ViewPlanModalProps {
   user: UserProfile;
 }
 
-export const ViewPlanModal: React.FC<ViewPlanModalProps> = ({
-  isOpen,
-  onClose,
-  user,
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-[#e2e8f0] overflow-hidden max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="p-5 border-b border-[#e2e8f0] flex items-center justify-between bg-gradient-to-r from-[#5338ec] to-[#4338ca] text-white">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-xl">
-              <span>{user.avatar}</span>
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-widest text-white/80 font-bold">
-                TIER PROGRESSION ROADMAP
-              </div>
-              <h3 className="font-display font-bold text-lg text-white">
-                Gamified Member Levels & Multipliers
-              </h3>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Scrollable Content */}
-        <div className="p-6 overflow-y-auto space-y-6">
-          {/* Current Status banner */}
-          <div className="p-4 rounded-xl bg-[#eef2ff] border border-[#d6d0ff] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#5338ec]">
-                Your Active Tier
-              </span>
-              <div className="flex items-center gap-2 mt-0.5">
-                <h4 className="font-display text-xl font-bold text-[#0b1c30]">
-                  {user.rankTitle} Tier
-                </h4>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#5338ec] text-white">
-                  Level {user.tierLevel}
-                </span>
-              </div>
-              <p className="text-xs text-[#474556] mt-1">
-                Currently earning {user.boostPercentage}% boosted cashback on every executed lot.
-              </p>
-            </div>
-
-            <div className="sm:text-right shrink-0">
-              <div className="text-xs text-slate-500 font-medium">Points Progress</div>
-              <div className="text-lg font-bold text-[#5338ec] tabular-nums">
-                💎 {user.currentPoints} / {user.maxPoints} pts
-              </div>
-              <span className="text-[11px] text-slate-500">
-                {user.maxPoints - user.currentPoints} points needed for Bronze
-              </span>
-            </div>
-          </div>
-
-          {/* Tiers Grid */}
-          <div>
-            <h4 className="font-display text-base font-bold text-[#0b1c30] mb-3">
-              All Tier Milestones
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {GAMIFICATION_TIERS.map((tier) => {
-                const isCurrent = tier.tier === user.rankTitle;
-                const isUnlocked = user.currentPoints >= tier.minPoints;
-
-                return (
-                  <div
-                    key={tier.tier}
-                    className={`rounded-xl p-4 border transition-all flex flex-col justify-between ${
-                      isCurrent
-                        ? 'border-[#5338ec] bg-[#f8f9ff] ring-2 ring-[#5338ec]/20 shadow-md'
-                        : isUnlocked
-                        ? 'border-slate-200 bg-white'
-                        : 'border-slate-200 bg-slate-50 opacity-80'
-                    }`}
-                  >
-                    <div>
-                      {/* Tier Top Header */}
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl">{tier.icon}</span>
-                          <div>
-                            <h5 className="font-display font-bold text-sm text-[#0b1c30]">
-                              {tier.tier}
-                            </h5>
-                            <span className="text-[10px] text-slate-400 font-semibold uppercase">
-                              Level {tier.level}
-                            </span>
-                          </div>
-                        </div>
-
-                        {isCurrent ? (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#5338ec] text-white">
-                            CURRENT
-                          </span>
-                        ) : isUnlocked ? (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#dcfce7] text-[#15803d]">
-                            UNLOCKED
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 flex items-center gap-1">
-                            <Lock className="w-2.5 h-2.5" />
-                            <span>{tier.minPoints} pts</span>
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Boost badge */}
-                      <div className="my-2.5 py-1.5 px-2 rounded-lg bg-white border border-slate-200 text-center">
-                        <span className="text-xs font-bold text-[#5338ec]">
-                          {tier.cashbackBoost} Rebate
-                        </span>
-                      </div>
-
-                      {/* Perks list */}
-                      <ul className="space-y-1.5 text-[11px] text-[#474556] mt-3">
-                        {tier.perks.map((p, i) => (
-                          <li key={i} className="flex items-start gap-1.5">
-                            <Check className="w-3.5 h-3.5 text-[#15803d] shrink-0 mt-0.5" />
-                            <span>{p}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="mt-4 pt-2 border-t border-slate-100 text-[11px] text-slate-400 font-medium">
-                      Points range: {tier.minPoints} - {tier.maxPoints} pts
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* How to Earn Points Section */}
-          <div className="rounded-xl p-4 bg-[#f8fafc] border border-[#e2e8f0]">
-            <h5 className="font-display text-sm font-bold text-[#0b1c30] flex items-center gap-1.5 mb-2.5">
-              <Zap className="w-4 h-4 text-[#5338ec]" />
-              <span>How To Earn Progression Points</span>
-            </h5>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-              <div className="p-2.5 rounded-lg bg-white border border-[#e2e8f0]">
-                <div className="font-bold text-[#5338ec]">💎 +10 pts</div>
-                <div className="text-slate-600 text-[11px] mt-0.5">Per standard lot traded on connected broker</div>
-              </div>
-              <div className="p-2.5 rounded-lg bg-white border border-[#e2e8f0]">
-                <div className="font-bold text-[#5338ec]">💎 +50 pts</div>
-                <div className="text-slate-600 text-[11px] mt-0.5">Each new verified trading account linked</div>
-              </div>
-              <div className="p-2.5 rounded-lg bg-white border border-[#e2e8f0]">
-                <div className="font-bold text-[#5338ec]">💎 +25 pts</div>
-                <div className="text-slate-600 text-[11px] mt-0.5">5-day consecutive trading activity streak</div>
-              </div>
-              <div className="p-2.5 rounded-lg bg-white border border-[#e2e8f0]">
-                <div className="font-bold text-[#5338ec]">💎 +100 pts</div>
-                <div className="text-slate-600 text-[11px] mt-0.5">Invite a fellow trader to the community</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 border-t border-[#e2e8f0] bg-[#f8fafc] flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-5 py-2 rounded-lg bg-[#5338ec] hover:bg-[#4338ca] text-white text-xs font-bold transition-all"
-          >
-            Done
-          </button>
-        </div>
-      </div>
+export const ViewPlanModal: React.FC<ViewPlanModalProps> = ({ isOpen, onClose }) => {
+  const { snapshot } = useRewards();
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    if (isOpen && !dialog.current?.open) dialog.current?.showModal();
+    if (!isOpen && dialog.current?.open) dialog.current.close();
+  }, [isOpen]);
+  return <dialog ref={dialog} onCancel={onClose} onClose={onClose} aria-labelledby="member-plan-title" className="fixed inset-0 m-auto max-h-[90vh] w-[calc(100%_-_2rem)] max-w-4xl overflow-y-auto rounded-2xl bg-white p-0 text-[#0b1c30] shadow-2xl backdrop:bg-slate-900/60">
+    <header className="flex items-start justify-between gap-3 bg-[#5338ec] p-6 text-white"><div><p className="text-xs font-bold uppercase tracking-widest text-white/70">Beta membership</p><h2 id="member-plan-title" className="mt-1 text-2xl font-bold">Four levels. More research access.</h2></div><button autoFocus onClick={onClose} aria-label="Close member levels" className="rounded-lg p-2 hover:bg-white/10"><X className="h-5 w-5" /></button></header>
+    <div className="space-y-5 p-6">
+      <div className="rounded-xl bg-purple-50 p-4"><p className="font-semibold text-[#5338ec]">LV{snapshot.level.level} {snapshot.level.name} · {snapshot.activePoints} active Points</p><p className="mt-1 text-xs text-slate-600">All Point grants expire individually after 90 days, including conversions. Level benefits follow your current active Points.</p></div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{LEVELS.map(level => <section key={level.level} className={`rounded-xl border p-4 ${snapshot.level.level === level.level ? 'border-[#5338ec] bg-purple-50' : 'border-slate-200'}`}>
+        <p className="text-xs font-bold text-[#5338ec]">LV{level.level}{snapshot.level.level === level.level ? ' · CURRENT' : ''}</p><h3 className="mt-1 text-lg font-bold">{level.name}</h3><p className="mt-3 text-sm font-semibold">{level.minPoints}+ active Points</p>
+        <p className="mt-3 text-sm font-semibold text-[#5338ec]">{['Full Credit price', '20% Credit discount', '50% Credit discount', 'All premium features included'][level.level - 1]}</p>
+        <ul className="mt-4 space-y-3 text-xs text-slate-600">{Object.values(PREMIUM_FEATURES).map(feature => <li key={feature.title} className="flex items-start gap-1.5">{level.level >= feature.includedLevel && <Check className="h-4 w-4 shrink-0 text-green-700" />}<span>{feature.title}: {level.level >= feature.includedLevel ? 'included · 0 Credits' : `included at LV${feature.includedLevel}`}</span></li>)}</ul>
+      </section>)}</div>
+      <div className="grid gap-4 sm:grid-cols-2"><section className="rounded-xl bg-slate-50 p-4"><h3 className="font-bold">5 Credits = 1 Point stays</h3><p className="mt-2 text-sm text-slate-600">Convert positive whole multiples of 5 in the rewards hub. Unconverted Credits are preserved. New Points last 90 days; conversion is one-way.</p></section><section className="rounded-xl bg-lime-50 p-4"><h3 className="font-bold">Monthly D6 · 10 Points, 0 Credits</h3><p className="mt-2 text-sm text-slate-600">Complete all four research quest types across seven UTC days in the current UTC month, then validate and claim once that month.</p></section></div>
+      <p className="text-xs leading-relaxed text-slate-500">Discounts apply only to premium features not already included with your level. If Points expire, your level may decrease. Unexpired purchased access remains valid. Cashback and partner rebate rules are separate and unchanged; these membership levels do not promise cash rebate boosts.</p>
     </div>
-  );
+    <footer className="flex justify-end border-t border-slate-200 p-4"><button onClick={onClose} className="rounded-xl bg-[#5338ec] px-5 py-2.5 text-sm font-bold text-white">Done</button></footer>
+  </dialog>;
 };

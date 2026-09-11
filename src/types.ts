@@ -95,7 +95,7 @@ export interface ActivityLogItem {
   type: 'points' | 'credits' | 'both';
   pointsChange?: number;
   creditsChange?: number;
-  category: 'Mission' | 'Rebate' | 'Conversion' | 'Streak' | 'Bonus';
+  category: 'Mission' | 'Rebate' | 'Conversion' | 'Streak' | 'Bonus' | 'Unlock' | 'Expiration';
 }
 
 export interface PerformanceTimeframeData {
@@ -282,5 +282,4 @@ export interface CommunityInfluencer {
   followersCount?: number;
   postsCount?: number;
 }
-
 

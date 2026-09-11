@@ -201,7 +201,7 @@ export const CreateCommunityPostModal: React.FC<CreateCommunityPostModalProps> =
               className="inline-flex items-center gap-2 bg-[#5338ec] hover:bg-[#4326d8] text-white px-5 py-2 rounded-xl text-xs font-semibold shadow-xs transition-colors"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>Publish Post (+25 pts)</span>
+              <span>Publish Post</span>
             </button>
           </div>
         </form>

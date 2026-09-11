@@ -1,5 +1,5 @@
 export type Tier = 'GUEST' | 'BASIC' | 'INTERMEDIATE' | 'PREMIUM';
-export type View = 'dashboard' | 'explorer' | 'screener' | 'flow' | 'chart' | 'instrument' | 'signals' | 'advisors' | 'watchlist' | 'alerts' | 'portfolio';
+export type View = 'dashboard' | 'screener' | 'flow' | 'instrument' | 'signals' | 'advisors' | 'watchlist' | 'alerts' | 'portfolio';
 export type Visualization = 'Table' | 'Heatmap' | 'Scatter' | 'Correlation' | 'Flow';
 export type FxCategory = 'Major' | 'Minor' | 'Exotic';
 export type InstrumentMetric = 'price' | 'change' | 'return1m' | 'volume' | 'rvol' | 'rsi' | 'marketCap' | 'sentiment' | 'pe' | 'yield';
@@ -9,4 +9,3 @@ export type FilterRule = { id:string; field:string; operator:string; value:strin
 export type IndexStatus = 'Top Gainer' | 'Top Loser' | 'New High' | 'New Low' | 'Neutral';
 export type IndexSector = { sector:string; change:number };
 export type MarketIndex = { symbol:string; name:string; region:string; price:number; change:number; status:IndexStatus; signal:'LONG'|'WATCH'|'NEUTRAL'; confidence:number; sectors:IndexSector[] };
-

@@ -1,5 +1,183 @@
 # Changelog
 
+## [0.46.0] - 2026-09-11
+### Added
+- Added a broker comparison panel below the market results area.
+- Added a highlighted partner campaign showing Credit, Point, and cashback incentives.
+
+## [0.45.0] - 2026-09-11
+### Changed
+- Highlighted Guided comparison as Today’s quest with its +50 Credit reward and daily UTC availability deadline.
+
+## [0.44.0] - 2026-09-11
+### Changed
+- Removed the duplicate Market Scanner entry from the mobile navigation drawer.
+
+## [0.43.0] - 2026-09-11
+### Changed
+- Renamed the screener heading to Instrument Analysis and aligned its description with the market highlight data.
+- Removed the redundant Market tools navigation bar.
+
+## [0.42.0] - 2026-09-11
+### Changed
+- Removed the redundant secondary sentiment percentage from Market pulse cards.
+
+## [0.41.0] - 2026-09-11
+### Added
+- Added market-specific 24-hour highlight metrics for market-size and volume changes.
+- Each highlight shows both percentage and absolute value movement.
+
+## [0.40.0] - 2026-09-11
+### Added
+- Added market-specific derivatives snapshots to each Market pulse card.
+- Included liquidation totals, long/short split, activity bars, open interest, and volume changes.
+
+## [0.39.0] - 2026-09-11
+### Added
+- Added a compact Fear & Greed gauge with score and sentiment label to every Market pulse card.
+
+## [0.38.0] - 2026-09-11
+### Changed
+- Removed the duplicated Market rewards header, event/tool grid, and expiry strip from the page.
+- Quest and tool discovery now lives in the header Quest of the day icon.
+
+## [0.37.0] - 2026-09-11
+### Changed
+- Replaced the subtle Quests/Tools segmented buttons with an explicit Available tools on/off switch.
+- Added accessible switch semantics and a visible sliding thumb.
+
+## [0.36.0] - 2026-09-11
+### Changed
+- Added a Quests/Tools toggle to the Quest of the day panel.
+- Added game-style available-tool cards with Credit pricing and duration messaging.
+
+## [0.35.0] - 2026-09-11
+### Changed
+- Added a game-style Quest of the day icon beside the user profile controls.
+- Added a compact quest panel with Credit rewards, difficulty, cadence, and Start actions.
+
+## [0.34.0] - 2026-09-11
+### Changed
+- Connected symbol campaigns to the broker directory, selecting eligible brokers and campaign types from spread and cashback details.
+- Renamed the screener column to Broker campaign · Connect.
+
+## [0.33.0] - 2026-09-11
+### Changed
+- Limited partner campaigns to eligible symbols instead of displaying one offer for every pair.
+- Added distinct spread and cashback campaign messaging by symbol.
+
+## [0.32.0] - 2026-09-11
+### Changed
+- Made the screener table's sponsored partner column explicit with broker name and direct Connect broker action.
+
+## [0.31.0] - 2026-09-11
+### Changed
+- Moved partner offers out of the rewards panel and into symbol-level market research surfaces.
+- Added partner access and special cashback highlights to table results, heatmap tiles/tooltips, scatter tooltips, and correlation research.
+
+## [0.30.0] - 2026-09-11
+### Changed
+- Added Credit/level-gated high-precision signal visibility above 50% confidence.
+- Added ±60% high-significance correlation gating through the High-precision signals entitlement.
+- Added one-hour, one-day, and seven-day unlock support through the existing Credit unlock dialog.
+
+## [0.29.0] - 2026-09-11
+### Changed
+- Moved the live Credits, Points, and level summary into the compact global quest strip.
+- Reduced duplication in the Market rewards panel header.
+
+## [0.28.0] - 2026-09-11
+### Changed
+- Added a bottom-right hide/show control for the Market rewards panel.
+
+## [0.27.0] - 2026-09-11
+### Changed
+- Added formula-aligned credit event cards for daily, research, broker comparison, and risk-control activities.
+- Added horizontal sliders for recommended events and available tool unlocks.
+
+## [0.26.0] - 2026-09-11
+### Changed
+- Moved Market, Sector, Sub-sector, and visualization controls above the Filter logic panel.
+
+## [0.25.0] - 2026-09-11
+### Changed
+- Removed the default Market custom-filter chip so Market and Sector are controlled only through the dedicated selectors.
+
+## [0.24.0] - 2026-09-11
+### Changed
+- Added partner logos and per-broker spread, leverage, and cashback offers to the market rewards strip.
+
+## [0.23.0] - 2026-09-11
+### Changed
+- Renamed the screener comparison panel to “Market × Sector comparison”.
+
+## [0.22.0] - 2026-09-11
+### Changed
+- Removed the multiplication symbol from screener relative-volume table values while retaining two-decimal precision.
+
+## [0.21.0] - 2026-09-11
+### Changed
+- Reworked the market rewards strip into recommended quests, feature unlocks, and a Credits/Points eligibility toggle.
+- Added a sponsored broker and CFD-pair cashback offer entry point.
+
+## [0.20.0] - 2026-09-11
+### Changed
+- Standardized screener relative-volume values to two decimal places.
+
+## [0.19.0] - 2026-09-11
+### Changed
+- Removed demo and simulated-data language from the active product interface.
+- Updated broker, market-data, reward, and research surfaces to use production-facing terminology.
+
+## [0.18.0] - 2026-09-11
+### Changed
+- Replaced the large global beta disclaimer banner with a compact Daily check-in quest bar.
+- Kept demo limitations visible as concise supporting text beside the quest action.
+
+## [0.17.0] - 2026-09-11
+### Changed
+- Renamed the primary CFD Market Scanner surface to Market Scanner.
+- Removed the default NVDA instrument label from the scanner navigation.
+- Instrument and chart navigation now appear only after a user selects a symbol.
+- Symbol-free scanner sessions use a neutral placeholder internally without presenting a default instrument.
+
+## [0.16.0] - 2026-09-11
+### Changed
+- Moved the Simple chart / Advanced chart toggle into the Instrument Performance card.
+- Advanced chart mode now replaces the simple chart in the same content area.
+- Removed the separate Instrument-page chart CTA and workspace-level chart toggle.
+
+## [0.15.0] - 2026-09-11
+### Changed
+- Merged Advanced Chart into Instrument Overview behind an Overview / Advanced chart toggle.
+- Removed Advanced Chart from market navigation and redirected legacy chart links to integrated chart mode.
+- Preserved chart tools, indicators, watchlist, alerts, signal inspection, and risk-planning journeys in the merged workspace.
+
+## [0.14.0] - 2026-09-11
+### Changed
+- Replaced the large 3D volume-flow panel with a compact 2D market/sector comparison.
+- The comparison now follows the active Screener market and sector filters and keeps period/scope controls.
+- Reduced vertical spacing in the highlights comparison area to keep the scanner content visible sooner.
+
+## [0.13.0] - 2026-09-11
+### Changed
+- Merged Market Explorer highlights, market pulse cards, and volume-flow context into the CFD Market Scanner.
+- Removed Market Explorer from navigation and route discovery; legacy `?view=explorer` links redirect to `?view=screener`.
+- Renamed the primary market workspace to CFD Market Scanner and kept research, chart, instrument, and broker journeys connected.
+
+## [0.12.0] - 2026-09-11
+### Added
+- Shared, browser-persisted beta reward ledger with four membership levels at 0 / 100 / 300 / 700 rolling 90-day Points.
+- Guided market research quests, capped daily/weekly Credit rewards, a monthly D6 milestone and feature-scoped temporary research access.
+- Contextual sponsored examples and broker-access journeys across Explorer, Screener, Instrument and Chart; illustrative Point boost estimates never award trading Points.
+### Changed
+- Retained 5 Credits = 1 Point conversion by product decision, with exact amounts, balance validation and 90-day Point expiry.
+- Unified rewards, plans, guides, header/dashboard progression and activity history; removed click-to-mint and duplicate award paths.
+- Broker connection now uses demo identifiers without passwords, simulated verification or automatic rewards.
+### Notes
+- All accounts, campaign offers, market data and rewards remain a local prototype. Production requires authoritative verification, server-side ledgers/entitlements, moderation, partner agreements and campaign eligibility controls.
+- Credit pricing uses integer rounding of the formula; document catalogue examples are approximate, not a separate pricing schedule.
+
 ## [0.11.0] - 2026-09-10
 ### Added
 - Integrated Market Explorer, Market Screener, Instrument Overview, and Advanced Chart from the trading-intelligence prototype.

@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Download, Filter, Lock, Plus, Star, X } from 'lucide-react';
 import { CartesianGrid, Cell, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts';
 import { hierarchy, treemap, type HierarchyNode } from 'd3-hierarchy';
-import { VolumeFlow3D, type Flow3DPeriod } from '@market/components/charts/volume-flow-3d';
 import { instruments, marketIndices } from '@market/data/mock-market';
 import { stockCountries } from '@market/data/stock-countries';
 import { track } from '@market/lib/analytics/events';
 import type { FilterRule, Instrument, IndexStatus, InstrumentMetric, MarketIndex, Tier, View, Visualization } from '@market/types';
+import type { Broker } from '../../types';
+import { useMarketEngagement } from './MarketEngagement';
+import { useRewards } from '../rewards/RewardProvider';
 
 function IndexHeatmap({ data, open }: { data: MarketIndex[]; open: (index: MarketIndex) => void }) {
  const options = metricOptions.Indices;
@@ -27,21 +29,93 @@ function IndexScatter({ data, open }: { data: MarketIndex[]; open: (index: Marke
  return <div className="p-4"><div className="mb-3 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3"><div><p className="text-xs font-semibold text-slate-900">Market indices scatter</p><p className="mt-0.5 text-[10px] text-slate-400">Compare index change % against last spot points.</p></div><div className="flex flex-wrap gap-2"><MetricSelect label="X axis" value={xMetric} options={options} onChange={setXMetric} /><MetricSelect label="Y axis" value={yMetric} options={options} onChange={setYMetric} /><MetricSelect label="Point size" value={sizeMetric} options={options} onChange={setSizeMetric} /></div></div><div className="mb-2 flex gap-4 text-[10px] text-slate-400"><span>X: {xOption.label} ({xOption.unit})</span><span>Y: {yOption.label} ({yOption.unit})</span><span>Size: {sizeOption.label} ({sizeOption.unit})</span></div><ResponsiveContainer width="100%" height={330}><ScatterChart margin={{ left: 10, right: 20, top: 10, bottom: 10 }}><CartesianGrid stroke="#eceaf3" /><XAxis type="number" dataKey="xValue" name={xOption.label} unit={xOption.unit} stroke="#94a3b8" fontSize={10} /><YAxis type="number" dataKey="yValue" name={yOption.label} unit={yOption.unit} stroke="#94a3b8" fontSize={10} /><ZAxis type="number" dataKey="sizeValue" range={[80, 720]} /><Tooltip cursor={{ stroke: '#7c3aed55' }} contentStyle={{ background: '#ffffff', border: '1px solid #e7e5ef', fontSize: 11 }} /><Scatter data={points} onClick={point => { const index = marketIndices.find(item => item.symbol === (point as unknown as { symbol: string }).symbol); if (index) open(index); }}>{points.map(index => <Cell key={index.symbol} fill={index.change >= 0 ? '#7c3aed' : '#ef4444'} />)}</Scatter></ScatterChart></ResponsiveContainer></div>;
 }
 
-const marketCards = [['Stocks', '$118.4T', '+0.82%', '+$6.8B', '64%'], ['Crypto', '$3.16T', '+2.41%', '+$1.2B', '71%'], ['Forex', '$7.5T/day', 'DXY −0.34%', 'Risk-on', '58%'], ['Commodities', '$14.2T', '+0.29%', '+$420M', '55%'], ['Indices', '41 tracked', '+0.48%', 'Broadening', '67%']] as const;
+type DerivativesSnapshot = {
+ all: string;
+ long: string;
+ short: string;
+ openInterest: string;
+ openInterestChange: string;
+ volume: string;
+ volumeChange: string;
+ marketSizeChange: string;
+ marketSizeChangeValue: string;
+ volume24hChange: string;
+ volume24hChangeValue: string;
+ bars: number[];
+};
 
-const initialRules: FilterRule[] = [{ id: '1', field: 'Market', operator: '=', value: 'US Stocks', join: 'AND' }, { id: '2', field: 'Market Cap', operator: '>', value: '$10B', join: 'AND' }, { id: '3', field: 'Relative Volume', operator: '>', value: '1.5', join: 'AND' }, { id: '4', field: 'RSI (14)', operator: '<', value: '45', join: 'AND' }, { id: '5', field: '1M Return', operator: '>', value: '5%', join: 'AND' }];
+const marketCards = [
+ ['Stocks', '$118.4T', '+0.82%', '+$6.8B', '64%', 68, { all: '$407.06M', long: '$318.09M', short: '$88.97M', openInterest: '$469.06B', openInterestChange: '10.74%', volume: '$767.32B', volumeChange: '5.72%', marketSizeChange: '+1.42%', marketSizeChangeValue: '+$1.66T', volume24hChange: '+8.64%', volume24hChangeValue: '+$62.4B', bars: [2, 3, 2, 3, 4, 6, 12, 8, 5, 4, 2, 5, 3, 4, 3, 5] }],
+ ['Crypto', '$3.16T', '+2.41%', '+$1.2B', '71%', 72, { all: '$1.84B', long: '$1.21B', short: '$630M', openInterest: '$38.42B', openInterestChange: '8.36%', volume: '$142.8B', volumeChange: '12.48%', marketSizeChange: '+3.08%', marketSizeChangeValue: '+$94.4B', volume24hChange: '+18.26%', volume24hChangeValue: '+$22.0B', bars: [3, 5, 8, 4, 10, 7, 13, 6, 9, 5, 7, 11, 8, 6, 10, 12] }],
+ ['Forex', '$7.5T/day', 'DXY −0.34%', 'Risk-on', '58%', 54, { all: '$96.4M', long: '$42.8M', short: '$53.6M', openInterest: '$1.24T', openInterestChange: '2.18%', volume: '$6.84T', volumeChange: '3.42%', marketSizeChange: '+0.24%', marketSizeChangeValue: '+$18.0B', volume24hChange: '+4.16%', volume24hChangeValue: '+$284B', bars: [5, 4, 6, 5, 7, 5, 4, 6, 8, 5, 7, 6, 5, 4, 6, 5] }],
+ ['Commodities', '$14.2T', '+0.29%', '+$420M', '55%', 61, { all: '$284.7M', long: '$156.2M', short: '$128.5M', openInterest: '$82.16B', openInterestChange: '4.76%', volume: '$329.4B', volumeChange: '1.86%', marketSizeChange: '+0.67%', marketSizeChangeValue: '+$95.1B', volume24hChange: '+6.28%', volume24hChangeValue: '+$20.7B', bars: [4, 6, 5, 8, 7, 5, 9, 11, 6, 8, 5, 7, 10, 8, 6, 9] }],
+ ['Indices', '41 tracked', '+0.48%', 'Broadening', '67%', 66, { all: '$72.8M', long: '$48.6M', short: '$24.2M', openInterest: '$216.38B', openInterestChange: '6.22%', volume: '$498.6B', volumeChange: '4.18%', marketSizeChange: '+0.91%', marketSizeChangeValue: '+$372B', volume24hChange: '+7.42%', volume24hChangeValue: '+$34.4B', bars: [2, 3, 4, 3, 5, 4, 7, 5, 6, 4, 3, 5, 7, 6, 5, 8] }],
+] as const;
+
+function FearGreedGauge({ score }: { score: number }) {
+ const angle = Math.PI - (Math.max(0, Math.min(100, score)) / 100) * Math.PI;
+ const dotX = 40 + Math.cos(angle) * 31;
+ const dotY = 38 - Math.sin(angle) * 31;
+ const label = score >= 60 ? 'Greed' : score <= 40 ? 'Fear' : 'Neutral';
+ const labelClass = score >= 60 ? 'bg-lime-500' : score <= 40 ? 'bg-rose-500' : 'bg-amber-500';
+ return <div aria-label={`Fear & Greed ${score}, ${label}`} className="mt-2 flex items-end justify-between gap-2">
+  <div className="min-w-0">
+   <span className="block text-[9px] font-semibold text-slate-500">Fear &amp; Greed</span>
+   <svg aria-hidden="true" className="mt-0.5 h-10 w-[82px]" viewBox="0 0 80 44">
+    <path d="M8 38 A32 32 0 0 1 18 15" fill="none" stroke="#ef4444" strokeLinecap="round" strokeWidth="5" />
+    <path d="M18 15 A32 32 0 0 1 31 7" fill="none" stroke="#f59e0b" strokeLinecap="round" strokeWidth="5" />
+    <path d="M31 7 A32 32 0 0 1 49 7" fill="none" stroke="#facc15" strokeLinecap="round" strokeWidth="5" />
+    <path d="M49 7 A32 32 0 0 1 63 16" fill="none" stroke="#84cc16" strokeLinecap="round" strokeWidth="5" />
+    <path d="M63 16 A32 32 0 0 1 72 38" fill="none" stroke="#10b981" strokeLinecap="round" strokeWidth="5" />
+    <circle cx={dotX} cy={dotY} r="4.5" fill="#111827" stroke="white" strokeWidth="2" />
+   </svg>
+  </div>
+  <div className="pb-1 text-right"><b className="block font-mono text-sm text-slate-900">{score}</b><span className={`mt-0.5 inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold text-white ${labelClass}`}>{label}</span></div>
+ </div>;
+}
+
+function DerivativesPanel({ data }: { data: DerivativesSnapshot }) {
+ return <div className="mt-3 rounded-lg border border-slate-100 bg-white/70 p-2">
+  <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-700">Derivatives <ArrowRight className="size-3 text-slate-400" /></div>
+  <div className="mt-2 grid grid-cols-3 gap-1 text-[9px]">
+   <div><span className="block text-slate-400">All liquidations</span><b className="font-mono text-slate-800">{data.all}</b></div>
+   <div><span className="block text-slate-400">Long</span><b className="font-mono text-emerald-500">{data.long}</b></div>
+   <div><span className="block text-slate-400">Short</span><b className="font-mono text-rose-500">{data.short}</b></div>
+  </div>
+  <div className="mt-2 flex h-7 items-end gap-px border-b border-slate-200">
+   {data.bars.map((bar, index) => <span key={`${index}-${bar}`} className={`min-w-0 flex-1 rounded-t-sm ${index % 4 === 2 ? 'bg-rose-400' : 'bg-emerald-400'}`} style={{ height: `${Math.max(4, bar * 7)}%` }} />)}
+  </div>
+  <div className="mt-2 grid grid-cols-2 gap-2 text-[9px]">
+   <div><span className="block text-slate-400">Open interest</span><b className="font-mono text-slate-800">{data.openInterest}</b> <span className="text-emerald-500">↑ {data.openInterestChange}</span></div>
+   <div><span className="block text-slate-400">Volume</span><b className="font-mono text-slate-800">{data.volume}</b> <span className="text-rose-500">↓ {data.volumeChange}</span></div>
+  </div>
+ </div>;
+}
+
+function MarketChangeHighlights({ data }: { data: DerivativesSnapshot }) {
+ return <div className="mt-2 rounded-lg border border-violet-100 bg-violet-50/50 p-2">
+  <span className="text-[9px] font-semibold uppercase tracking-wider text-violet-600">24h market highlights</span>
+  <div className="mt-1.5 grid grid-cols-2 gap-2 text-[9px]">
+   <div><span className="block text-slate-400">Market size</span><b className="font-mono text-slate-800">{data.marketSizeChange}</b> <span className="text-slate-500">{data.marketSizeChangeValue}</span></div>
+   <div><span className="block text-slate-400">Volume</span><b className="font-mono text-slate-800">{data.volume24hChange}</b> <span className="text-slate-500">{data.volume24hChangeValue}</span></div>
+  </div>
+ </div>;
+}
+
+const initialRules: FilterRule[] = [{ id: '2', field: 'Market Cap', operator: '>', value: '$10B', join: 'AND' }, { id: '3', field: 'Relative Volume', operator: '>', value: '1.5', join: 'AND' }, { id: '4', field: 'RSI (14)', operator: '<', value: '45', join: 'AND' }, { id: '5', field: '1M Return', operator: '>', value: '5%', join: 'AND' }];
 
 const fmt = (n: number) => (n >= 1000 ? `$${(n / 1000).toFixed(2)}T` : `$${n}B`);
 
 const indexAsInstrument = (index: MarketIndex): Instrument => ({ symbol: index.symbol, name: index.name, market: 'Index', sector: 'Index', primaryMarket: index.region, subSector: [...index.sectors].sort((a, b) => b.change - a.change)[0]?.sector ?? 'Broad market', price: index.price, change: index.change, volume: 0, rvol: 1, rsi: 50, return1m: index.change * 2.4, marketCap: 0, sentiment: index.change >= 0 ? 65 : 42, signal: index.signal, confidence: index.confidence });
 
 function PageHead({ eyebrow, title, desc, action }: { eyebrow: string; title: string; desc: string; action?: React.ReactNode }) {
- return <div className="mb-5 flex items-end justify-between gap-4"><div><p className="text-[9px] font-semibold uppercase tracking-[.18em] text-violet-600">{eyebrow}</p><h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">{title}</h1><p className="mt-1 text-xs text-slate-500">{desc}</p></div>{action}</div>;
+ return <div className="mb-5 flex flex-wrap items-end justify-between gap-4"><div><p className="text-[9px] font-semibold uppercase tracking-[.18em] text-violet-600">{eyebrow}</p><h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">{title}</h1><p className="mt-1 text-xs text-slate-500">{desc}</p></div>{action}</div>;
 }
 
 type ExplorerMarket = 'Global' | (typeof marketCards)[number][0];
 
 function Explorer({ navigate, openInstrument }: { navigate: (v: View) => void; openInstrument: (i: Instrument) => void }) {
+ const { requestQuest, openBrokerAccess } = useMarketEngagement();
  const [market, setMarket] = useState<ExplorerMarket>('Global');
  const explorerMarkets: ExplorerMarket[] = ['Global', ...marketCards.map(card => card[0] as ExplorerMarket)];
  const visibleCards = market === 'Global' ? marketCards : marketCards.filter(card => card[0] === market);
@@ -65,12 +139,13 @@ function Explorer({ navigate, openInstrument }: { navigate: (v: View) => void; o
     ))}
    </div>
    {market !== 'Global' && <ExplorerMarketDetails market={market} instruments={visibleInstruments} />}
+   <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-violet-100 bg-white p-3"><p className="text-xs text-slate-500">Independent research · sponsorship does not affect the radar.</p><div className="flex flex-wrap gap-2"><button className="secondary" onClick={() => requestQuest('explorer-research', visibleInstruments.map(item => item.symbol))}>Research this market</button><button className="secondary" onClick={openBrokerAccess}>Broker access</button></div></div>
    <div className="mt-4 grid grid-cols-[minmax(0,1fr)_340px] gap-4 max-xl:grid-cols-1">
     <div className="panel">
     <div className="panel-head"><div><b className="text-sm text-slate-900">Opportunity radar</b><p>{visibleInstruments.length} matched · high volume + pullback strength</p></div><button onClick={() => navigate('screener')} className="primary"><Filter />Open screener</button></div>
     <InstrumentTable data={visibleInstruments.slice(0, 6)} open={openInstrument} />
     </div>
-    <VolumeFlowPanel />
+    <VolumeFlowPanel currentMarket="All" currentResults={visibleInstruments} />
    </div>
     </div>
   </>
@@ -105,15 +180,17 @@ const flowMultipliers: Record<FlowPeriod, number> = { '1D': 1, '1W': 4.8, '1M': 
 
 const flowMarketName = (instrument: Instrument) => instrument.market === 'US Stocks' || instrument.market === 'Stocks' ? 'Stocks' : instrument.market === 'Commodity' ? 'Commodities' : instrument.market;
 
-function VolumeFlowPanel() {
- const [period, setPeriod] = useState<Flow3DPeriod>('1D');
+function VolumeFlowPanel({ currentMarket, currentResults }: { currentMarket: MarketFilter; currentResults: Instrument[] }) {
+ const [period, setPeriod] = useState<FlowPeriod>('1D');
  const [scope, setScope] = useState<FlowScope>('Market');
- const [selectedMarket, setSelectedMarket] = useState<(typeof flowMarkets)[number]>('Stocks');
- const marketRows = flowMarkets.map(name => ({ label: name, value: name === 'Indices' ? marketIndices.reduce((sum, index) => sum + index.price * Math.abs(index.change) / 100, 0) * flowMultipliers[period] : instruments.filter(instrument => flowMarketName(instrument) === name).reduce((sum, instrument) => sum + instrument.volume * instrument.rvol, 0) * flowMultipliers[period] }));
- const sectorRows = selectedMarket === 'Indices' ? marketIndices.flatMap(index => index.sectors.map(sector => ({ label: sector.sector, value: index.price * Math.abs(sector.change) / 100 * flowMultipliers[period] }))).reduce<Record<string, number>>((rows, row) => { rows[row.label] = (rows[row.label] ?? 0) + row.value; return rows; }, {}) : instruments.filter(instrument => flowMarketName(instrument) === selectedMarket).reduce<Record<string, number>>((rows, instrument) => { const sector = instrument.subSector ?? instrument.sector; rows[sector] = (rows[sector] ?? 0) + instrument.volume * instrument.rvol * flowMultipliers[period]; return rows; }, {});
+ const defaultMarket = currentMarket === 'Indices' ? 'Indices' : currentMarket === 'All' ? 'Stocks' : flowMarketName(currentResults[0] ?? instruments[0]) as (typeof flowMarkets)[number];
+ const [selectedMarket, setSelectedMarket] = useState<(typeof flowMarkets)[number]>(defaultMarket);
+ const selectedInstruments = currentMarket === 'All' ? instruments.filter(instrument => flowMarketName(instrument) === selectedMarket) : currentMarket === 'Indices' ? [] : currentResults;
+ const marketRows = flowMarkets.map(name => ({ label: name, value: (name === 'Indices' ? marketIndices.reduce((sum, index) => sum + index.price * Math.abs(index.change) / 100, 0) : instruments.filter(instrument => flowMarketName(instrument) === name).reduce((sum, instrument) => sum + instrument.volume * instrument.rvol, 0)) * flowMultipliers[period] }));
+ const sectorRows = selectedMarket === 'Indices' ? marketIndices.flatMap(index => index.sectors.map(sector => ({ label: sector.sector, value: index.price * Math.abs(sector.change) / 100 * flowMultipliers[period] }))).reduce<Record<string, number>>((rows, row) => { rows[row.label] = (rows[row.label] ?? 0) + row.value; return rows; }, {}) : selectedInstruments.reduce<Record<string, number>>((rows, instrument) => { const sector = instrument.subSector ?? instrument.sector; rows[sector] = (rows[sector] ?? 0) + instrument.volume * instrument.rvol * flowMultipliers[period]; return rows; }, {});
  const rows = scope === 'Market' ? marketRows : Object.entries(sectorRows).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
  const max = Math.max(...rows.map(row => row.value), 1);
- return <div className="panel p-4"><div><b className="text-sm text-slate-900">3D volume flow</b><p className="sub">Stocks → BTC / ETH rotation map</p></div><div className="mt-3 flex flex-wrap gap-2"><div className="seg">{(['1D', '1W', '1M', '1Y'] as Flow3DPeriod[]).map(item => <button key={item} onClick={() => setPeriod(item)} className={period === item ? 'active' : ''}>{item}</button>)}</div><div className="seg">{(['Market', 'Sector'] as FlowScope[]).map(item => <button key={item} onClick={() => setScope(item)} className={scope === item ? 'active' : ''}>{item}</button>)}</div></div>{scope === 'Sector' && <select aria-label="Volume flow market" value={selectedMarket} onChange={event => setSelectedMarket(event.target.value as (typeof flowMarkets)[number])} className="mt-3 w-full rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-600">{flowMarkets.map(name => <option key={name}>{name}</option>)}</select>}<div className="mt-4"><VolumeFlow3D period={period} /></div><div className="mt-4 space-y-3">{rows.map(row => <div key={row.label}><div className="mb-1 flex justify-between text-[10px]"><span className="font-medium text-slate-700">{row.label}</span><span className="font-mono text-slate-500">{row.value.toFixed(1)}M</span></div><div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-violet-500 transition-all duration-500" style={{ width: `${Math.max(4, row.value / max * 100)}%` }} /></div></div>)}</div><p className="mt-4 text-[9px] leading-relaxed text-slate-400">Demo proxy: volume × relative volume. Flow lines show directional participation from stocks/sectors into BTC and ETH only; they do not represent literal capital transfer.</p></div>;
+ return <div className="panel p-3"><div className="flex items-start justify-between gap-2"><div><b className="text-sm text-slate-900">Market × Sector comparison</b><p className="sub">Relative activity using the current scanner filter</p></div><span className="text-[10px] text-slate-400">{currentMarket}</span></div><div className="mt-2 flex flex-wrap gap-2"><div className="seg">{(['1D', '1W', '1M', '1Y'] as FlowPeriod[]).map(item => <button key={item} onClick={() => setPeriod(item)} className={period === item ? 'active' : ''}>{item}</button>)}</div><div className="seg">{(['Market', 'Sector'] as FlowScope[]).map(item => <button key={item} onClick={() => setScope(item)} className={scope === item ? 'active' : ''}>{item}</button>)}</div></div>{scope === 'Sector' && currentMarket === 'All' && <select aria-label="Comparison market" value={selectedMarket} onChange={event => setSelectedMarket(event.target.value as (typeof flowMarkets)[number])} className="mt-2 w-full rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-600">{flowMarkets.map(name => <option key={name}>{name}</option>)}</select>}<div className="mt-3 space-y-2">{rows.slice(0, 6).map(row => <div key={row.label}><div className="mb-1 flex items-center justify-between gap-2 text-[10px]"><span className="truncate font-medium text-slate-700">{row.label}</span><span className="font-mono text-slate-500">{row.value.toFixed(1)}M</span></div><div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-violet-500 transition-all duration-300" style={{ width: `${Math.max(4, row.value / max * 100)}%` }} /></div></div>)}</div><p className="mt-2 text-[9px] leading-relaxed text-slate-400">Relative activity compares participation; it is not a capital-flow or trade recommendation.</p></div>;
 }
 
 const marketFilters = ['All', 'Stocks', 'Crypto', 'Forex', 'Commodities', 'Indices'] as const;
@@ -163,7 +240,29 @@ const customFilterOptions = (market: MarketFilter): CustomFilterOption[] => {
  return [...taxonomy, ...metricFilters];
 };
 
+function MarketHighlights({ openInstrument, market, currentResults }: { openInstrument: (instrument: Instrument) => void; market: MarketFilter; currentResults: Instrument[] }) {
+ const topMovers = [...instruments].sort((a, b) => Math.abs(b.change) - Math.abs(a.change)).slice(0, 3);
+ return <section aria-label="CFD market highlights" className="mb-4 space-y-3">
+  <div className="rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 via-white to-slate-50 p-4">
+   <div className="flex flex-wrap items-end justify-between gap-3">
+    <div><p className="text-[9px] font-semibold uppercase tracking-[.18em] text-violet-600">Market pulse · CFD discovery</p><h2 className="mt-1 text-lg font-semibold text-slate-900">Understand the market before screening</h2><p className="mt-1 max-w-2xl text-xs text-slate-500">Explorer highlights are now linked to the scanner. Use the briefs to choose a market, then validate the idea with independent filters and risk conditions.</p></div>
+   </div>
+   <div className="mt-4 grid grid-cols-5 gap-2 max-xl:grid-cols-3 max-md:grid-cols-2">
+    {marketCards.map(([label, size, change, participation, , fearGreed, derivatives]) => <div className="rounded-xl border border-white bg-white/80 p-3 shadow-sm" key={label}><span className="text-[10px] font-semibold text-slate-500">{label} CFDs</span><b className="mt-2 block font-mono text-sm text-slate-900">{size}</b><div className="mt-1 flex justify-between gap-2 text-[10px]"><span className={change.includes('−') ? 'down' : 'up'}>{change}</span></div><span className="mt-1 block text-[10px] text-slate-400">Activity {participation}</span><FearGreedGauge score={fearGreed} /><MarketChangeHighlights data={derivatives} /><DerivativesPanel data={derivatives} /></div>)}
+   </div>
+  </div>
+  <div className="grid grid-cols-[minmax(0,1fr)_340px] gap-3 max-xl:grid-cols-1">
+   <div className="panel p-4"><div className="panel-head"><div><b className="text-sm text-slate-900">Today’s CFD briefs</b><p>Data-linked highlights from movers, breadth, and participation.</p></div><span className="text-[10px] text-slate-400">Independent of sponsorship</span></div><div className="mt-3 grid gap-2 md:grid-cols-3">{topMovers.map(instrument => <button key={instrument.symbol} onClick={() => openInstrument(instrument)} className="rounded-xl border border-border p-3 text-left transition hover:border-violet-300 hover:bg-violet-50/40"><span className="text-[9px] font-semibold uppercase tracking-wider text-violet-600">{instrument.change >= 0 ? 'Momentum brief' : 'Risk brief'}</span><b className="mt-1 block text-sm text-slate-900">{instrument.symbol} CFD</b><p className="mt-1 line-clamp-2 text-[10px] text-slate-500">{instrument.name} is showing {instrument.change >= 0 ? 'positive' : 'negative'} movement with {instrument.rvol.toFixed(1)}× relative activity.</p><span className={`mt-2 block text-xs font-semibold ${instrument.change >= 0 ? 'up' : 'down'}`}>{instrument.change > 0 ? '+' : ''}{instrument.change.toFixed(2)}% · Open details</span></button>)}</div></div>
+   <VolumeFlowPanel currentMarket={market} currentResults={currentResults} />
+  </div>
+ </section>;
+}
+
 function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument, openIndex, watchlist, toggleWatch, toast }: { tier: Tier; rules: FilterRule[]; setRules: (r: FilterRule[]) => void; results: Instrument[]; viz: Visualization; setViz: (v: Visualization) => void; openInstrument: (i: Instrument) => void; openIndex: (index: MarketIndex) => void; watchlist: string[]; toggleWatch: (symbol: string) => void; toast: (s: string) => void }) {
+ const { requestQuest, requestUnlock, openBrokerAccess, compare, brokers } = useMarketEngagement();
+ const { hasAccess } = useRewards();
+ const scatterUnlocked = hasAccess('advancedScreener');
+ const precisionUnlocked = hasAccess('signalPrecision');
  const views: Visualization[] = ['Table', 'Heatmap', 'Scatter', 'Correlation'];
  const [market, setMarket] = useState<MarketFilter>('All');
  const [primary, setPrimary] = useState('All');
@@ -196,6 +295,7 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
  const primaryChoices = indexPrimaryOptions;
  const subSectorChoices = market === 'Indices' ? indexSubSectorOptions : subSectorOptions;
  const sectorChoices = useMemo(() => market === 'Indices' ? ['All'] : sectorOptions, [market, sectorOptions]);
+ const currentResults = market === 'Indices' ? filteredIndices.map(indexAsInstrument) : filtered;
  useEffect(() => {
   if (!primaryChoices.includes(primary)) setPrimary('All');
   if (!sectorChoices.includes(sector)) setSector('All');
@@ -205,7 +305,18 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
  }, [primaryChoices, sectorChoices, regionOptions, countryOptions, subSectorChoices, primary, sector, region, country, subSector]);
  return (
   <>
-   <PageHead eyebrow="Screen → Visualize" title="Advanced Market Screener" desc="Turn a filtered dataset into an analytical view—not just rows." action={<button onClick={() => toast('Screen saved')} className="secondary">Save screen</button>} />
+   <PageHead eyebrow="Discover → Explain → Monitor" title="Instrument Analysis" desc="Review market highlights, Fear & Greed, derivatives activity, and 24-hour changes before selecting an instrument." action={<button onClick={() => toast('Screen saved')} className="secondary">Save screen</button>} />
+   <MarketHighlights openInstrument={openInstrument} market={market} currentResults={currentResults} />
+   <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+    <div className="flex flex-wrap items-center gap-2">
+    <div className="seg">{marketFilters.map(m => <button key={m} onClick={() => { setMarket(m); setPrimary('All'); setSector('All'); setRegion('All'); setCountry('All'); setSubSector('All'); track('market_viewed', { market: m }); }} className={market === m ? 'active' : ''}>{m}</button>)}</div>
+    {market === 'Indices' && <label className="flex items-center gap-2 text-[10px] text-slate-500"><span>Region</span><select value={primary} onChange={event => { setPrimary(event.target.value); setSubSector('All'); }} className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-700 outline-none">{primaryChoices.map(option => <option key={option}>{option}</option>)}</select></label>}
+    {market === 'Stocks' && <><label className="flex items-center gap-2 text-[10px] text-slate-500"><span>Region</span><select value={region} onChange={event => { setRegion(event.target.value); setCountry('All'); }} className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-700 outline-none">{regionOptions.map(option => <option key={option}>{option}</option>)}</select></label><label className="flex items-center gap-2 text-[10px] text-slate-500"><span>Country / Market</span><select value={country} onChange={event => setCountry(event.target.value)} className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-700 outline-none">{countryOptions.map(option => <option key={option}>{option}</option>)}</select></label></>}
+    {market !== 'Indices' && <label className="flex items-center gap-2 text-[10px] text-slate-500"><span>Sector</span><select value={sector} onChange={event => { setSector(event.target.value); setSubSector('All'); }} className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-700 outline-none">{sectorChoices.map(option => <option key={option}>{option}</option>)}</select></label>}
+    <label className="flex items-center gap-2 text-[10px] text-slate-500"><span>{market === 'Indices' ? 'Index sector' : 'Sub-sector'}</span><select value={subSector} onChange={event => setSubSector(event.target.value)} className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-700 outline-none">{subSectorChoices.map(option => <option key={option}>{option}</option>)}</select></label>
+    </div>
+    <div className="seg">{views.map(v => <button key={v} onClick={() => { setViz(v); if (v === 'Scatter' && !scatterUnlocked) requestUnlock('advancedScreener'); }} className={viz === v ? 'active' : ''}>{v}{v === 'Scatter' && !scatterUnlocked && <Lock className="ml-1 inline size-2.5" />}{v === 'Correlation' && !precisionUnlocked && <Lock className="ml-1 inline size-2.5" />}</button>)}</div>
+   </div>
    <div className="panel p-3">
     <div className="flex flex-wrap items-center gap-2">
      <span className="label mr-2">Filter logic</span>
@@ -224,30 +335,36 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
     </div>
     </div>
    </div>
-   <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-    <div className="flex flex-wrap items-center gap-2">
-    <div className="seg">{marketFilters.map(m => <button key={m} onClick={() => { setMarket(m); setPrimary('All'); setSector('All'); setRegion('All'); setCountry('All'); setSubSector('All'); track('market_viewed', { market: m }); }} className={market === m ? 'active' : ''}>{m}</button>)}</div>
-    {market === 'Indices' && <label className="flex items-center gap-2 text-[10px] text-slate-500"><span>Region</span><select value={primary} onChange={event => { setPrimary(event.target.value); setSubSector('All'); }} className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-700 outline-none">{primaryChoices.map(option => <option key={option}>{option}</option>)}</select></label>}
-    {market === 'Stocks' && <><label className="flex items-center gap-2 text-[10px] text-slate-500"><span>Region</span><select value={region} onChange={event => { setRegion(event.target.value); setCountry('All'); }} className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-700 outline-none">{regionOptions.map(option => <option key={option}>{option}</option>)}</select></label><label className="flex items-center gap-2 text-[10px] text-slate-500"><span>Country / Market</span><select value={country} onChange={event => setCountry(event.target.value)} className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-700 outline-none">{countryOptions.map(option => <option key={option}>{option}</option>)}</select></label></>}
-    {market !== 'Indices' && <label className="flex items-center gap-2 text-[10px] text-slate-500"><span>Sector</span><select value={sector} onChange={event => { setSector(event.target.value); setSubSector('All'); }} className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-700 outline-none">{sectorChoices.map(option => <option key={option}>{option}</option>)}</select></label>}
-    <label className="flex items-center gap-2 text-[10px] text-slate-500"><span>{market === 'Indices' ? 'Index sector' : 'Sub-sector'}</span><select value={subSector} onChange={event => setSubSector(event.target.value)} className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-700 outline-none">{subSectorChoices.map(option => <option key={option}>{option}</option>)}</select></label>
-    </div>
-    <div className="seg">{views.map(v => <button key={v} onClick={() => setViz(v)} className={viz === v ? 'active' : ''}>{v}{v === 'Correlation' && tier !== 'INTERMEDIATE' && tier !== 'PREMIUM' && <Lock className="ml-1 inline size-2.5" />}</button>)}</div>
-   </div>
   {market !== 'All' && <div className="mt-3 rounded-xl border border-violet-100 bg-violet-50/50 px-3 py-2 text-[10px] text-slate-500"><span className="font-semibold text-violet-700">Available {market} coverage:</span> {taxonomyLabels[market as Exclude<MarketFilter, 'All'>]}</div>}
-   <div className="mt-3 flex items-center justify-between text-[10px] text-slate-500">
-    <span><b className="text-slate-900">{market === 'Indices' ? filteredIndices.length : filtered.length}</b> matches</span>
-    <button className="secondary"><Download />Export</button>
+   <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-500">
+    <span><b className="text-slate-900">{market === 'Indices' ? filteredIndices.length : filtered.length}</b> matches · independent results, never sponsored</span>
+    <div className="flex flex-wrap gap-2"><button className="secondary border-violet-200 bg-violet-50 text-violet-700 hover:border-violet-300 hover:bg-violet-100" onClick={() => requestQuest('screener-research', (market === 'Indices' ? filteredIndices : filtered).map(item => item.symbol))}><span className="block text-[9px] font-bold uppercase tracking-wide">Today&apos;s quest</span><span>Guided comparison · +50 C</span><span className="block text-[9px] text-violet-500">Available until 23:59 UTC</span></button><button className="secondary" onClick={openBrokerAccess}>Broker access</button><button className="secondary" onClick={() => {
+      const rows = market === 'Indices' ? filteredIndices : filtered;
+      const csv = ['Symbol,Name,Price,Change', ...rows.map(item => [item.symbol, item.name, item.price, item.change].map(value => `"${String(value).replace(/"/g, '""')}"`).join(','))].join('\r\n');
+      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+      const link = document.createElement('a'); link.href = url; link.download = 'market-research.csv'; link.click(); URL.revokeObjectURL(url);
+      toast('Market research CSV exported');
+    }}><Download />Export CSV</button></div>
    </div>
    <div className="panel mt-3 min-h-95">
-    {market === 'Indices'
-    ? <>{viz === 'Table' && <IndicesPanel data={filteredIndices} open={openIndex} />}{viz === 'Heatmap' && <IndexHeatmap data={filteredIndices} open={openIndex} />}{viz === 'Scatter' && <IndexScatter data={filteredIndices} open={openIndex} />}{viz === 'Correlation' && <Correlation names={filteredIndices.map(index => index.symbol)} />}</>
+    {viz === 'Scatter' && !scatterUnlocked ? <div className="flex min-h-80 flex-col items-center justify-center gap-3 p-6 text-center"><Lock className="size-7 text-violet-500" /><h2 className="font-semibold text-slate-800">Advanced scatter research</h2><p className="max-w-md text-xs text-slate-500">Compare three dimensions with the existing scatter tool. Table, heatmap, exports, and guided research remain free.</p><button className="primary" onClick={() => requestUnlock('advancedScreener')}>Choose credit unlock</button></div> : market === 'Indices'
+    ? <>{viz === 'Table' && <IndicesPanel data={filteredIndices} open={openIndex} />}{viz === 'Heatmap' && <IndexHeatmap data={filteredIndices} open={openIndex} />}{viz === 'Scatter' && <IndexScatter data={filteredIndices} open={openIndex} />}{viz === 'Correlation' && <Correlation names={filteredIndices.map(index => index.symbol)} precisionUnlocked={precisionUnlocked} requestPrecisionUnlock={() => requestUnlock('signalPrecision')} />}</>
      : <>
-      {viz === 'Table' && <InstrumentTable data={filtered} open={openInstrument} watchlist={watchlist} toggleWatch={toggleWatch} />}
-      {viz === 'Heatmap' && <Heatmap data={filtered} market={market} open={openInstrument} />}
-      {viz === 'Scatter' && <ScatterView data={filtered} market={market} open={openInstrument} />}
-      {viz === 'Correlation' && <Correlation names={filtered.map(instrument => instrument.symbol)} />}
+      {viz === 'Table' && <InstrumentTable data={filtered} open={openInstrument} watchlist={watchlist} toggleWatch={toggleWatch} precisionUnlocked={precisionUnlocked} requestPrecisionUnlock={() => requestUnlock('signalPrecision')} brokers={brokers} openBrokerAccess={openBrokerAccess} />}
+      {viz === 'Heatmap' && <Heatmap data={filtered} market={market} open={openInstrument} brokers={brokers} />}
+      {viz === 'Scatter' && <ScatterView data={filtered} market={market} open={openInstrument} brokers={brokers} />}
+      {viz === 'Correlation' && <Correlation names={filtered.map(instrument => instrument.symbol)} precisionUnlocked={precisionUnlocked} requestPrecisionUnlock={() => requestUnlock('signalPrecision')} brokers={brokers} />}
      </>}
+   </div>
+   <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+    <div className="rounded-xl border border-slate-200 bg-white p-3">
+     <div className="flex items-center justify-between gap-2"><div><b className="text-xs text-slate-900">Broker comparison</b><p className="mt-1 text-[10px] text-slate-500">Compare spreads, leverage, platforms, and symbol access before connecting.</p></div><span className="rounded-full bg-slate-100 px-2 py-1 text-[9px] font-semibold text-slate-600">{brokers.length} listed</span></div>
+     <button className="secondary mt-3 w-full justify-center" onClick={compare}>Compare broker conditions</button>
+    </div>
+    <div className="rounded-xl border border-violet-200 bg-gradient-to-r from-violet-50 via-white to-amber-50 p-3">
+     <div className="flex flex-wrap items-start justify-between gap-2"><div><span className="text-[9px] font-bold uppercase tracking-wider text-violet-600">Special partner campaign</span><b className="mt-1 block text-xs text-slate-900">Connect an eligible broker and unlock more value</b><p className="mt-1 text-[10px] text-slate-500">Campaign eligibility, product access, and cashback terms vary by symbol and region.</p></div><span className="rounded-full bg-amber-100 px-2 py-1 text-[9px] font-semibold text-amber-700">Limited offer</span></div>
+     <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px]"><span className="rounded-lg bg-white px-2 py-1 font-semibold text-violet-700 shadow-sm">+30 Credits</span><span className="rounded-lg bg-white px-2 py-1 font-semibold text-amber-700 shadow-sm">+10 Points</span><span className="rounded-lg bg-white px-2 py-1 font-semibold text-emerald-700 shadow-sm">Up to $25 cashback</span><button className="primary ml-auto" onClick={openBrokerAccess}>View eligible offers</button></div>
+    </div>
    </div>
   </>
  );
@@ -263,7 +380,7 @@ function SortHeader({ label, active, dir, onClick }: { label: string; active: bo
  return <button onClick={onClick} className="flex items-center gap-1 hover:text-slate-700">{label}{active && <span className="text-violet-600">{dir === 1 ? '▲' : '▼'}</span>}</button>;
 }
 
-function InstrumentTable({ data, open, watchlist, toggleWatch }: { data: Instrument[]; open: (i: Instrument) => void; watchlist?: string[]; toggleWatch?: (symbol: string) => void }) {
+function InstrumentTable({ data, open, watchlist, toggleWatch, precisionUnlocked, requestPrecisionUnlock, brokers, openBrokerAccess }: { data: Instrument[]; open: (i: Instrument) => void; watchlist?: string[]; toggleWatch?: (symbol: string) => void; precisionUnlocked?: boolean; requestPrecisionUnlock?: () => void; brokers: Broker[]; openBrokerAccess?: () => void }) {
  const [sort, setSort] = useState<{ key: InstrumentSortKey; dir: 1 | -1 } | null>(null);
  const sorted = useMemo(() => {
   if (!sort) return data;
@@ -272,8 +389,8 @@ function InstrumentTable({ data, open, watchlist, toggleWatch }: { data: Instrum
  }, [data, sort]);
  function toggleSort(key: InstrumentSortKey) { setSort(s => (s?.key === key ? (s.dir === 1 ? { key, dir: -1 } : null) : { key, dir: 1 })); }
  return (
-  <table className="w-full text-left text-xs">
-  <thead><tr>{toggleWatch && <th>Watchlist</th>}{instrumentColumns.map(c => <th key={c.key}><SortHeader label={c.label} active={sort?.key === c.key} dir={sort?.dir ?? 1} onClick={() => toggleSort(c.key)} /></th>)}<th>Price trend</th></tr></thead>
+  <div className="max-w-full overflow-x-auto" role="region" aria-label="Market instrument results" tabIndex={0}><table className="w-full text-left text-xs">
+  <thead><tr>{toggleWatch && <th>Watchlist</th>}{instrumentColumns.map(c => <th key={c.key}><SortHeader label={c.label} active={sort?.key === c.key} dir={sort?.dir ?? 1} onClick={() => toggleSort(c.key)} /></th>)}<th>Broker campaign · Connect</th><th>Price trend</th></tr></thead>
    <tbody>
     {sorted.map(i => (
      <tr key={i.symbol} onClick={() => open(i)}>
@@ -282,15 +399,16 @@ function InstrumentTable({ data, open, watchlist, toggleWatch }: { data: Instrum
       <td className="mono">{i.price.toLocaleString()}</td>
       <td className={i.change >= 0 ? 'up' : 'down'}>{i.change > 0 ? '+' : ''}{i.change}%</td>
       <td className={i.return1m >= 0 ? 'up' : 'down'}>{i.return1m}%</td>
-      <td>{i.rvol}×</td>
+      <td>{i.rvol.toFixed(2)}</td>
       <td>{i.rsi}</td>
       <td>{fmt(i.marketCap)}</td>
-      <td><span className={`badge ${i.signal === 'LONG' ? 'positive' : ''}`}>{i.signal} {i.confidence}%</span></td>
+      <td>{i.confidence > 50 && !precisionUnlocked ? <button className="secondary whitespace-nowrap px-2 py-1 text-[9px]" onClick={event => { event.stopPropagation(); requestPrecisionUnlock?.(); }}><Lock className="mr-1 inline size-2.5" />Unlock &gt;50%</button> : <span className={`badge ${i.signal === 'LONG' ? 'positive' : ''}`}>{i.signal} {i.confidence}%</span>}</td>
+      {(() => { const offer = symbolOffer(i.symbol, brokers); return <td>{offer && <div className="min-w-32"><span className="mb-1 block max-w-36 truncate text-[8px] font-semibold text-violet-700">{offer.broker.name} · {offer.campaign}</span><button className="secondary whitespace-nowrap px-2 py-1 text-[9px]" onClick={event => { event.stopPropagation(); openBrokerAccess?.(); }}>Connect broker</button></div>}</td>; })()}
       <td><PriceSparkline instrument={i} /></td>
      </tr>
     ))}
    </tbody>
-  </table>
+  </table></div>
  );
 }
 
@@ -409,8 +527,16 @@ const heatmapColor = (value: number | null, values: number[], key: InstrumentMet
 };
 
 const heatmapMetricText = (value: number | null, option: MetricOption) => value === null ? 'N/A' : formatMetric(value, option);
+const symbolOffer = (symbol: string, brokers: Broker[]) => {
+ if (!brokers.length) return undefined;
+ const score = [...symbol].reduce((sum, character) => sum + character.charCodeAt(0), 0);
+ if (score % 4 === 0) return undefined;
+ const broker = brokers[score % brokers.length];
+ const campaign = score % 2 ? `${broker.maxCashback} cashback campaign` : `${broker.spreadFrom} spread campaign`;
+ return { broker, campaign };
+};
 
-function Heatmap({ data, market, open }: { data: Instrument[]; market: MarketFilter; open: (i: Instrument) => void }) {
+function Heatmap({ data, market, open, brokers }: { data: Instrument[]; market: MarketFilter; open: (i: Instrument) => void; brokers: Broker[] }) {
  const metricMarket = market === 'All' ? 'Stocks' : market;
  const options = heatmapMetricOptions(metricMarket);
  const [sizeBy, setSizeBy] = useState<InstrumentMetric>('marketCap');
@@ -436,7 +562,7 @@ function Heatmap({ data, market, open }: { data: Instrument[]; market: MarketFil
     <div><p className="text-xs font-semibold text-slate-900">{market === 'All' ? 'Market' : market} heatmap</p><p className="mt-0.5 text-[10px] text-slate-400">Tile size and color use the selected market fields.</p></div>
     <div className="flex flex-wrap gap-2"><MetricSelect label="Size by" value={sizeBy} options={options} onChange={setSizeBy} /><MetricSelect label="Color by" value={colorBy} options={options} onChange={setColorBy} /></div>
    </div>
-   <div className="relative aspect-[5/3] min-h-95 overflow-hidden rounded-xl border border-border bg-slate-50">
+   <div className="relative aspect-[5/3] min-h-95 w-full min-w-0 overflow-hidden rounded-xl border border-border bg-slate-50">
     {nodes.map(node => {
      const instrument = node.data.instrument;
      const sizeValue = heatmapValue(instrument, sizeBy);
@@ -450,9 +576,10 @@ function Heatmap({ data, market, open }: { data: Instrument[]; market: MarketFil
       {detail && <span className="max-w-full truncate text-[9px] text-slate-600">{instrument.name}</span>}
       {!compact && <span className="max-w-full truncate text-[9px] font-medium text-slate-700">{heatmapMetricText(sizeValue, sizeOption)}</span>}
       {!compact && <span className="max-w-full truncate text-[9px] text-slate-500">{heatmapMetricText(colorValue, colorOption)}</span>}
+      {detail && symbolOffer(instrument.symbol, brokers) && <span className="max-w-full truncate text-[8px] font-semibold text-violet-700">Broker campaign · 7d access</span>}
      </button>;
     })}
-    {hovered && <HeatmapTooltip instrument={hovered} />}
+    {hovered && <HeatmapTooltip instrument={hovered} offer={symbolOffer(hovered.symbol, brokers)} />}
    </div>
    <HeatmapLegend option={colorOption} values={legendValues} diverging={isDiverging} />
   </div>
@@ -463,12 +590,12 @@ function HeatmapLegend({ option, values, diverging }: { option: MetricOption; va
  return <div className="mt-2 flex items-center gap-2 text-[9px] text-slate-400"><span>{heatmapMetricText(values[0], option)}</span><div className={`h-2 flex-1 rounded-full ${diverging ? 'bg-linear-to-r from-rose-500 via-slate-100 to-emerald-500' : 'bg-linear-to-r from-slate-100 to-emerald-600'}`} /><span>{heatmapMetricText(values[1], option)}</span><span className="ml-1 text-slate-500">{diverging ? 'negative · neutral · positive' : 'low · high'}</span></div>;
 }
 
-function HeatmapTooltip({ instrument }: { instrument: Instrument }) {
+function HeatmapTooltip({ instrument, offer }: { instrument: Instrument; offer?: { broker: Broker; campaign: string } }) {
  const rows: [string, string][] = [['Price', instrument.price.toLocaleString(undefined, { maximumFractionDigits: 4 })], ['Market Cap', heatmapMetricText(heatmapValue(instrument, 'marketCap'), metricLabel('marketCap', 'Stocks'))], ['P/E Ratio', heatmapMetricText(heatmapValue(instrument, 'pe'), metricLabel('pe', 'Stocks'))], ['Change 1D', heatmapMetricText(heatmapValue(instrument, 'change'), metricLabel('change', 'Stocks'))], ['Performance 1M', heatmapMetricText(heatmapValue(instrument, 'return1m'), metricLabel('return1m', 'Stocks'))], ['Relative Volume', heatmapMetricText(heatmapValue(instrument, 'rvol'), metricLabel('rvol', 'Stocks'))]];
- return <div className="pointer-events-none absolute right-2 top-2 z-20 w-52 rounded-lg border border-border bg-white/95 p-3 text-left shadow-xl"><b className="block text-xs text-slate-900">{instrument.name} ({instrument.symbol})</b><p className="mt-1 text-[9px] text-slate-500">{instrument.sector} · {instrument.subSector ?? 'Unclassified'}</p><p className="text-[9px] text-slate-500">{instrument.primaryMarket ?? 'Exchange unavailable'} · {instrument.country ?? 'Country unavailable'}</p><div className="mt-2 space-y-1 border-t border-border pt-2">{rows.map(([label, value]) => <div className="flex justify-between gap-2 text-[9px]" key={label}><span className="text-slate-400">{label}</span><b className="text-slate-700">{value}</b></div>)}</div></div>;
+ return <div className="pointer-events-none absolute right-2 top-2 z-20 w-52 rounded-lg border border-border bg-white/95 p-3 text-left shadow-xl"><b className="block text-xs text-slate-900">{instrument.name} ({instrument.symbol})</b><p className="mt-1 text-[9px] text-slate-500">{instrument.sector} · {instrument.subSector ?? 'Unclassified'}</p><p className="text-[9px] text-slate-500">{instrument.primaryMarket ?? 'Exchange unavailable'} · {instrument.country ?? 'Country unavailable'}</p>{offer && <p className="mt-2 rounded bg-violet-50 px-2 py-1 text-[9px] font-semibold text-violet-700">{offer.broker.name} · {offer.campaign} · 7d access</p>}<div className="mt-2 space-y-1 border-t border-border pt-2">{rows.map(([label, value]) => <div className="flex justify-between gap-2 text-[9px]" key={label}><span className="text-slate-400">{label}</span><b className="text-slate-700">{value}</b></div>)}</div></div>;
 }
 
-function ScatterView({ data, market, open }: { data: Instrument[]; market: MarketFilter; open: (i: Instrument) => void }) {
+function ScatterView({ data, market, open, brokers }: { data: Instrument[]; market: MarketFilter; open: (i: Instrument) => void; brokers: Broker[] }) {
  const options = metricOptions[market];
  const defaultX = options.find(option => option.key === 'rsi')?.key ?? options[0].key;
  const defaultY = options.find(option => option.key === 'return1m')?.key ?? options.find(option => option.key === 'change')?.key ?? options[1]?.key ?? options[0].key;
@@ -498,7 +625,7 @@ function ScatterView({ data, market, open }: { data: Instrument[]; market: Marke
      <XAxis type="number" dataKey="xValue" name={xOption.label} unit={xOption.unit === 'quote' ? '' : xOption.unit} stroke="#94a3b8" fontSize={10} />
      <YAxis type="number" dataKey="yValue" name={yOption.label} unit={yOption.unit === 'quote' ? '' : yOption.unit} stroke="#94a3b8" fontSize={10} />
      <ZAxis type="number" dataKey="sizeValue" range={[80, 720]} />
-    <Tooltip cursor={{ stroke: '#7c3aed55' }} content={<ScatterTooltip xOption={xOption} yOption={yOption} sizeOption={sizeOption} />} />
+    <Tooltip cursor={{ stroke: '#7c3aed55' }} content={<ScatterTooltip xOption={xOption} yOption={yOption} sizeOption={sizeOption} brokers={brokers} />} />
      <Scatter data={points} onClick={point => open(point as unknown as Instrument)}>{points.map(instrument => <Cell key={instrument.symbol} fill={instrument.change >= 0 ? '#7c3aed' : '#ef4444'} />)}</Scatter>
     </ScatterChart>
    </ResponsiveContainer>
@@ -506,23 +633,25 @@ function ScatterView({ data, market, open }: { data: Instrument[]; market: Marke
  );
 }
 
-function ScatterTooltip({ active, payload, xOption, yOption, sizeOption }: { active?: boolean; payload?: Array<{ payload?: { symbol?: string; name?: string; xValue?: number; yValue?: number; sizeValue?: number } }>; xOption: MetricOption; yOption: MetricOption; sizeOption: MetricOption }) {
+function ScatterTooltip({ active, payload, xOption, yOption, sizeOption, brokers }: { active?: boolean; payload?: Array<{ payload?: { symbol?: string; name?: string; xValue?: number; yValue?: number; sizeValue?: number } }>; xOption: MetricOption; yOption: MetricOption; sizeOption: MetricOption; brokers: Broker[] }) {
  if (!active || !payload?.[0]?.payload) return null;
  const point = payload[0].payload;
- return <div className="rounded-lg border border-border bg-white p-3 text-[10px] shadow-lg"><b className="block text-xs text-slate-900">{point.symbol}</b><span className="mt-0.5 block text-[10px] text-slate-500">{point.name}</span><div className="mt-2 space-y-1 text-slate-600"><div>{xOption.label}: <b>{formatMetric(point.xValue ?? 0, xOption)}</b></div><div>{yOption.label}: <b>{formatMetric(point.yValue ?? 0, yOption)}</b></div><div>{sizeOption.label}: <b>{formatMetric(point.sizeValue ?? 0, sizeOption)}</b></div></div></div>;
+ const offer = symbolOffer(point.symbol ?? '', brokers);
+ return <div className="rounded-lg border border-border bg-white p-3 text-[10px] shadow-lg"><b className="block text-xs text-slate-900">{point.symbol}</b><span className="mt-0.5 block text-[10px] text-slate-500">{point.name}</span>{offer && <span className="mt-2 block rounded bg-violet-50 px-2 py-1 text-[9px] font-semibold text-violet-700">{offer.broker.name} · {offer.campaign} · 7d access</span>}<div className="mt-2 space-y-1 text-slate-600"><div>{xOption.label}: <b>{formatMetric(point.xValue ?? 0, xOption)}</b></div><div>{yOption.label}: <b>{formatMetric(point.yValue ?? 0, yOption)}</b></div><div>{sizeOption.label}: <b>{formatMetric(point.sizeValue ?? 0, sizeOption)}</b></div></div></div>;
 }
 
-function Correlation({ names }: { names: string[] }) {
+function Correlation({ names, precisionUnlocked, requestPrecisionUnlock, brokers }: { names: string[]; precisionUnlocked: boolean; requestPrecisionUnlock: () => void; brokers: Broker[] }) {
  const displayNames = names.length >= 2 ? names.slice(0, 20) : ['No match', 'No match'];
+ const offer = names.map(name => symbolOffer(name, brokers)).find(Boolean);
  return (
   <div className="p-6">
-   <div className="mb-4 flex items-center justify-between"><div><p className="label">Adaptive correlation</p><p className="mt-1 text-[10px] text-slate-400">Derived from the current market, venue, sector, and filter selection.</p></div><span className="badge">{names.length} matches · showing {Math.min(names.length, 20)}×{Math.min(names.length, 20)}</span></div>
+   <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><div><p className="label">Adaptive correlation</p><p className="mt-1 text-[10px] text-slate-400">Derived from the current market, venue, sector, and filter selection.</p><p className="mt-1 text-[10px] text-slate-500">High-significance dynamics over ±60% require High-precision signals access.</p>{offer && <p className="mt-1 text-[10px] font-semibold text-violet-700">{offer.broker.name} · {offer.campaign} · unlock 7 days</p>}</div><div className="flex items-center gap-2"><span className="badge">{names.length} matches · showing {Math.min(names.length, 20)}×{Math.min(names.length, 20)}</span>{!precisionUnlocked && <button className="secondary px-2 py-1 text-[9px]" onClick={requestPrecisionUnlock}><Lock className="mr-1 inline size-2.5" />Unlock ±60%</button>}</div></div>
   <div className="max-h-150 overflow-auto"><div className="grid min-w-225 gap-1 text-center text-[10px]" style={{ gridTemplateColumns: `repeat(${displayNames.length + 1}, minmax(38px, 1fr))` }}>
     <div />{displayNames.map(n => <b key={n} className="p-2 text-slate-900">{n}</b>)}
     {displayNames.map((r, ri) => (
      <>
       <b className="p-3 text-slate-900" key={`${r}-l`}>{r}</b>
-      {displayNames.map((_, ci) => { const v = ri === ci ? 1 : Number((Math.cos((ri + 1) * (ci + 2) + displayNames.length) * 0.7).toFixed(2)); return <div key={`${ri}-${ci}`} className="grid aspect-square place-items-center rounded" style={{ background: v > 0 ? `rgba(124,58,237,${0.08 + Math.abs(v) * 0.45})` : `rgba(239,68,68,${0.08 + Math.abs(v) * 0.45})` }}>{v}</div>; })}
+      {displayNames.map((_, ci) => { const v = ri === ci ? 1 : Number((Math.cos((ri + 1) * (ci + 2) + displayNames.length) * 0.7).toFixed(2)); const significant = Math.abs(v) >= 0.6; return <div key={`${ri}-${ci}`} className="grid aspect-square place-items-center rounded" style={{ background: v > 0 ? `rgba(124,58,237,${0.08 + Math.abs(v) * 0.45})` : `rgba(239,68,68,${0.08 + Math.abs(v) * 0.45})` }}>{significant && !precisionUnlocked ? <Lock className="size-3 text-slate-500" /> : `${Math.round(v * 100)}%`}</div>; })}
      </>
     ))}
   </div></div>
@@ -530,4 +659,4 @@ function Correlation({ names }: { names: string[] }) {
  );
 }
 
-export { Explorer, Screener, indexAsInstrument, initialRules };
+export { Screener, indexAsInstrument, initialRules };

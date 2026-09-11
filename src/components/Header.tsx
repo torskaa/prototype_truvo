@@ -21,6 +21,7 @@ import {
   Shield,
   Bell,
   Clock,
+  LockKeyhole,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -69,6 +70,8 @@ export const Header: React.FC<HeaderProps> = ({
   const [activeHoverMenu, setActiveHoverMenu] = useState<'trade' | 'brokers' | 'community' | 'company' | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isQuestMenuOpen, setIsQuestMenuOpen] = useState(false);
+  const [questPanelMode, setQuestPanelMode] = useState<'quests' | 'tools'>('quests');
   const { theme, setTheme, toggleTheme } = useTheme();
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -116,7 +119,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-indigo-100/70">
-      <div className="w-full px-6 sm:px-10 lg:px-[56px] h-[68px] flex items-center justify-between relative">
+      <div className="w-full px-3 sm:px-10 lg:px-[56px] h-[68px] flex items-center justify-between relative">
         {/* Brand Logo & Left Navigation */}
         <div className="flex items-center gap-10 lg:gap-12">
           {/* MarketSyde Logo */}
@@ -125,7 +128,7 @@ export const Header: React.FC<HeaderProps> = ({
               setActiveTab('dashboard');
               handleCloseImmediately();
             }}
-            className="flex items-center gap-2.5 text-left focus:outline-none group cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2.5 text-left focus:outline-none group cursor-pointer"
           >
             {/* Purple Circular Glyph with Swirl 'm' & Neon Lime Dot */}
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#5945F1] flex items-center justify-center relative shadow-xs group-hover:scale-105 transition-transform shrink-0">
@@ -140,13 +143,13 @@ export const Header: React.FC<HeaderProps> = ({
                 <circle cx="24.5" cy="19.5" r="2.2" fill="#bef226" />
               </svg>
             </div>
-            <span className="font-display font-bold text-xl sm:text-[22px] tracking-tight text-[#0b1c30]">
+            <span className="font-display font-bold text-lg sm:text-[22px] tracking-tight text-[#0b1c30]">
               market<span className="text-[#5945F1]">syde</span>
             </span>
           </button>
 
           {/* Desktop Navigation with Hover Mega Menus - Exactly matching Total Nav Bar.png */}
-          <nav className="hidden md:flex items-center gap-8 text-[14px] font-medium text-slate-800">
+          <nav className="hidden xl:flex items-center gap-8 text-[14px] font-medium text-slate-800">
             {/* Trade Dropdown Trigger */}
             <div
               className="relative py-4"
@@ -239,9 +242,9 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Right Search Input & User Profile Pill - Exactly matching Total Nav Bar.png */}
-        <div className="flex items-center gap-3 sm:gap-3.5">
+        <div className="flex items-center gap-1 sm:gap-3.5">
           {/* Search Input Box */}
-          <div className="hidden md:flex items-center relative">
+          <div className="hidden lg:flex items-center relative">
             <div
               onClick={() => onOpenSearchModal?.()}
               className="w-52 lg:w-64 h-10 px-3.5 bg-white border border-indigo-200/90 hover:border-[#5945F1] rounded-xl flex items-center justify-between gap-2 shadow-2xs transition-all text-left cursor-pointer group"
@@ -270,7 +273,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Quick Theme Toggle Button */}
           <button
             onClick={toggleTheme}
-            className="w-10 h-10 rounded-xl border border-indigo-200/90 dark:border-[#3410D5] bg-white dark:bg-[#170345] hover:border-[#5945F1] text-slate-600 dark:text-[#CCC6FB] hover:text-[#5945F1] dark:hover:text-[#ABA1F8] flex items-center justify-center transition-all shadow-2xs cursor-pointer shrink-0"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl border border-indigo-200/90 dark:border-[#3410D5] bg-white dark:bg-[#170345] hover:border-[#5945F1] text-slate-600 dark:text-[#CCC6FB] hover:text-[#5945F1] dark:hover:text-[#ABA1F8] flex items-center justify-center transition-all shadow-2xs cursor-pointer shrink-0"
             title={theme === 'light' ? 'Switch to Dark Theme (Figma Tokens)' : 'Switch to Light Theme'}
             aria-label="Toggle theme"
           >
@@ -281,6 +284,42 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
+          {/* Quest of the day */}
+          <div className="relative">
+            <button
+              onClick={() => { setIsQuestMenuOpen(open => !open); setIsProfileMenuOpen(false); handleCloseImmediately(); }}
+              className={`relative flex h-8 w-8 items-center justify-center rounded-xl border bg-white text-[#5945F1] shadow-2xs transition-all hover:border-[#5945F1] sm:h-10 sm:w-10 ${isQuestMenuOpen ? 'border-[#5945F1] ring-2 ring-[#5945F1]/15' : 'border-indigo-200/90'}`}
+              title="Quest of the day"
+              aria-label="Open quest of the day"
+            >
+              <Flame className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="absolute -right-1 -top-1 rounded-full bg-[#5945F1] px-1 text-[8px] font-bold text-white">4</span>
+            </button>
+            {isQuestMenuOpen && <div className="fixed left-3 right-3 top-[76px] z-50 rounded-[22px] border border-indigo-100/90 bg-white p-4 shadow-2xl shadow-indigo-950/15 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2.5 sm:w-[300px]">
+              <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+                <div><p className="text-[10px] font-bold uppercase tracking-widest text-violet-600">Quest of the day</p><h3 className="mt-1 text-sm font-semibold text-slate-900">Research → earn → unlock</h3></div>
+                <label className="flex shrink-0 items-center gap-1.5 text-[9px] font-semibold text-slate-500">
+                  <span>Available tools</span>
+                  <button type="button" role="switch" aria-checked={questPanelMode === 'tools'} aria-label="Show available tools" onClick={() => setQuestPanelMode(mode => mode === 'tools' ? 'quests' : 'tools')} className={`relative h-5 w-10 rounded-full border transition-colors ${questPanelMode === 'tools' ? 'border-violet-600 bg-violet-600' : 'border-slate-300 bg-slate-200'}`}>
+                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${questPanelMode === 'tools' ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  </button>
+                </label>
+              </div>
+              {questPanelMode === 'quests' ? <><div className="mt-3 space-y-2">
+                {[['D1', 'Daily market check-in', '+20 C', '1/day'], ['D3', 'Build a research shortlist', '+50 C', '1/day'], ['D3', 'Compare partner spreads', '+30 C', '2/week'], ['D3', 'Configure risk control', '+40 C', '2/week']].map(([level, title, reward, cadence]) => <div key={title} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/70 p-2">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-violet-100 text-[9px] font-bold text-violet-700">{level}</span>
+                  <div className="min-w-0 flex-1"><b className="block truncate text-[11px] text-slate-800">{title}</b><span className="text-[9px] text-slate-500">{cadence} · {reward}</span></div>
+                  <button className="secondary px-2 py-1 text-[9px]" onClick={() => { onShowToast?.(`${title} opened`); setIsQuestMenuOpen(false); }}>Start</button>
+                </div>)}
+              </div><p className="mt-3 text-[9px] leading-relaxed text-slate-500">Complete meaningful research actions to earn Credits. Simple browsing and clicks do not qualify.</p></> : <><div className="mt-3 space-y-2">
+                {[['Advanced screener scatter', '100 C · 1 day'], ['High-precision signals & correlations', '140 C · 1 day'], ['Chart event intelligence', '120 C · 1 day'], ['Chart order-flow analysis', '180 C · 1 day']].map(([title, price]) => <div key={title} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/70 p-2">
+                  <LockKeyhole className="h-4 w-4 shrink-0 text-violet-600" /><div className="min-w-0 flex-1"><b className="block truncate text-[11px] text-slate-800">{title}</b><span className="text-[9px] text-slate-500">{price} · seven-day access available</span></div>
+                  <button className="primary px-2 py-1 text-[9px]" onClick={() => { onShowToast?.(`${title} unlock opened`); setIsQuestMenuOpen(false); }}>Unlock</button>
+                </div>)}
+              </div><p className="mt-3 text-[9px] leading-relaxed text-slate-500">Credits unlock tools for a selected duration. Higher member levels may include selected tools.</p></>}
+            </div>}
+          </div>
+
           {/* User Profile Pill & Dropdown Menu */}
           <div className="relative" ref={profileMenuRef}>
             <button
@@ -288,16 +327,17 @@ export const Header: React.FC<HeaderProps> = ({
                 setIsProfileMenuOpen((prev) => !prev);
                 handleCloseImmediately();
               }}
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-xl border bg-white shadow-2xs hover:shadow-xs transition-all text-left group cursor-pointer ${
+              className={`flex items-center gap-2.5 px-1 sm:px-3 py-1 sm:py-1.5 rounded-xl border bg-white shadow-2xs hover:shadow-xs transition-all text-left group cursor-pointer ${
                 isProfileMenuOpen
                   ? 'border-[#5945F1] ring-2 ring-[#5945F1]/15'
                   : 'border-indigo-200/90 hover:border-indigo-300'
               }`}
               title="Click to view profile & account options"
+              aria-label="Profile and rewards"
             >
               {/* Rounded Icon Box with User Silhouette + Purple Notification Dot */}
               <div className="relative">
-                <div className="w-8 h-8 rounded-lg border border-indigo-100 bg-white flex items-center justify-center text-slate-700 group-hover:text-[#5945F1] group-hover:border-indigo-200 transition-colors shrink-0">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-indigo-100 bg-white flex items-center justify-center text-slate-700 group-hover:text-[#5945F1] group-hover:border-indigo-200 transition-colors shrink-0">
                   <User className="w-4 h-4 stroke-[1.75]" />
                 </div>
                 {/* Purple notification dot floating on top-right corner */}
@@ -305,7 +345,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
 
               {/* Name + Rank with Purple Ghost Icon */}
-              <div className="leading-tight pr-1">
+              <div className="hidden sm:block leading-tight pr-1">
                 <div className="text-xs sm:text-[13px] font-semibold text-[#0b1c30]">
                   Hi, {user.username}
                 </div>
@@ -329,7 +369,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Profile Dropdown Menu - Exact match to image.png */}
             {isProfileMenuOpen && (
-              <div className="absolute top-full right-0 mt-2.5 w-[275px] max-w-[calc(100vw-24px)] bg-white rounded-[22px] border border-indigo-100/90 shadow-2xl shadow-indigo-950/15 p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="fixed top-[76px] left-3 right-3 sm:absolute sm:top-full sm:left-auto sm:right-0 sm:mt-2.5 sm:w-[275px] max-w-[calc(100vw-24px)] bg-white rounded-[22px] border border-indigo-100/90 shadow-2xl shadow-indigo-950/15 p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
                 {/* Top Header Card: Ghost Mascot, Rank, Progress Bar, Diamond Points, Edit Icon */}
                 <div className="flex items-start justify-between pb-3.5 border-b border-slate-100">
                   <button
@@ -362,7 +402,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <div
                           className="h-full bg-[#5945F1] rounded-full transition-all duration-300"
                           style={{
-                            width: `${Math.min(100, Math.max(0, (user.currentPoints / (user.nextTierThreshold || 150)) * 100))}%`,
+                            width: `${Math.min(100, Math.max(0, (user.currentPoints / user.maxPoints) * 100))}%`,
                           }}
                         />
                       </div>
@@ -370,7 +410,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <div className="flex items-center gap-1 mt-1.5 text-xs">
                         <Diamond className="w-3 h-3 text-[#5945F1] stroke-[2.2] shrink-0" />
                         <span className="font-bold text-[#5945F1]">{user.currentPoints}</span>
-                        <span className="text-indigo-400/90 font-medium">/{user.nextTierThreshold || 150} pts.</span>
+                        <span className="text-indigo-400/90 font-medium">{user.tierLevel === 4 ? ' active pts.' : `/${user.maxPoints} pts.`}</span>
                       </div>
                     </div>
                   </button>
@@ -550,7 +590,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Mobile Search button */}
           <button
             onClick={() => onOpenSearchModal?.()}
-            className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 cursor-pointer"
+            className="lg:hidden p-1.5 sm:p-2 rounded-lg text-slate-600 hover:bg-slate-100 cursor-pointer"
             title="Search"
           >
             <Search className="w-5 h-5" />
@@ -559,7 +599,9 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Mobile hamburger menu */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 cursor-pointer"
+            className="xl:hidden p-1.5 sm:p-2 rounded-lg text-slate-600 hover:bg-slate-100 cursor-pointer"
+            aria-label="Toggle navigation"
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -708,10 +750,8 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                     <div className="space-y-3">
                       {[
-                        ['explorer', 'Market Explorer'],
-                        ['screener', 'Market Screener'],
+                        ['screener', 'Market Scanner'],
                         ['instrument', 'Instrument Overview'],
-                        ['chart', 'Advanced Chart'],
                       ].map(([view, label]) => <button key={view} onClick={() => { setActiveTab(view); handleCloseImmediately(); }} className="block text-left font-bold text-[15px] text-[#0b1c30] hover:text-[#5338ec]">{label}</button>)}
                     </div>
                     <div>
@@ -1115,10 +1155,9 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-slate-200 px-4 py-3 space-y-2">
-          {[
-            ['explorer', 'Market Explorer'], ['screener', 'Market Screener'],
-            ['instrument', 'Instrument Overview'], ['chart', 'Advanced Chart'],
+        <div className="xl:hidden bg-white border-t border-slate-200 px-4 py-3 space-y-2">
+          {[ 
+            ['instrument', 'Instrument Overview'],
           ].map(([view, label]) => <button key={view} onClick={() => {setActiveTab(view); setMobileMenuOpen(false);}} className={`block w-full py-2 text-left text-sm font-semibold ${activeTab === view ? 'text-[#5338ec]' : 'text-slate-700'}`}>{label}</button>)}
           <button
             onClick={() => {

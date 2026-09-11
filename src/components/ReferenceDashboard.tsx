@@ -522,8 +522,8 @@ function CustomizeRightSidebar({
             Tops Earning Points<span className="text-[#FD02B0]">.</span>
           </h3>
           <p className="text-xs text-slate-600 mt-1 leading-snug">
-            Get rewarded for trading your usual assets.{' '}
-            <strong className="text-slate-800 font-bold">No extra effort required.</strong>
+            Explore how eligible activity could earn Points.{' '}
+            <strong className="text-slate-800 font-bold">Trading rewards require verified data, not demo clicks.</strong>
           </p>
         </div>
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 const MarketWorkspace = lazy(() => import('./features/market/MarketWorkspace'));
-const marketViews = ['explorer', 'screener', 'instrument', 'chart'];
+const marketViews = ['screener', 'instrument'];
 import {
   INITIAL_USER,
   INITIAL_BROKERS,
@@ -43,7 +43,6 @@ import { TradingSignalsPage } from './components/TradingSignalsPage';
 import { LeverageCalculatorPage } from './components/calculators/LeverageCalculatorPage';
 import { TradingCalculatorsModal, CalculatorType } from './components/calculators/TradingCalculatorsModal';
 import { ActivityLogModal } from './components/ActivityLogModal';
-import { EarningRewardModal, EarningRewardData } from './components/EarningRewardModal';
 import { Footer } from './components/Footer';
 import { ConnectBrokerModal } from './components/ConnectBrokerModal';
 import { ViewPlanModal } from './components/ViewPlanModal';
@@ -51,20 +50,64 @@ import { SignalDetailModal } from './components/SignalDetailModal';
 import { CashbackLedgerModal } from './components/CashbackLedgerModal';
 import { BrokerComparisonModal } from './components/BrokerComparisonModal';
 import { SearchModal } from './components/SearchModal';
-import { Sparkles, Trophy, Zap, Shield, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Coins, Sparkles, Trophy, Zap, Shield, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { RewardProvider, useRewards } from './features/rewards/RewardProvider';
 
 export default function App() {
-  const [user, setUser] = useState<UserProfile>(INITIAL_USER);
-  const [brokers, setBrokers] = useState<Broker[]>(INITIAL_BROKERS);
+  return <RewardProvider><Application /></RewardProvider>;
+}
+
+function Application() {
+  const { snapshot, connectBroker, claimQuest, questAvailable } = useRewards();
+  const [profile, setProfile] = useState<UserProfile>(INITIAL_USER);
+  const user: UserProfile = {
+    ...profile,
+    sydeCredits: snapshot.credits,
+    currentPoints: snapshot.activePoints,
+    tierLevel: snapshot.level.level,
+    rankTitle: snapshot.level.name,
+    maxPoints: snapshot.level.nextPoints ?? Math.max(700, snapshot.activePoints),
+    connectedBrokersCount: snapshot.connections.length,
+    lastWeekCredits: snapshot.ledger.filter(entry => entry.kind !== 'seed' && Date.parse(entry.at) >= Date.now() - 7 * 86_400_000).reduce((sum, entry) => sum + Math.max(0, entry.credits), 0),
+    perks: ['90-day active Points', 'Credit-funded research tools'],
+  };
+  const brokers: Broker[] = INITIAL_BROKERS.map(broker => {
+    const connection = snapshot.connections.find(item => item.brokerId === broker.id);
+    return { ...broker, connected: !!connection, connectedAccountId: connection?.accountId };
+  });
   const [signals, setSignals] = useState<MarketSignal[]>(INITIAL_SIGNALS);
-  const [quickSteps, setQuickSteps] = useState(QUICK_START_STEPS);
+  const [quickSteps, setQuickSteps] = useState(QUICK_START_STEPS.map(step => step.step === 2 ? { ...step, completed: snapshot.connections.length > 0 } : step));
   const [missions, setMissions] = useState<Mission[]>(INITIAL_MISSIONS);
-  const [activityLogs, setActivityLogs] = useState<ActivityLogItem[]>(INITIAL_ACTIVITY_LOGS);
-  const [activeTab, updateActiveTab] = useState<string>(() => new URLSearchParams(window.location.search).get('view') || 'dashboard');
+  const activityLogs: ActivityLogItem[] = snapshot.ledger.flatMap<ActivityLogItem>(entry => [{
+    id: entry.id, title: entry.title,
+    description: `${entry.expiresAt ? `Points expire ${new Date(entry.expiresAt).toLocaleString()}.` : 'Reward activity recorded.'}`,
+    timestamp: entry.at,
+    type: entry.points && entry.credits ? 'both' : entry.points ? 'points' : 'credits',
+    pointsChange: entry.points, creditsChange: entry.credits,
+    category: entry.kind === 'conversion' ? 'Conversion' : entry.kind === 'unlock' ? 'Unlock' : entry.kind === 'seed' || entry.id.startsWith('quest:daily-checkin:') ? 'Bonus' : 'Mission',
+  }, ...(entry.points > 0 && entry.expiresAt && Date.parse(entry.expiresAt) <= Date.now() ? [{
+    id: `expired:${entry.id}`, title: 'Points expired after 90 days', description: `Expired grant: ${entry.title}. Credits are unaffected.`,
+    timestamp: entry.expiresAt, type: 'points' as const, pointsChange: -entry.points, creditsChange: 0, category: 'Expiration' as const,
+  }] : [])]).sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
+  const [activeTab, updateActiveTab] = useState<string>(() => {
+    const requested = new URLSearchParams(window.location.search).get('view') || 'dashboard';
+    if (requested === 'explorer' || requested === 'chart') {
+      const params = new URLSearchParams(window.location.search);
+      params.set('view', requested === 'chart' ? 'instrument' : 'screener');
+      if (requested === 'chart') params.set('mode', 'chart');
+      window.history.replaceState(null, '', `?${params}`);
+      return requested === 'chart' ? 'instrument' : 'screener';
+    }
+    return requested;
+  });
   const [routeSearch, setRouteSearch] = useState(window.location.search);
   const setActiveTab = (next: string, symbol?: string) => {
+    if (next === 'explorer') next = 'screener';
+    const chartMode = next === 'chart';
+    if (chartMode) next = 'instrument';
     const params = new URLSearchParams();
     params.set('view', next);
+    if (chartMode) params.set('mode', 'chart');
     if (symbol) params.set('symbol', symbol);
     window.history.pushState(null, '', `?${params}`);
     setRouteSearch(window.location.search);
@@ -86,6 +129,7 @@ export default function App() {
   // Modals state
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [selectedBrokerForConnect, setSelectedBrokerForConnect] = useState<Broker | null>(null);
+  const [brokerContextSymbol, setBrokerContextSymbol] = useState<string | undefined>();
   const [isViewPlanOpen, setIsViewPlanOpen] = useState(false);
   const [selectedSignal, setSelectedSignal] = useState<MarketSignal | null>(null);
   const [isSignalModalOpen, setIsSignalModalOpen] = useState(false);
@@ -94,7 +138,6 @@ export default function App() {
   const [isBrokerComparisonOpen, setIsBrokerComparisonOpen] = useState(false);
   const [isCalculatorModalOpen, setIsCalculatorModalOpen] = useState(false);
   const [selectedCalculatorType, setSelectedCalculatorType] = useState<CalculatorType>('forex');
-  const [earningRewardModal, setEarningRewardModal] = useState<EarningRewardData | null>(null);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   // Global Keyboard Shortcut: Cmd+K / Ctrl+K opens Search Modal
@@ -119,82 +162,19 @@ export default function App() {
     }, 3500);
   };
 
-  // Gamification: Reward points with tier upgrade checking
-  const handleRewardPoints = (pointsToAdd: number, reason?: string) => {
-    setUser((prev) => {
-      const newPoints = prev.currentPoints + pointsToAdd;
-      let newTitle = prev.rankTitle;
-      let newTier = prev.tierLevel;
-      let newBoost = prev.boostPercentage;
-
-      if (newPoints >= 150 && prev.tierLevel < 2) {
-        newTitle = 'Bronze';
-        newTier = 2;
-        newBoost = 15;
-        showToast('🎉 Level Up! You unlocked Bronze Tier with +15% Boost!');
-      } else if (newPoints >= 500 && prev.tierLevel < 3) {
-        newTitle = 'Silver';
-        newTier = 3;
-        newBoost = 20;
-        showToast('🚀 Level Up! You unlocked Silver Tier with +20% Boost!');
-      } else if (reason) {
-        showToast(`💎 +${pointsToAdd} Points: ${reason}`);
-      }
-
-      return {
-        ...prev,
-        currentPoints: newPoints,
-        rankTitle: newTitle,
-        tierLevel: newTier,
-        boostPercentage: newBoost,
-      };
-    });
-  };
-
-  // Gamification: Earn demo points
   const handleAddDemoPoints = () => {
-    handleRewardPoints(25, 'Trader Level Progress');
+    setActiveTab('points-credits');
   };
 
-  // Trigger Earning Modals (Quest Complete, Mission Complete, Trade Complete)
-  const handleTriggerEarningReward = (data: EarningRewardData) => {
-    setEarningRewardModal(data);
-    if (data.credits) {
-      setUser((prev) => ({
-        ...prev,
-        sydeCredits: prev.sydeCredits + data.credits!,
-      }));
-    }
-    if (data.points) {
-      handleRewardPoints(data.points, data.title || 'Reward Earning');
-    }
-  };
-
-  // Connect broker callback
   const handleBrokerConnected = (brokerId: string, accountId: string) => {
-    setBrokers((prev) =>
-      prev.map((b) =>
-        b.id === brokerId ? { ...b, connected: true, connectedAccountId: accountId } : b
-      )
-    );
-
-    // Update user points and step
-    handleRewardPoints(50, `Linked Account ${accountId}`);
-    setUser((prev) => ({
-      ...prev,
-      connectedBrokersCount: prev.connectedBrokersCount + 1,
-    }));
-
-    setQuickSteps((prev) =>
-      prev.map((s) => (s.step === 2 ? { ...s, completed: true } : s))
-    );
-
-    // Trigger Trade Active modal reward!
-    handleTriggerEarningReward({
-      type: 'trade',
-      points: 20,
-      credits: 10,
-    });
+    if (!brokers.some(broker => broker.id === brokerId)) {
+      showToast('Unknown broker. No account was saved.');
+      return { ok: false, message: 'Unknown broker. No account was saved.' };
+    }
+    const result = connectBroker(brokerId, accountId);
+    showToast(result.message);
+    if (result.ok) setQuickSteps(prev => prev.map(step => step.step === 2 ? { ...step, completed: true } : step));
+    return result;
   };
 
   const handleStepClick = (index: number) => {
@@ -255,6 +235,17 @@ export default function App() {
         onOpenSearchModal={() => setIsSearchModalOpen(true)}
         onShowToast={showToast}
       />
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-violet-100 bg-violet-50 px-4 py-1.5 text-[10px] text-violet-900">
+        <button className="flex items-center gap-2 font-semibold hover:text-violet-700" onClick={() => showToast(claimQuest('daily-checkin', {}).message)} disabled={!questAvailable('daily-checkin')}>
+          <span>{questAvailable('daily-checkin') ? 'Daily check-in quest' : 'Daily check-in completed'}</span>
+          <span className="rounded-full bg-white px-2 py-0.5 text-violet-700">+20 C</span>
+        </button>
+        <div className="flex items-center gap-3 text-[10px] text-violet-900">
+          <span className="flex items-center gap-1 font-semibold"><Coins size={12} />{snapshot.credits.toLocaleString()} C</span>
+          <span>{snapshot.activePoints.toLocaleString()} points</span>
+          <span>Level {snapshot.level.level} · {snapshot.level.name}</span>
+        </div>
+      </div>
 
       {/* Floating Toast Notification */}
       {toastMessage && (
@@ -266,7 +257,13 @@ export default function App() {
 
       {/* Main App Container */}
       <main className="flex-1 w-full px-4 sm:px-8 lg:px-[56px] py-6 space-y-6">
-        {marketViews.includes(activeTab) && <Suspense fallback={<div className="p-10 text-center text-slate-500">Loading market workspace…</div>}><MarketWorkspace view={activeTab} locationSearch={routeSearch} onNavigate={setActiveTab} tierLevel={user.tierLevel} onToast={showToast} /></Suspense>}
+        {marketViews.includes(activeTab) && <Suspense fallback={<div className="p-10 text-center text-slate-500">Loading market workspace…</div>}><MarketWorkspace view={activeTab} locationSearch={routeSearch} onNavigate={setActiveTab} tierLevel={user.tierLevel} onToast={showToast}
+          brokers={brokers}
+          onConnectBroker={(broker, symbol) => { setSelectedBrokerForConnect(broker); setBrokerContextSymbol(symbol); setIsConnectModalOpen(true); }}
+          onCompareBrokers={() => setIsBrokerComparisonOpen(true)}
+          onOpenRewards={() => setActiveTab('points-credits')}
+          onOpenPlans={() => setIsViewPlanOpen(true)}
+        /></Suspense>}
         {/* Welcome Bar / Subheader for other tabs */}
         {!marketViews.includes(activeTab) && activeTab !== 'dashboard' && activeTab !== 'points-credits' && activeTab !== 'cashback-overview' && activeTab !== 'signals' && activeTab !== 'level-points-guide' && activeTab !== 'credit-earning-guide' && activeTab !== 'activity-logs' && activeTab !== 'leverage-calculator' && activeTab !== 'volatility-calculator' && activeTab !== 'spread-calculator' && activeTab !== 'pip-calculator' && activeTab !== 'pips-calculator' && activeTab !== 'margin-calculator' && activeTab !== 'rebate-calculator' && activeTab !== 'calculators' && (
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
@@ -325,12 +322,6 @@ export default function App() {
             user={user}
             missions={missions}
             signals={signals}
-            onUpdateUser={(updated) => setUser((prev) => ({ ...prev, ...updated }))}
-            onUpdateMissions={setMissions}
-            onAddActivityLog={(log) => {
-              setActivityLogs((prev) => [log, ...prev]);
-              showToast(`Activity Logged: ${log.title}`);
-            }}
             onOpenViewPlan={() => setIsViewPlanOpen(true)}
             onOpenLevelPointsGuide={() => setActiveTab('level-points-guide')}
             onOpenCreditEarningGuide={() => setActiveTab('credit-earning-guide')}
@@ -343,7 +334,7 @@ export default function App() {
             onOpenConnectModal={() => setIsConnectModalOpen(true)}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            onTriggerEarningModal={handleTriggerEarningReward}
+            onNavigateToMarket={setActiveTab}
           />
         )}
 
@@ -400,7 +391,6 @@ export default function App() {
               if (broker) setSelectedBrokerForConnect(broker);
               setActiveTab('connect-to-truvo');
             }}
-            onTriggerEarningModal={handleTriggerEarningReward}
             onOpenSearchModal={() => setIsSearchModalOpen(true)}
             onShowToast={showToast}
           />
@@ -416,7 +406,6 @@ export default function App() {
                 setIsConnectModalOpen(true);
               }}
               onOpenComparison={() => setIsBrokerComparisonOpen(true)}
-              onTriggerEarningModal={handleTriggerEarningReward}
             />
           </div>
         )}
@@ -438,15 +427,7 @@ export default function App() {
             }}
             onOpenBrokerComparison={() => setIsBrokerComparisonOpen(true)}
             onNavigateToBrokers={() => setActiveTab('brokers')}
-            onSimulateTradeCashback={(brokerName, lotSize, rebateAmount) => {
-              setUser((prev) => ({
-                ...prev,
-                totalCashbackEarned: +(prev.totalCashbackEarned + rebateAmount).toFixed(2),
-                lotsTradedTotal: +(prev.lotsTradedTotal + lotSize).toFixed(1),
-              }));
-              handleRewardPoints(Math.round(lotSize * 15), `Live Trade via ${brokerName}`);
-              showToast(`🎉 +$${rebateAmount.toFixed(2)} Cashback earned via ${brokerName}!`);
-            }}
+            onSimulateTradeCashback={() => showToast('This is a cashback estimate only. No trade, settled cashback or Points were recorded.')}
           />
         )}
 
@@ -454,8 +435,8 @@ export default function App() {
         {activeTab === 'community' && (
           <CommunityPage
             user={user}
-            onUpdateUserProfile={(updated) => setUser((prev) => ({ ...prev, ...updated }))}
-            onRewardPoints={handleRewardPoints}
+            onUpdateUserProfile={(updated) => setProfile((prev) => ({ ...prev, ...updated }))}
+            onRewardPoints={() => showToast('Community Credit rewards require moderation. No Points were awarded.')}
             onOpenConnectModal={() => {
               setSelectedBrokerForConnect(brokers[0]);
               setIsConnectModalOpen(true);
@@ -485,14 +466,6 @@ export default function App() {
               setActiveTab('connect-to-truvo');
             }}
             onBackToDashboard={() => setActiveTab('dashboard')}
-            onSimulateTradeCashback={() => {
-              handleRewardPoints(50, 'Live Broker Trade Rebate Credited');
-              setUser((prev) => ({
-                ...prev,
-                totalCashbackEarned: +(prev.totalCashbackEarned + 12.0).toFixed(2),
-              }));
-              showToast('🎉 +$12.00 Cashback added to your balance!');
-            }}
           />
         )}
 
@@ -622,7 +595,7 @@ export default function App() {
                   onClick={handleAddDemoPoints}
                   className="w-full py-2.5 rounded-xl bg-[#5338ec] hover:bg-[#4338ca] text-white text-xs font-bold transition-all"
                 >
-                  Earn +25 Points Now
+                  Explore rewards and research quests
                 </button>
               </div>
             </div>
@@ -636,10 +609,11 @@ export default function App() {
       {/* Modals */}
       <ConnectBrokerModal
         isOpen={isConnectModalOpen}
-        onClose={() => setIsConnectModalOpen(false)}
+        onClose={() => { setIsConnectModalOpen(false); setBrokerContextSymbol(undefined); }}
         brokers={brokers}
         selectedBroker={selectedBrokerForConnect}
         onSuccess={handleBrokerConnected}
+        contextSymbol={brokerContextSymbol ?? new URLSearchParams(routeSearch).get('symbol') ?? (marketViews.includes(activeTab) ? 'Market research' : undefined)}
       />
 
       <ViewPlanModal
@@ -678,6 +652,7 @@ export default function App() {
         onClose={() => setIsBrokerComparisonOpen(false)}
         brokers={brokers}
         onConnectBroker={(b) => {
+          setIsBrokerComparisonOpen(false);
           setSelectedBrokerForConnect(b);
           setIsConnectModalOpen(true);
         }}
@@ -687,13 +662,6 @@ export default function App() {
         isOpen={isCalculatorModalOpen}
         onClose={() => setIsCalculatorModalOpen(false)}
         initialType={selectedCalculatorType}
-      />
-
-      {/* Earning Reward Modals (Quest Complete, Mission Complete, Trade Complete) */}
-      <EarningRewardModal
-        isOpen={!!earningRewardModal}
-        onClose={() => setEarningRewardModal(null)}
-        data={earningRewardModal}
       />
 
       {/* ─── SEARCH COMMAND PALETTE MODAL (EXACT MATCH TO DESIGN) ─── */}

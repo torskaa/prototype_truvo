@@ -463,7 +463,7 @@ export const CashbackOverviewPage: React.FC<CashbackOverviewPageProps> = ({
             </button>
             {openFaq === 1 && (
               <div className="px-5 pb-4 text-xs text-slate-600 leading-relaxed border-l-4 border-[#2563eb] ml-5 my-1">
-                Yes! As your trading volume grows and your tier advances from Rookie up to Master and Legend, your cashback rate receives automated boosts up to +25%.
+                Cashback depends on the broker, product and eligible settled activity. It is separate from Points and research-tool membership. The four membership levels do not guarantee a cashback increase.
               </div>
             )}
           </div>

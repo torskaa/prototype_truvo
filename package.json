@@ -1,14 +1,16 @@
 {
   "name": "marketsyde",
   "private": true,
-  "version": "0.11.0",
+  "version": "0.46.0",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test:rewards": "tsx --test src/features/rewards/economy.test.ts src/features/market/lib/permissions/index.test.ts",
+    "check:rewards": "tsc --noEmit -p tsconfig.rewards.json"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

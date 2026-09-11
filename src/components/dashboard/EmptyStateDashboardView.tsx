@@ -306,11 +306,11 @@ export const EmptyStateDashboardView: React.FC<EmptyStateDashboardViewProps> = (
                 <RookieGhostIcon />
                 <div>
                   <h4 className="font-display font-black text-xl text-white">
-                    {user.rankTitle || 'Rookie'}
+                    {user.rankTitle}
                   </h4>
                   <div className="flex items-center gap-1 text-[11px] font-semibold text-white/95 mt-0.5">
                     <Gem className="w-3 h-3 text-white shrink-0" />
-                    <span>{user.currentPoints}/150 points.</span>
+                    <span>{user.currentPoints}{user.tierLevel < 4 ? `/${user.maxPoints}` : ''} active Points.</span>
                   </div>
                 </div>
               </div>
@@ -319,12 +319,12 @@ export const EmptyStateDashboardView: React.FC<EmptyStateDashboardViewProps> = (
               <div className="w-full bg-white/20 rounded-full h-1.5 mt-3 mb-2 overflow-hidden">
                 <div
                   className="h-full bg-[#FD02B0] rounded-full"
-                  style={{ width: `${Math.min(100, (user.currentPoints / 150) * 100)}%` }}
+                  style={{ width: `${Math.min(100, (user.currentPoints / user.maxPoints) * 100)}%` }}
                 />
               </div>
 
               <div className="flex items-center justify-between gap-1 text-[10px] text-white/90">
-                <span>Next level at 50 Points</span>
+                <span>{user.tierLevel < 4 ? `Next level at ${user.maxPoints} Points` : 'Elite - 90-day active Points'}</span>
                 <button
                   onClick={onOpenViewPlan}
                   className="px-2.5 py-0.5 rounded-full bg-white hover:bg-white/90 text-[#5945F1] font-bold text-[10px] shadow-2xs transition-all cursor-pointer"
@@ -544,7 +544,7 @@ export const EmptyStateDashboardView: React.FC<EmptyStateDashboardViewProps> = (
               Ready to connect?
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Verified, reliable, and fully supported. Pick your broker below to securely sync your trading data.
+              Explore partner conditions and save an account reference. Trading data is not synced.
             </p>
           </div>
 
@@ -664,8 +664,8 @@ export const EmptyStateDashboardView: React.FC<EmptyStateDashboardViewProps> = (
               Tops Earning Points<span className="text-[#FD02B0]">.</span>
             </h3>
             <p className="text-xs text-slate-600 mt-1 leading-snug">
-              Get rewarded for trading your usual assets.{' '}
-              <strong className="text-slate-800 font-bold">No extra effort required.</strong>
+              Explore how eligible activity could earn Points.{' '}
+              <strong className="text-slate-800 font-bold">Trading rewards require verified data, not demo clicks.</strong>
             </p>
           </div>
 

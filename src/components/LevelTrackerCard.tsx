@@ -63,7 +63,7 @@ export const LevelTrackerCard: React.FC<LevelTrackerCardProps> = ({
               <span className="text-white/70">points</span>
             </div>
             <span className="text-[#c6f831] font-bold text-xs tabular-nums">
-              {user.maxPoints - user.currentPoints} pts to Bronze
+              {user.tierLevel === 4 ? 'Elite - 90-day active Points' : `${Math.max(0, user.maxPoints - user.currentPoints)} pts to Level ${user.tierLevel + 1}`}
             </span>
           </div>
 
@@ -100,10 +100,10 @@ export const LevelTrackerCard: React.FC<LevelTrackerCardProps> = ({
             <button
               onClick={onAddDemoPoints}
               className="px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-semibold border border-white/20 transition-all active:scale-95 flex items-center gap-1"
-              title="Simulate earning trading points"
+              title="Explore research rewards"
             >
               <Zap className="w-3 h-3 text-[#c6f831]" />
-              <span>+25 pts</span>
+              <span>Research rewards</span>
             </button>
           )}
 

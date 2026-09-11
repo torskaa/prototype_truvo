@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src/features/rewards/**/*.ts", "src/features/rewards/**/*.tsx"]
+}

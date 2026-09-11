@@ -197,13 +197,13 @@ export const WidgetPickerModal: React.FC<WidgetPickerModalProps> = ({
               <div className="rounded-2xl border border-slate-200/90 bg-[#5945F1] p-4 text-white flex flex-col justify-between shadow-2xs">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className="font-extrabold text-lg tracking-tight">Rookie</div>
-                    <div className="text-xs font-extrabold text-[#CAEB0E]">Don't Stop Now</div>
+                    <div className="font-extrabold text-lg tracking-tight">Starter</div>
+                    <div className="text-xs font-extrabold text-[#CAEB0E]">Preview</div>
                   </div>
                   <div className="w-full bg-white/25 rounded-full h-1.5 overflow-hidden">
                     <div className="h-full bg-[#FD02B0] rounded-full w-1/3" />
                   </div>
-                  <div className="text-[10px] text-white/80">Next level at 50 Points • +10% Cashback</div>
+                  <div className="text-[10px] text-white/80">Next level at 100 Points • Rolling 90-day membership</div>
                 </div>
 
                 <div className="flex items-center justify-between pt-3 mt-3 border-t border-white/20">
@@ -234,7 +234,7 @@ export const WidgetPickerModal: React.FC<WidgetPickerModalProps> = ({
                       Level & Milestone Tracker
                     </div>
                     <span className="px-2 py-0.5 rounded-full bg-[#5945F1]/10 text-[#5945F1] font-bold text-[10px]">
-                      Rookie Tier
+                      Starter Level
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-[10px] pt-1">
