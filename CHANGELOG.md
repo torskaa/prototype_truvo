@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.54.0] - 2026-09-11
+### Added
+- Added a compact Technical Summary with oscillator, moving-average, and overall gauges to the instrument price area.
+
 ## [0.53.0] - 2026-09-11
 ### Changed
 - Removed the Technical Summary and Technical Signal panels from Overview; they now appear only under Technicals.

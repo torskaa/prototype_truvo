@@ -293,7 +293,7 @@ export function InstrumentDetail({ instrument, onBack, onChart, onToast, chartOp
     <section className="concept-bounty"><div className="concept-bounty-icon"><TrendingUp /></div><div><span className="concept-gold-label">DAILY MARKET FOCUS</span><h2>Explore {instrument.symbol}, from price to perspective</h2><p>Review the chart, market context, and community outlook.</p></div></section>
     <section className="concept-quote">
       <div className="concept-identity"><button onClick={onBack} className="concept-back"><ArrowLeft size={14} /> Markets / {kind}</button><div className="concept-name"><div className="concept-symbol">{instrument.symbol.slice(0, 4)}</div><div><h1>{instrument.name}</h1><div className="concept-tags"><span>{instrument.primaryMarket ?? instrument.market}: {instrument.symbol}</span><span>{instrument.subSector ?? instrument.sector}</span></div><p>Demo quote · {kind === 'Crypto' ? '24/7 market' : 'Regular market session'} · USD</p></div></div></div>
-      <div className="concept-price"><h2>{kind === 'Forex' ? '' : '$'}{displayValue(instrument)}</h2><span className={positive ? 'concept-up' : 'concept-down'}>{positive ? '↗ +' : '↘ '}{instrument.change.toFixed(2)}%</span><small> Today · demo snapshot</small><div className="concept-quote-stats"><div><small>MARKET CAP</small><b>{instrument.marketCap ? `$${instrument.marketCap.toLocaleString()}B` : '—'}</b></div><div><small>VOLUME</small><b>{instrument.volume.toLocaleString()}M</b></div><div><small>RELATIVE VOLUME</small><b>{instrument.rvol.toFixed(2)}×</b></div><div><small>1 MONTH RETURN</small><b>{instrument.return1m > 0 ? '+' : ''}{instrument.return1m}%</b></div></div><div className="concept-actions"><button onClick={() => { setWatching(!watching); onToast(watching ? 'Removed from watchlist' : 'Added to watchlist'); }}><Star size={15} fill={watching ? 'currentColor' : 'none'} />{watching ? 'Watching' : 'Watchlist'}</button><button onClick={() => onToast(`Demo price alert created for ${instrument.symbol}`)}><Bell size={15} /> Alert</button><button className="concept-primary" onClick={openBrokerAccess}>Broker access <ArrowRight size={16} /></button></div></div>
+      <div className="concept-price"><h2>{kind === 'Forex' ? '' : '$'}{displayValue(instrument)}</h2><span className={positive ? 'concept-up' : 'concept-down'}>{positive ? '↗ +' : '↘ '}{instrument.change.toFixed(2)}%</span><small> Today · demo snapshot</small><div className="concept-quote-stats"><div><small>MARKET CAP</small><b>{instrument.marketCap ? `$${instrument.marketCap.toLocaleString()}B` : '—'}</b></div><div><small>VOLUME</small><b>{instrument.volume.toLocaleString()}M</b></div><div><small>RELATIVE VOLUME</small><b>{instrument.rvol.toFixed(2)}×</b></div><div><small>1 MONTH RETURN</small><b>{instrument.return1m > 0 ? '+' : ''}{instrument.return1m}%</b></div></div><div className="concept-actions"><button onClick={() => { setWatching(!watching); onToast(watching ? 'Removed from watchlist' : 'Added to watchlist'); }}><Star size={15} fill={watching ? 'currentColor' : 'none'} />{watching ? 'Watching' : 'Watchlist'}</button><button onClick={() => onToast(`Demo price alert created for ${instrument.symbol}`)}><Bell size={15} /> Alert</button><button className="concept-primary" onClick={openBrokerAccess}>Broker access <ArrowRight size={16} /></button></div><TechnicalSummaryMini instrument={instrument} /></div>
     </section>
     <div className="concept-columns">
       <aside className="concept-news concept-card"><div className="concept-section-title"><Newspaper size={19} /><div><h2>Latest news</h2><p>Market context for {instrument.symbol}</p></div><span className="concept-demo">DEMO</span></div><div className="concept-news-filters">{['All news', 'Market', 'Research'].map(item => <button key={item} className={newsFilter === item ? 'selected' : ''} onClick={() => setNewsFilter(item)}>{item}</button>)}</div>{news.filter((_, index) => newsFilter === 'All news' || (newsFilter === 'Market' ? index < 3 : index >= 3)).map(item => <article key={item.title}><div className="concept-news-meta"><span>{item.source}</span><small>{item.time}</small></div><h3>{item.title}</h3><p>{item.summary}</p><button onClick={() => setArticle(item)}>Read full <ArrowRight size={12} /></button></article>)}<button className="concept-outline" onClick={() => setTab('News')}>View all {instrument.symbol} news <ArrowRight size={14} /></button></aside>
@@ -1490,6 +1490,42 @@ function Overview({
         </div>
       </section>
     </div>
+  );
+}
+
+function TechnicalSummaryMini({ instrument }: { instrument: Instrument }) {
+  const oscillatorScore = Math.max(0, Math.min(100, 100 - instrument.rsi));
+  const movingAverageScore = Math.max(
+    0,
+    Math.min(100, 50 + instrument.return1m * 2.5),
+  );
+  const overallScore = Math.round(
+    (oscillatorScore + movingAverageScore + instrument.confidence) / 3,
+  );
+  return (
+    <section className="panel mt-4 p-4">
+      <div className="flex items-center justify-between">
+        <p className="label">Technical summary</p>
+        <span className="text-[10px] text-slate-400">Today · demo</span>
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-2 max-md:grid-cols-1">
+        <CompassGauge
+          label="Oscillators"
+          score={oscillatorScore}
+          detail={`RSI 14 - ${instrument.rsi.toFixed(1)}`}
+        />
+        <CompassGauge
+          label="Moving averages"
+          score={movingAverageScore}
+          detail={`1M trend - ${instrument.return1m >= 0 ? '+' : ''}${instrument.return1m}%`}
+        />
+        <CompassGauge
+          label="Overall summary"
+          score={overallScore}
+          detail={`Confidence - ${instrument.confidence}%`}
+        />
+      </div>
+    </section>
   );
 }
 
