@@ -1530,14 +1530,6 @@ function TechnicalSummaryMini({ instrument }: { instrument: Instrument }) {
 }
 
 function TechnicalSummary({ instrument }: { instrument: Instrument }) {
-  const oscillatorScore = Math.max(0, Math.min(100, 100 - instrument.rsi));
-  const movingAverageScore = Math.max(
-    0,
-    Math.min(100, 50 + instrument.return1m * 2.5),
-  );
-  const overallScore = Math.round(
-    (oscillatorScore + movingAverageScore + instrument.confidence) / 3,
-  );
   const signalDescription =
     instrument.signal === 'LONG'
       ? `${instrument.symbol} shows constructive momentum: the one-month trend is ${instrument.return1m >= 0 ? 'positive' : 'recovering'} and relative volume is ${instrument.rvol.toFixed(2)}x.`
@@ -1579,42 +1571,6 @@ function TechnicalSummary({ instrument }: { instrument: Instrument }) {
     },
   ];
   return (
-    <>
-      <section className="panel p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="label">Technical summary</p>
-            <h2 className="mt-1 text-sm font-semibold text-slate-900">
-              Evidence, not an instruction
-            </h2>
-          </div>
-          <span className="badge positive">
-            {instrument.signal} - {instrument.confidence}%
-          </span>
-        </div>
-        <div className="mt-5 grid grid-cols-3 gap-3 max-md:grid-cols-1">
-          <CompassGauge
-            label="Oscillators"
-            score={oscillatorScore}
-            detail={`RSI 14  -  ${instrument.rsi.toFixed(1)}`}
-          />
-          <CompassGauge
-            label="Moving averages"
-            score={movingAverageScore}
-            detail={`1M trend  -  ${instrument.return1m > 0 ? '+' : ''}${instrument.return1m}%`}
-          />
-          <CompassGauge
-            label="Overall summary"
-            score={overallScore}
-            detail={`Confidence  -  ${instrument.confidence}%`}
-          />
-        </div>
-        <div className="mt-5 rounded-xl bg-slate-50 p-4 text-xs text-slate-600">
-          RSI 14 is {instrument.rsi}. Relative volume is {instrument.rvol}x.
-          Confidence summarizes demo evidence quality and is not a probability
-          of profit.
-        </div>
-      </section>
       <section className="panel p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -1687,8 +1643,7 @@ function TechnicalSummary({ instrument }: { instrument: Instrument }) {
           Summary uses demo technical evidence and is not financial advice or
           a probability of profit.
         </p>
-      </section>
-    </>
+    </section>
   );
 }
 function CompassGauge({

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.55.0] - 2026-09-11
+### Changed
+- Removed the duplicate full Technical Summary from the Technicals workspace, keeping the compact summary in the price area and the detailed signal methods in Technicals.
+
 ## [0.54.0] - 2026-09-11
 ### Added
 - Added a compact Technical Summary with oscillator, moving-average, and overall gauges to the instrument price area.
