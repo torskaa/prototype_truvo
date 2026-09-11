@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.53.0] - 2026-09-11
+### Changed
+- Removed the Technical Summary and Technical Signal panels from Overview; they now appear only under Technicals.
+
 ## [0.52.0] - 2026-09-11
 ### Added
 - Added five dated technical signal methods covering trend, RSI momentum, relative volume, volatility, and support/resistance.
