@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.48.0] - 2026-09-11
+### Changed
+- Removed the duplicate News tab from Instrument navigation because news is already presented in the side panel.
+
 ## [0.47.0] - 2026-09-11
 ### Changed
 - Removed the redundant Sponsored example card from the market workspace.

@@ -61,7 +61,6 @@ const tabList: DetailTab[] = [
   'Overview',
   'Technicals',
   'Market Data',
-  'News',
   'Analysis',
   'Forecast',
   'Products',
