@@ -298,7 +298,7 @@ export function InstrumentDetail({ instrument, onBack, onChart, onToast, chartOp
     <div className="concept-columns">
       <aside className="concept-news concept-card"><div className="concept-section-title"><Newspaper size={19} /><div><h2>Latest news</h2><p>Market context for {instrument.symbol}</p></div><span className="concept-demo">DEMO</span></div><div className="concept-news-filters">{['All news', 'Market', 'Research'].map(item => <button key={item} className={newsFilter === item ? 'selected' : ''} onClick={() => setNewsFilter(item)}>{item}</button>)}</div>{news.filter((_, index) => newsFilter === 'All news' || (newsFilter === 'Market' ? index < 3 : index >= 3)).map(item => <article key={item.title}><div className="concept-news-meta"><span>{item.source}</span><small>{item.time}</small></div><h3>{item.title}</h3><p>{item.summary}</p><button onClick={() => setArticle(item)}>Read full <ArrowRight size={12} /></button></article>)}<button className="concept-outline" onClick={() => setTab('News')}>View all {instrument.symbol} news <ArrowRight size={14} /></button></aside>
       <div className="concept-analysis">
-        {tab === 'Overview' && <><Overview instrument={instrument} kind={kind} onChart={onChart} chartOpen={chartOpen} chartContent={chartContent} /><section className="concept-card concept-summary"><div className="concept-summary-top"><div><p className="concept-eyebrow">TECHNICAL OUTLOOK</p><h2 className={positive ? 'concept-up' : 'concept-down'}>{instrument.signal === 'LONG' ? 'Positive momentum' : instrument.signal === 'WATCH' ? 'Watch for confirmation' : 'Neutral outlook'}</h2><p>Synthetic signal · {instrument.confidence}% confidence</p></div><div><p className="concept-eyebrow">COMMUNITY OUTLOOK</p><b>{instrument.sentiment}% bullish</b></div></div><div className="concept-sentiment-bar"><i style={{width: `${instrument.sentiment}%`}} /></div><h3>Key valuation & activity</h3><div className="concept-metrics"><Metric label="P/E ratio" value={instrument.pe ? `${instrument.pe.toFixed(1)}x` : '—'} /><Metric label="RSI (14)" value={instrument.rsi.toFixed(1)} /><Metric label="Relative volume" value={`${instrument.rvol.toFixed(2)}x`} /><Metric label="1M return" value={`${instrument.return1m}%`} /></div><h3>Technical evidence</h3><TechnicalSummary instrument={instrument} /></section></>}
+        {tab === 'Overview' && <><Overview instrument={instrument} kind={kind} tab={tab} setTab={setTab} onChart={onChart} chartOpen={chartOpen} chartContent={chartContent} /><section className="concept-card concept-summary"><div className="concept-summary-top"><div><p className="concept-eyebrow">TECHNICAL OUTLOOK</p><h2 className={positive ? 'concept-up' : 'concept-down'}>{instrument.signal === 'LONG' ? 'Positive momentum' : instrument.signal === 'WATCH' ? 'Watch for confirmation' : 'Neutral outlook'}</h2><p>Synthetic signal · {instrument.confidence}% confidence</p></div><div><p className="concept-eyebrow">COMMUNITY OUTLOOK</p><b>{instrument.sentiment}% bullish</b></div></div><div className="concept-sentiment-bar"><i style={{width: `${instrument.sentiment}%`}} /></div><h3>Key valuation & activity</h3><div className="concept-metrics"><Metric label="P/E ratio" value={instrument.pe ? `${instrument.pe.toFixed(1)}x` : '—'} /><Metric label="RSI (14)" value={instrument.rsi.toFixed(1)} /><Metric label="Relative volume" value={`${instrument.rvol.toFixed(2)}x`} /><Metric label="1M return" value={`${instrument.return1m}%`} /></div><h3>Technical evidence</h3><TechnicalSummary instrument={instrument} /></section></>}
         {tab === 'Technicals' && <TechnicalSummary instrument={instrument} />}
         {tab === 'Market Data' && <MarketStats instrument={instrument} kind={kind} />}
         {tab === 'News' && <News instrument={instrument} onSelect={setArticle} onShare={item => { setArticle(item); onToast('Article opened for review'); }} onCommunity={setArticle} />}
@@ -719,11 +719,15 @@ function DailyMarketFocus({ instrument }: { instrument: Instrument }) {
 function AssetOverviewLayout({
   instrument,
   kind,
+  tab,
+  setTab,
   onChart,
   onNews,
 }: {
   instrument: Instrument;
   kind: string;
+  tab: string;
+  setTab: (tab: string) => void;
   onChart: () => void;
   onNews: () => void;
 }) {
@@ -1296,12 +1300,16 @@ function InstrumentInsightRail({
 function Overview({
   instrument,
   kind,
+  tab,
+  setTab,
   onChart,
   chartOpen = false,
   chartContent,
 }: {
   instrument: Instrument;
   kind: string;
+  tab: string;
+  setTab: (tab: string) => void;
   onChart: () => void;
   chartOpen?: boolean;
   chartContent?: ReactNode;
