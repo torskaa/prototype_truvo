@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.49.0] - 2026-09-11
+### Changed
+- Moved Instrument section navigation into the Performance analysis panel.
+
 ## [0.48.0] - 2026-09-11
 ### Changed
 - Removed the duplicate News tab from Instrument navigation because news is already presented in the side panel.
