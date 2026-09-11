@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.51.0] - 2026-09-11
+### Added
+- Added a second dynamic Technical signal card with description, confidence, direction, and participation summary.
+
 ## [0.50.0] - 2026-09-11
 ### Changed
 - Kept Instrument section navigation visible while switching between all analysis tabs.

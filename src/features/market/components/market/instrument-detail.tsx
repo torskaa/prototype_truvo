@@ -1502,42 +1502,100 @@ function TechnicalSummary({ instrument }: { instrument: Instrument }) {
   const overallScore = Math.round(
     (oscillatorScore + movingAverageScore + instrument.confidence) / 3,
   );
+  const signalDescription =
+    instrument.signal === 'LONG'
+      ? `${instrument.symbol} shows constructive momentum: the one-month trend is ${instrument.return1m >= 0 ? 'positive' : 'recovering'} and relative volume is ${instrument.rvol.toFixed(2)}x.`
+      : instrument.signal === 'WATCH'
+        ? `${instrument.symbol} has mixed evidence. Wait for stronger alignment between momentum, oscillator readings, and participation before treating the setup as confirmed.`
+        : `${instrument.symbol} has limited directional agreement across the current evidence set. Momentum and participation should be monitored for confirmation.`;
+  const confirmation =
+    instrument.rvol >= 1.5
+      ? 'Volume-confirmed'
+      : instrument.rvol >= 1
+        ? 'Moderate participation'
+        : 'Light participation';
   return (
-    <section className="panel p-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="label">Technical summary</p>
-          <h2 className="mt-1 text-sm font-semibold text-slate-900">
-            Evidence, not an instruction
-          </h2>
+    <>
+      <section className="panel p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="label">Technical summary</p>
+            <h2 className="mt-1 text-sm font-semibold text-slate-900">
+              Evidence, not an instruction
+            </h2>
+          </div>
+          <span className="badge positive">
+            {instrument.signal} - {instrument.confidence}%
+          </span>
         </div>
-        <span className="badge positive">
-          {instrument.signal} - {instrument.confidence}%
-        </span>
-      </div>
-      <div className="mt-5 grid grid-cols-3 gap-3 max-md:grid-cols-1">
-        <CompassGauge
-          label="Oscillators"
-          score={oscillatorScore}
-          detail={`RSI 14  -  ${instrument.rsi.toFixed(1)}`}
-        />
-        <CompassGauge
-          label="Moving averages"
-          score={movingAverageScore}
-          detail={`1M trend  -  ${instrument.return1m > 0 ? '+' : ''}${instrument.return1m}%`}
-        />
-        <CompassGauge
-          label="Overall summary"
-          score={overallScore}
-          detail={`Confidence  -  ${instrument.confidence}%`}
-        />
-      </div>
-      <div className="mt-5 rounded-xl bg-slate-50 p-4 text-xs text-slate-600">
-        RSI 14 is {instrument.rsi}. Relative volume is {instrument.rvol}x.
-        Confidence summarizes demo evidence quality and is not a probability of
-        profit.
-      </div>
-    </section>
+        <div className="mt-5 grid grid-cols-3 gap-3 max-md:grid-cols-1">
+          <CompassGauge
+            label="Oscillators"
+            score={oscillatorScore}
+            detail={`RSI 14  -  ${instrument.rsi.toFixed(1)}`}
+          />
+          <CompassGauge
+            label="Moving averages"
+            score={movingAverageScore}
+            detail={`1M trend  -  ${instrument.return1m > 0 ? '+' : ''}${instrument.return1m}%`}
+          />
+          <CompassGauge
+            label="Overall summary"
+            score={overallScore}
+            detail={`Confidence  -  ${instrument.confidence}%`}
+          />
+        </div>
+        <div className="mt-5 rounded-xl bg-slate-50 p-4 text-xs text-slate-600">
+          RSI 14 is {instrument.rsi}. Relative volume is {instrument.rvol}x.
+          Confidence summarizes demo evidence quality and is not a probability
+          of profit.
+        </div>
+      </section>
+      <section className="panel p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="label">Technical signal</p>
+            <h2 className="mt-1 text-sm font-semibold text-slate-900">
+              Momentum and participation read
+            </h2>
+          </div>
+          <span className="badge positive">{instrument.signal}</span>
+        </div>
+        <p className="mt-4 text-xs leading-5 text-slate-600">
+          {signalDescription}
+        </p>
+        <div className="mt-4 grid grid-cols-3 gap-2 max-md:grid-cols-1">
+          <div className="rounded-lg border border-border bg-slate-50 p-3">
+            <p className="text-[9px] font-semibold uppercase text-slate-400">
+              Direction
+            </p>
+            <p className="mt-1 text-xs font-semibold text-slate-800">
+              {instrument.signal}
+            </p>
+          </div>
+          <div className="rounded-lg border border-border bg-slate-50 p-3">
+            <p className="text-[9px] font-semibold uppercase text-slate-400">
+              Confidence
+            </p>
+            <p className="mt-1 text-xs font-semibold text-slate-800">
+              {instrument.confidence}%
+            </p>
+          </div>
+          <div className="rounded-lg border border-border bg-slate-50 p-3">
+            <p className="text-[9px] font-semibold uppercase text-slate-400">
+              Confirmation
+            </p>
+            <p className="mt-1 text-xs font-semibold text-slate-800">
+              {confirmation}
+            </p>
+          </div>
+        </div>
+        <p className="mt-4 text-[10px] text-slate-400">
+          Summary uses demo technical evidence and is not financial advice or
+          a probability of profit.
+        </p>
+      </section>
+    </>
   );
 }
 function CompassGauge({
