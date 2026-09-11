@@ -1579,14 +1579,13 @@ function MarketDataSnapshot({ instrument }: { instrument: Instrument }) {
         </b>
         <small>As of 11 Sep 2026 · demo snapshot</small>
       </div>
-      <div className="market-snapshot__periods">
+      <div className="market-snapshot__filters" aria-label="Market performance range filters">
         {periods.map((period) => (
           <button key={period.label} type="button" className={period.label === selectedPeriod ? 'selected' : ''} onClick={() => setSelectedPeriod(period.label)}>
-            <span>{period.label}</span>
+            <small>{period.label}</small>
             <b className={period.value >= 0 ? 'concept-up' : 'concept-down'}>
               {period.value >= 0 ? '+' : ''}{(period.value * 100).toFixed(2)}%
             </b>
-            <small>{period.value >= 0 ? '+' : ''}{formatPrice(price * period.value)}</small>
           </button>
         ))}
       </div>

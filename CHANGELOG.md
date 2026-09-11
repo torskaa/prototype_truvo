@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.58.0] - 2026-09-11
+### Changed
+- Replaced the tall market-period card grid with compact adaptive range filters.
+
 ## [0.57.0] - 2026-09-11
 ### Changed
 - Added an in-place market range filter with selected-period highlighting and change details.
