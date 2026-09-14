@@ -223,17 +223,6 @@ function displayValue(instrument: Instrument) {
 }
 
 type PerformancePeriod = '1D' | '1W' | '1M' | '1Y';
-type PriceInterval =
-  | '1m'
-  | '5m'
-  | '10m'
-  | '30m'
-  | '60m'
-  | '1h'
-  | '3h'
-  | '6h'
-  | '12h'
-  | '1d';
 type CompareRange =
   | '1d'
   | '3d'
@@ -252,18 +241,6 @@ const periodDays: Record<PerformancePeriod, number> = {
   '1Y': 365,
 };
 const thirtyTwo = 32;
-const priceIntervals: PriceInterval[] = [
-  '1m',
-  '5m',
-  '10m',
-  '30m',
-  '60m',
-  '1h',
-  '3h',
-  '6h',
-  '12h',
-  '1d',
-];
 const compareRanges: CompareRange[] = [
   '1d',
   '3d',
@@ -1483,7 +1460,6 @@ function Overview({
   tabs?: ReactNode;
 }) {
   const [period, setPeriod] = useState<PerformancePeriod>('1D');
-  const [priceInterval, setPriceInterval] = useState<PriceInterval>('1d');
   const [compareRange, setCompareRange] = useState<CompareRange>('1d');
   const selectedReturn = compareReturn(instrument, compareRange);
   const series = performanceSeries(instrument, period, selectedReturn);
@@ -1512,7 +1488,7 @@ function Overview({
               {instrument.symbol} price performance
             </h2>
             <p className="mt-1 text-[10px] text-slate-400">
-              Demo series - {priceInterval} candles - compare {compareRange}
+              Demo price series · {compareRange} range
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -1522,19 +1498,7 @@ function Overview({
             </div>
             {!chartOpen && <>
             <select
-              aria-label="Price interval"
-              value={priceInterval}
-              onChange={(event) =>
-                setPriceInterval(event.target.value as PriceInterval)
-              }
-              className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-600"
-            >
-              {priceIntervals.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
-            <select
-              aria-label="Compare range"
+              aria-label="Chart range"
               value={compareRange}
               onChange={(event) => {
                 const nextRange = event.target.value as CompareRange;
@@ -1601,7 +1565,7 @@ function Overview({
             Min ({compareRange}) {displayValue({ ...instrument, price: low })}
           </div>
           <div className="absolute bottom-2 left-3 right-3 flex justify-between text-[9px] text-slate-400">
-            <span>{priceInterval} candles</span>
+            <span>{compareRange} range</span>
             <span>Now - {displayValue(instrument)}</span>
           </div>
         </div>

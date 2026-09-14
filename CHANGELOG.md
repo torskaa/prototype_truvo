@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.60.3] - 2026-09-14
+### Changed
+- Consolidated the duplicate price interval and comparison selectors into one synchronized chart-range control.
+
 ## [0.60.2] - 2026-09-14
 ### Changed
 - Consolidated instrument news filters and article details into the Latest News sidebar.
