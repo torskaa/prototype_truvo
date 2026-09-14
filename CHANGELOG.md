@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.64.1] - 2026-09-14
+### Added
+- Added a Linked tags visibility checkbox and separate News and Community destinations on chart timeline markers.
+
 ## [0.64.0] - 2026-09-14
 ### Added
 - Added linked instrument-context hashtags across news, community prediction posts, and performance-chart timeline markers.

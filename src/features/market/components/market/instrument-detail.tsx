@@ -1514,6 +1514,7 @@ function Overview({
 }) {
   const [period, setPeriod] = useState<PerformancePeriod>('1D');
   const [compareRange, setCompareRange] = useState<CompareRange>('1d');
+  const [showLinkedTags, setShowLinkedTags] = useState(true);
   const selectedReturn = compareReturn(instrument, compareRange);
   const series = performanceSeries(instrument, period, selectedReturn);
   const low = Math.min(...series);
@@ -1549,6 +1550,7 @@ function Overview({
               <button onClick={() => chartOpen && onChart()} className={!chartOpen ? 'active' : ''}>Performance</button>
               <button onClick={() => !chartOpen && onChart()} className={chartOpen ? 'active' : ''}>Advanced chart</button>
             </div>
+            <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-2 text-[9px] font-medium text-slate-600"><input type="checkbox" checked={showLinkedTags} onChange={(event) => setShowLinkedTags(event.target.checked)} className="accent-violet-600" />Linked tags</label>
             {!chartOpen && <>
             <select
               aria-label="Chart range"
@@ -1617,7 +1619,7 @@ function Overview({
           <div className="absolute right-3 bottom-7 rounded-md bg-white/85 px-2 py-1 text-[9px] text-slate-500">
             Min ({compareRange}) {displayValue({ ...instrument, price: low })}
           </div>
-          {marketTagTopics.map((topic, index) => <a key={topic} id={`chart-${instrument.symbol.replaceAll('/', '-')}-${topic}`} href={`#community-${instrument.symbol.replaceAll('/', '-')}-${topic}`} title={`Open #${instrument.symbol}_${topic} community context`} className="group absolute z-10 grid size-5 place-items-center rounded-full border-2 border-white bg-violet-600 text-[7px] font-bold text-white shadow-md transition hover:scale-125" style={{left: `${22 + index * 14}%`, top: `${68 - index * 10}%`}}><span>{index + 1}</span><span className="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-[8px] font-medium text-white group-hover:block">#{instrument.symbol}_{topic}</span></a>)}
+          {showLinkedTags && marketTagTopics.map((topic, index) => <span key={topic} id={`chart-${instrument.symbol.replaceAll('/', '-')}-${topic}`} className="group absolute z-10" style={{left: `${22 + index * 14}%`, top: `${68 - index * 10}%`}}><a href={`#community-${instrument.symbol.replaceAll('/', '-')}-${topic}`} title={`Open #${instrument.symbol}_${topic} community context`} className="grid size-5 place-items-center rounded-full border-2 border-white bg-violet-600 text-[7px] font-bold text-white shadow-md transition group-hover:scale-125">{index + 1}</a><span className="absolute bottom-full left-1/2 mb-2 hidden w-max -translate-x-1/2 rounded-lg bg-slate-900 p-2 text-[8px] font-medium text-white shadow-xl group-hover:block"><b className="mb-1 block text-violet-300">#{instrument.symbol}_{topic}</b><span className="flex gap-2"><a className="rounded bg-white/10 px-2 py-1 hover:bg-white/20" href={`#news-${instrument.symbol.replaceAll('/', '-')}-${topic}`}>News</a><a className="rounded bg-white/10 px-2 py-1 hover:bg-white/20" href={`#community-${instrument.symbol.replaceAll('/', '-')}-${topic}`}>Community</a></span></span></span>)}
           <div className="absolute bottom-2 left-3 right-3 flex justify-between text-[9px] text-slate-400">
             <span>{compareRange} range</span>
             <span>Now - {displayValue(instrument)}</span>
