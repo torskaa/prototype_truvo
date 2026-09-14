@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.60.2] - 2026-09-14
+### Changed
+- Consolidated instrument news filters and article details into the Latest News sidebar.
+
+### Removed
+- Removed the duplicate News workspace tab and its redundant "View all" navigation.
+
 ## [0.60.1] - 2026-09-14
 ### Added
 - Connected community "View chart" actions to the inline Advanced Chart with the selected contributor's shared setup and annotations.
