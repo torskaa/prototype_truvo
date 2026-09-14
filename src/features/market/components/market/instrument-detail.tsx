@@ -354,7 +354,7 @@ function performanceSeries(
   });
 }
 
-export function InstrumentDetail({ instrument, chartOpen, chartContent, onCommunityChart, onBack, onChart, onToast }: { instrument: Instrument; chartOpen: boolean; chartContent: ReactNode; onCommunityChart: (name: string) => void; onBack: () => void; onChart: () => void; onToast: (message: string) => void }) {
+export function InstrumentDetail({ instrument, chartOpen, chartContent, showLinkedTags, onShowLinkedTagsChange, onCommunityChart, onBack, onChart, onToast }: { instrument: Instrument; chartOpen: boolean; chartContent: ReactNode; showLinkedTags: boolean; onShowLinkedTagsChange: (show: boolean) => void; onCommunityChart: (name: string) => void; onBack: () => void; onChart: () => void; onToast: (message: string) => void }) {
   const [tab, setTab] = useState('Overview');
   const [watching, setWatching] = useState(false);
   const [vote, setVote] = useState<string | null>(null);
@@ -383,7 +383,7 @@ export function InstrumentDetail({ instrument, chartOpen, chartContent, onCommun
       <aside className="concept-news concept-card"><div className="concept-section-title"><Newspaper size={19} /><div><h2>Latest news</h2><p>Market context for {instrument.symbol}</p></div><span className="concept-demo">DEMO</span></div><div className="concept-news-filters">{['All news', 'Market', 'Research'].map(item => <button key={item} className={newsFilter === item ? 'selected' : ''} onClick={() => setNewsFilter(item)}>{item}</button>)}</div>{taggedNews.filter((_, index) => newsFilter === 'All news' || (newsFilter === 'Market' ? index < 3 : index >= 3)).map(item => <article id={`news-${instrument.symbol.replaceAll('/', '-')}-${item.tag}`} className="market-tag-target" key={item.title}><div className="concept-news-meta"><span>{item.source}</span><small>{item.time}</small></div><a className="market-context-tag" href={`#community-${instrument.symbol.replaceAll('/', '-')}-${item.tag}`}>#{instrument.symbol}_{item.tag}</a><h3>{item.title}</h3><p>{item.summary}</p><button onClick={() => setArticle(item)}>Read full <ArrowRight size={12} /></button></article>)}</aside>
       <div className="concept-analysis">
         {tab !== 'Overview' && <section className="panel concept-tabs-panel">{instrumentTabs}</section>}
-        {tab === 'Overview' && <><Overview instrument={instrument} kind={kind} onChart={onChart} chartOpen={chartOpen} chartContent={chartContent} tabs={instrumentTabs} /><section className="concept-card concept-summary"><div className="concept-summary-top"><div><p className="concept-eyebrow">TECHNICAL OUTLOOK</p><h2 className={positive ? 'concept-up' : 'concept-down'}>{instrument.signal === 'LONG' ? 'Positive momentum' : instrument.signal === 'WATCH' ? 'Watch for confirmation' : 'Neutral outlook'}</h2><p>Synthetic signal · {instrument.confidence}% confidence</p></div><div><p className="concept-eyebrow">COMMUNITY OUTLOOK</p><b>{instrument.sentiment}% bullish</b></div></div><div className="concept-sentiment-bar"><i style={{width: `${instrument.sentiment}%`}} /></div><h3>Key valuation & activity</h3><div className="concept-metrics"><Metric label="P/E ratio" value={instrument.pe ? `${instrument.pe.toFixed(1)}x` : '—'} /><Metric label="RSI (14)" value={instrument.rsi.toFixed(1)} /><Metric label="Relative volume" value={`${instrument.rvol.toFixed(2)}x`} /><Metric label="1M return" value={`${instrument.return1m}%`} /></div><h3>Technical evidence</h3><TechnicalSummary instrument={instrument} /></section></>}
+        {tab === 'Overview' && <><Overview instrument={instrument} kind={kind} onChart={onChart} chartOpen={chartOpen} chartContent={chartContent} showLinkedTags={showLinkedTags} onShowLinkedTagsChange={onShowLinkedTagsChange} tabs={instrumentTabs} /><section className="concept-card concept-summary"><div className="concept-summary-top"><div><p className="concept-eyebrow">TECHNICAL OUTLOOK</p><h2 className={positive ? 'concept-up' : 'concept-down'}>{instrument.signal === 'LONG' ? 'Positive momentum' : instrument.signal === 'WATCH' ? 'Watch for confirmation' : 'Neutral outlook'}</h2><p>Synthetic signal · {instrument.confidence}% confidence</p></div><div><p className="concept-eyebrow">COMMUNITY OUTLOOK</p><b>{instrument.sentiment}% bullish</b></div></div><div className="concept-sentiment-bar"><i style={{width: `${instrument.sentiment}%`}} /></div><h3>Key valuation & activity</h3><div className="concept-metrics"><Metric label="P/E ratio" value={instrument.pe ? `${instrument.pe.toFixed(1)}x` : '—'} /><Metric label="RSI (14)" value={instrument.rsi.toFixed(1)} /><Metric label="Relative volume" value={`${instrument.rvol.toFixed(2)}x`} /><Metric label="1M return" value={`${instrument.return1m}%`} /></div><h3>Technical evidence</h3><TechnicalSummary instrument={instrument} /></section></>}
         {tab === 'Technicals' && <TechnicalSummary instrument={instrument} />}
         {tab === 'Market Data' && <MarketStats instrument={instrument} kind={kind} />}
         {tab === 'Analysis' && <Analysis instrument={instrument} kind={kind} />}
@@ -1503,6 +1503,8 @@ function Overview({
   onChart,
   chartOpen = false,
   chartContent = null,
+  showLinkedTags = true,
+  onShowLinkedTagsChange = () => undefined,
   tabs = null,
 }: {
   instrument: Instrument;
@@ -1510,11 +1512,12 @@ function Overview({
   onChart: () => void;
   chartOpen?: boolean;
   chartContent?: ReactNode;
+  showLinkedTags?: boolean;
+  onShowLinkedTagsChange?: (show: boolean) => void;
   tabs?: ReactNode;
 }) {
   const [period, setPeriod] = useState<PerformancePeriod>('1D');
   const [compareRange, setCompareRange] = useState<CompareRange>('1d');
-  const [showLinkedTags, setShowLinkedTags] = useState(true);
   const selectedReturn = compareReturn(instrument, compareRange);
   const series = performanceSeries(instrument, period, selectedReturn);
   const low = Math.min(...series);
@@ -1645,7 +1648,7 @@ function Overview({
           />
         </div>
         </>}
-        <div className="mt-4 flex justify-end"><label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-2 text-[9px] font-medium text-slate-600"><input type="checkbox" checked={showLinkedTags} onChange={(event) => setShowLinkedTags(event.target.checked)} className="accent-violet-600" />Linked tags</label></div>
+        <div className="mt-4 flex justify-end"><label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-2 text-[9px] font-medium text-slate-600"><input type="checkbox" checked={showLinkedTags} onChange={(event) => onShowLinkedTagsChange(event.target.checked)} className="accent-violet-600" />Linked tags</label></div>
       </section>
       <section className="panel p-5">
         <p className="label">Key information</p>

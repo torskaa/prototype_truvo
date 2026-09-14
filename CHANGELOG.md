@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.65.0] - 2026-09-14
+### Added
+- Synchronized linked-tag visibility and News/Community timeline navigation between Performance and Advanced Chart.
+
 ## [0.64.2] - 2026-09-14
 ### Changed
 - Moved the Linked tags checkbox to the Performance panel footer and strengthened News and chart destination highlighting.
