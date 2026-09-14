@@ -22,6 +22,7 @@ export default function MarketWorkspace({ view, locationSearch, onNavigate, onTo
   const [indicators, setIndicators] = useState(['Volume']);
   const [watchlist, setWatchlist] = useState<string[]>(['MSFT', 'BTC/USD']);
   const [chartOpen, setChartOpen] = useState(() => new URLSearchParams(locationSearch).get('mode') === 'chart' || view === 'chart');
+  const [sharedChartBy, setSharedChartBy] = useState<string | null>(null);
   const tier: Tier = snapshot.level.level >= 4 ? 'PREMIUM' : snapshot.level.level >= 2 ? 'INTERMEDIATE' : 'BASIC';
   const navigate = (next: View) => onNavigate(next, instrument.symbol);
   const openInstrument = (item: Instrument) => onNavigate('instrument', item.symbol);
@@ -32,7 +33,7 @@ export default function MarketWorkspace({ view, locationSearch, onNavigate, onTo
   return <div className="market-feature min-w-0 rounded-2xl">
     <MarketEngagement view={view} instrument={instrument} symbols={instruments.map(item => item.symbol)} brokers={brokers} onConnectBroker={onConnectBroker} onCompareBrokers={onCompareBrokers} onOpenRewards={onOpenRewards} onOpenPlans={onOpenPlans} onNavigate={onNavigate}>
     {(view === 'screener' || (view === 'instrument' && !hasSelectedInstrument)) && <Screener tier={tier} rules={rules} setRules={setRules} results={instruments} viz={viz} setViz={setViz} openInstrument={openInstrument} openIndex={item => openInstrument(indexAsInstrument(item))} watchlist={watchlist} toggleWatch={toggleWatch} toast={onToast} />}
-    {view === 'instrument' && hasSelectedInstrument && <InstrumentDetail key={instrument.symbol} instrument={instrument} chartOpen={chartOpen} chartContent={<TechnicalChartWorkspace instrument={instrument} tier={tier} timeframe={timeframe} setTimeframe={setTimeframe} indicators={indicators} addIndicator={item => setIndicators(current => current.includes(item) ? current : [...current,item])} watchlist={watchlist} toggleWatch={() => toggleWatch(instrument.symbol)} createAlert={() => onToast(`Demo alert created for ${instrument.symbol}`)} inspectSignal={() => onNavigate('signals',instrument.symbol)} />} onBack={() => onNavigate('screener')} onChart={() => setChartOpen(open => !open)} onToast={onToast} />}
+    {view === 'instrument' && hasSelectedInstrument && <InstrumentDetail key={instrument.symbol} instrument={instrument} chartOpen={chartOpen} chartContent={<TechnicalChartWorkspace key={sharedChartBy ?? 'personal'} sharedBy={sharedChartBy ?? undefined} instrument={instrument} tier={tier} timeframe={timeframe} setTimeframe={setTimeframe} indicators={indicators} addIndicator={item => setIndicators(current => current.includes(item) ? current : [...current,item])} watchlist={watchlist} toggleWatch={() => toggleWatch(instrument.symbol)} createAlert={() => onToast(`Demo alert created for ${instrument.symbol}`)} inspectSignal={() => onNavigate('signals',instrument.symbol)} />} onCommunityChart={(name) => { setSharedChartBy(name); setChartOpen(true); onToast(`Viewing ${name}'s shared ${instrument.symbol} chart`); }} onBack={() => onNavigate('screener')} onChart={() => { setSharedChartBy(null); setChartOpen(open => !open); }} onToast={onToast} />}
     </MarketEngagement>
   </div>;
 }

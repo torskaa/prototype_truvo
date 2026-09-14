@@ -16,23 +16,24 @@ import { useRewards } from '../../../rewards/RewardProvider';
 import { useMarketEngagement } from '../../MarketEngagement';
 
 type ChartKind='Candles'|'Bars'|'Line'|'Area'|'Heikin Ashi'|'Renko'|'Range';
-type Props={tier:Tier;requestEventAccess?:()=>void;instrument:Instrument;timeframe:string;setTimeframe:(s:string)=>void;indicators:string[];addIndicator:(s:string)=>void;watchlist:string[];toggleWatch:()=>void;createAlert:()=>void;inspectSignal:()=>void};
+type Props={tier:Tier;requestEventAccess?:()=>void;sharedBy?:string;instrument:Instrument;timeframe:string;setTimeframe:(s:string)=>void;indicators:string[];addIndicator:(s:string)=>void;watchlist:string[];toggleWatch:()=>void;createAlert:()=>void;inspectSignal:()=>void};
 const drawingTools=[['Cursor',MousePointer2],['Crosshair',Crosshair],['Trend line',TrendingUp],['Ray',GitBranch],['Fibonacci',SlidersHorizontal],['Brush',Brush],['Rectangle',Square],['Ellipse',Circle],['Text',Type],['Measure',Ruler],['Long position',Target],['Short position',Target],['Magnet',Magnet]] as const;
 const studyList=['SMA 20','EMA 50','RSI','MACD','Bollinger Bands','VWAP','Volume Profile','Supertrend','Ichimoku Cloud','Stochastic','ADX','Cumulative Delta'];
 const chartKinds:[ChartKind,React.ElementType][]=[['Candles',BarChart3],['Bars',Activity],['Line',LineChart],['Area',AreaChart],['Heikin Ashi',BarChart3],['Renko',Grid2X2],['Range',SlidersHorizontal]];
 
 export function TechnicalChartWorkspace(props:Props){
- const {tier,instrument,timeframe,setTimeframe,indicators,addIndicator,watchlist,toggleWatch,createAlert,inspectSignal}=props;
+ const {tier,sharedBy,instrument,timeframe,setTimeframe,indicators,addIndicator,watchlist,toggleWatch,createAlert,inspectSignal}=props;
  const { hasAccess } = useRewards();
  const { requestUnlock, requestQuest, openBrokerAccess, navigateSymbol } = useMarketEngagement();
  const requestEventAccess = () => requestUnlock('eventIntelligence');
  const orderFlowUnlocked = can(tier, 'orderFlow', { orderFlow: hasAccess('orderFlow') });
- const [chartKind,setChartKind]=useState<ChartKind>('Candles'); const [activeTool,setActiveTool]=useState('Cursor'); const [rightTab,setRightTab]=useState('Watchlist'); const [bottomTab,setBottomTab]=useState('Technicals'); const [replay,setReplay]=useState(false); const [layout,setLayout]=useState('1'); const [zoom,setZoom]=useState(1); const [grid,setGrid]=useState(true); const [logScale,setLogScale]=useState(false); const [marks,setMarks]=useState(true); const [extended,setExtended]=useState(false); const [fullscreen,setFullscreen]=useState(false); const [annotations,setAnnotations]=useState<string[]>(['Earnings gap','Breakout level']); const [toast,setToast]=useState('');
+ const [chartKind,setChartKind]=useState<ChartKind>('Candles'); const [activeTool,setActiveTool]=useState('Cursor'); const [rightTab,setRightTab]=useState(sharedBy ? 'Community' : 'Watchlist'); const [bottomTab,setBottomTab]=useState('Technicals'); const [replay,setReplay]=useState(false); const [layout,setLayout]=useState('1'); const [zoom,setZoom]=useState(1); const [grid,setGrid]=useState(true); const [logScale,setLogScale]=useState(false); const [marks,setMarks]=useState(true); const [extended,setExtended]=useState(false); const [fullscreen,setFullscreen]=useState(false); const [annotations,setAnnotations]=useState<string[]>(sharedBy ? [`${sharedBy} shared setup`,'Pullback confirmation'] : ['Earnings gap','Breakout level']); const [toast,setToast]=useState('');
  const [engine,setEngine]=useState<ChartEngine>('prototype'); const [eventLayer,setEventLayer]=useState(true); const [eventScope,setEventScope]=useState<EventScopeFilter>('ALL'); const [selectedEvent,setSelectedEvent]=useState<MarketEvent|null>(mockMarketEvents[1]);
  const eventsUnlocked=can(tier,'eventIntelligence', { eventIntelligence: hasAccess('eventIntelligence') }); const visibleEvents=useMemo(()=>mockMarketEvents.filter(event=>!eventsUnlocked||eventScope==='ALL'||event.scope===eventScope),[eventScope,eventsUnlocked]);
  const shown=Math.max(34,Math.round(78/zoom));
  function flash(s:string){setToast(s);setTimeout(()=>setToast(''),1800)}
  return <div className={`market-chart-workspace ${fullscreen?'fixed inset-0 z-50 overflow-auto bg-[#080d14] p-3':'min-w-0'}`}>
+  {sharedBy && <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-cyan-400/25 bg-cyan-400/10 px-4 py-3 text-xs text-slate-600"><span><b className="text-cyan-700">Shared chart</b> · Viewing {sharedBy}'s {instrument.symbol} setup</span><MessageCircle className="size-4 text-cyan-500" /></div>}
   <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-violet-200 bg-violet-50 p-3"><p className="text-xs text-slate-600">Chart lab · simulated data, no execution</p><div className="flex flex-wrap gap-2"><button className="secondary" onClick={() => requestQuest('chart-risk', [instrument.symbol])}>Practice risk sizing · +40 C</button><button className="secondary" onClick={requestEventAccess}>Event intelligence {eventsUnlocked ? '· active' : '· unlock'}</button><button className="primary" onClick={openBrokerAccess}>Broker access</button></div></div>
   <div className="mb-2 flex min-w-0 items-center justify-between gap-3 rounded-md border border-white/8 bg-[#0d141e] px-2 py-1.5">
    <div className="flex min-w-0 items-center gap-1">

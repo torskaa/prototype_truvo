@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.60.1] - 2026-09-14
+### Added
+- Connected community "View chart" actions to the inline Advanced Chart with the selected contributor's shared setup and annotations.
+
 ## [0.60.0] - 2026-09-14
 ### Added
 - Added an inline Performance / Advanced chart toggle to the instrument workspace using the integrated technical chart.
