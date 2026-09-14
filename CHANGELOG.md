@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.61.1] - 2026-09-14
+### Added
+- Added demo broker coverage for NVDA products and hover/focus detail cards for products and broker rows.
+
 ## [0.61.0] - 2026-09-14
 ### Changed
 - Merged the separate Products and Brokers instrument tabs into one product-filtered broker comparison table.

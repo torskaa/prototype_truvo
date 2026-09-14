@@ -64,6 +64,9 @@ type Broker = {
   spread: string;
   minimum: string;
   platform: string;
+  commission?: string;
+  execution?: string;
+  details?: string;
 };
 
 const brokers: Broker[] = [
@@ -76,6 +79,48 @@ const brokers: Broker[] = [
     spread: 'Demo quote',
     minimum: '$0',
     platform: 'Marketsyde',
+    commission: '$0 demo',
+    execution: 'Simulated instant fill',
+    details: 'Practice account with synthetic quotes and no real-money execution.',
+  },
+  {
+    name: 'ApexTrade Demo',
+    venue: 'US equity routing demo',
+    products: ['Share', 'Fractional share'],
+    symbols: ['AAPL', 'MSFT', 'NVDA'],
+    status: 'Available',
+    spread: 'From $0.01',
+    minimum: '$5',
+    platform: 'Apex Web',
+    commission: '$0 per share',
+    execution: 'Demo smart routing',
+    details: 'Dummy US equity broker with whole and fractional share access.',
+  },
+  {
+    name: 'Nova CFD Lab',
+    venue: 'Multi-asset CFD demo',
+    products: ['CFD'],
+    symbols: ['AAPL', 'NVDA', 'XAU/USD', 'SPX'],
+    status: 'Requires account',
+    spread: 'From 0.12%',
+    minimum: '$100',
+    platform: 'Nova Terminal',
+    commission: 'Included in spread',
+    execution: 'Demo market execution',
+    details: 'Dummy leveraged-product provider for testing eligibility and account flows.',
+  },
+  {
+    name: 'FractionHub Sandbox',
+    venue: 'Fractional equity demo',
+    products: ['Fractional share'],
+    symbols: ['AAPL', 'MSFT', 'NVDA'],
+    status: 'Restricted',
+    spread: 'Reference quote',
+    minimum: '$1',
+    platform: 'Mobile + web',
+    commission: '$0 demo',
+    execution: 'Scheduled batch demo',
+    details: 'Dummy fractional-share venue with region-dependent availability.',
   },
   {
     name: 'Northstar Markets',
@@ -2258,6 +2303,15 @@ function ProductsAndBrokersTable({
   brokers: Broker[];
 }) {
   const matchedBrokers = brokers.filter((broker) => broker.products.includes(product));
+  const productDetails: Record<ProductType, string> = {
+    Spot: 'Buy or sell the underlying asset for direct settlement.',
+    Share: 'Whole-share ownership with standard equity market access.',
+    'Fractional share': 'Trade part of one share with a smaller minimum amount.',
+    'FX spot': 'Exchange currency pairs at the current market rate.',
+    CFD: 'Track price movement without owning the underlying asset; leverage may apply.',
+    Future: 'Standardized contract with a defined expiry and contract size.',
+    Perpetual: 'Derivative contract without expiry; funding charges may apply.',
+  };
   return (
     <section className="panel overflow-hidden">
       <div className="border-b border-border p-5">
@@ -2265,14 +2319,14 @@ function ProductsAndBrokersTable({
         <h2 className="mt-1 text-sm font-semibold text-slate-900">Trade {instrument.symbol} by product</h2>
         <p className="mt-1 text-[10px] text-slate-400">Choose a product to compare matching providers, costs, minimums, and access.</p>
         <div className="mt-4 flex flex-wrap gap-2">
-          {products.map((item) => <button key={item} onClick={() => setProduct(item)} className={`rounded-lg border px-3 py-2 text-[10px] font-medium ${product === item ? 'border-violet-300 bg-violet-50 text-violet-700' : 'border-border bg-white text-slate-600'}`}>{item}</button>)}
+          {products.map((item) => <span key={item} className="group relative"><button onClick={() => setProduct(item)} aria-describedby={`product-tip-${item.replaceAll(' ', '-')}`} className={`rounded-lg border px-3 py-2 text-[10px] font-medium ${product === item ? 'border-violet-300 bg-violet-50 text-violet-700' : 'border-border bg-white text-slate-600'}`}>{item}</button><span id={`product-tip-${item.replaceAll(' ', '-')}`} role="tooltip" className="pointer-events-none absolute left-0 top-full z-30 mt-2 hidden w-56 rounded-lg border border-slate-200 bg-slate-900 p-3 text-left text-[10px] font-normal leading-relaxed text-white shadow-xl group-hover:block group-focus-within:block"><b className="mb-1 block text-violet-300">{item}</b>{productDetails[item]}</span></span>)}
         </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-left text-[10px]">
           <thead className="bg-slate-50 text-slate-500"><tr><th className="px-5 py-3">Product</th><th className="px-4 py-3">Broker</th><th className="px-4 py-3">Venue</th><th className="px-4 py-3">Spread</th><th className="px-4 py-3">Minimum</th><th className="px-4 py-3">Platform</th><th className="px-4 py-3">Access</th><th className="px-5 py-3 text-right">Action</th></tr></thead>
           <tbody className="divide-y divide-border">
-            {matchedBrokers.map((broker) => <tr key={`${product}-${broker.name}`} className="bg-white hover:bg-slate-50/70"><td className="px-5 py-4 font-semibold text-violet-700">{product}</td><td className="px-4 py-4 font-semibold text-slate-900">{broker.name}</td><td className="px-4 py-4 text-slate-500">{broker.venue}</td><td className="px-4 py-4 text-slate-600">{broker.spread}</td><td className="px-4 py-4 text-slate-600">{broker.minimum}</td><td className="px-4 py-4 text-slate-600">{broker.platform}</td><td className="px-4 py-4"><span className={`badge ${broker.status === 'Available' ? 'positive' : ''}`}>{broker.status}</span></td><td className="px-5 py-4 text-right"><button className="primary justify-center">Connect</button></td></tr>)}
+            {matchedBrokers.map((broker) => <tr key={`${product}-${broker.name}`} className="group bg-white hover:bg-violet-50/40"><td className="px-5 py-4 font-semibold text-violet-700">{product}</td><td className="relative px-4 py-4 font-semibold text-slate-900" tabIndex={0}>{broker.name}<div role="tooltip" className="pointer-events-none absolute left-2 top-[calc(100%-4px)] z-40 hidden w-72 rounded-lg border border-violet-200 bg-white p-4 text-left font-normal shadow-2xl group-hover:block group-focus:block"><b className="text-xs text-slate-900">{broker.name}</b><p className="mt-1 leading-relaxed text-slate-500">{broker.details}</p><dl className="mt-3 grid grid-cols-2 gap-2"><div><dt className="text-[8px] uppercase text-slate-400">Commission</dt><dd className="mt-1 text-slate-700">{broker.commission}</dd></div><div><dt className="text-[8px] uppercase text-slate-400">Execution</dt><dd className="mt-1 text-slate-700">{broker.execution}</dd></div></dl></div></td><td className="px-4 py-4 text-slate-500">{broker.venue}</td><td className="px-4 py-4 text-slate-600">{broker.spread}</td><td className="px-4 py-4 text-slate-600">{broker.minimum}</td><td className="px-4 py-4 text-slate-600">{broker.platform}</td><td className="px-4 py-4"><span className={`badge ${broker.status === 'Available' ? 'positive' : ''}`}>{broker.status}</span></td><td className="px-5 py-4 text-right"><button className="primary justify-center">Connect</button></td></tr>)}
           </tbody>
         </table>
       </div>
