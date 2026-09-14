@@ -354,7 +354,7 @@ function performanceSeries(
   });
 }
 
-export function InstrumentDetail({ instrument, chartOpen, chartContent, showLinkedTags, onShowLinkedTagsChange, onCommunityChart, onBack, onChart, onToast }: { instrument: Instrument; chartOpen: boolean; chartContent: ReactNode; showLinkedTags: boolean; onShowLinkedTagsChange: (show: boolean) => void; onCommunityChart: (name: string) => void; onBack: () => void; onChart: () => void; onToast: (message: string) => void }) {
+export function InstrumentDetail({ instrument, chartOpen, chartContent, showLinkedTags, onShowLinkedTagsChange, onCommunityChart, onBack, onChart, onToast }: { instrument: Instrument; chartOpen: boolean; chartContent: ReactNode; showLinkedTags: boolean; onShowLinkedTagsChange: (show: boolean) => void; onCommunityChart: (name: string, tag: string) => void; onBack: () => void; onChart: () => void; onToast: (message: string) => void }) {
   const [tab, setTab] = useState('Overview');
   const [watching, setWatching] = useState(false);
   const [vote, setVote] = useState<string | null>(null);
@@ -399,7 +399,7 @@ export function InstrumentDetail({ instrument, chartOpen, chartContent, showLink
   </div>;
 }
 
-function CommunityPredictionPost({instrument,post,onToast,onCommunityChart}:{instrument:Instrument;post:{name:string;initials:string;time:string;tag:string;text:string;agree:number;disagree:number};onToast:(message:string)=>void;onCommunityChart:(name:string)=>void}) {
+function CommunityPredictionPost({instrument,post,onToast,onCommunityChart}:{instrument:Instrument;post:{name:string;initials:string;time:string;tag:string;text:string;agree:number;disagree:number};onToast:(message:string)=>void;onCommunityChart:(name:string,tag:string)=>void}) {
   const [reaction,setReaction]=useState<'agree'|'disagree'|null>(null);
   const agree=post.agree+(reaction==='agree'?1:0);
   const disagree=post.disagree+(reaction==='disagree'?1:0);
@@ -408,7 +408,7 @@ function CommunityPredictionPost({instrument,post,onToast,onCommunityChart}:{ins
   const disagreePercent=100-agreePercent;
   const direction=agreePercent>=50?'Long':'Short';
   const vote=(next:'agree'|'disagree')=>{setReaction(current=>current===next?null:next);onToast(`${next==='agree'?'Agree':'Disagree'} vote recorded · demo`)};
-  return <article id={`community-${instrument.symbol.replaceAll('/', '-')}-${post.tag}`} className="concept-post market-tag-target"><div><span className="concept-avatar">{post.initials}</span><b>{post.name}<small>Community contributor · {post.time}</small></b><span className={`ml-auto rounded-full px-2 py-1 text-[8px] font-bold ${direction==='Long'?'bg-emerald-50 text-emerald-600':'bg-rose-50 text-rose-600'}`}>Community vote · {direction} {agreePercent}%</span></div><a className="concept-post-tag market-context-tag" href={`#chart-${instrument.symbol.replaceAll('/', '-')}-${post.tag}`}>#{instrument.symbol}_{post.tag}</a><p>{post.text}</p><div className="mb-2 flex h-1.5 overflow-hidden rounded-full"><div className="h-full bg-emerald-400 transition-all" style={{width:`${agreePercent}%`}} /><div className="h-full bg-rose-400 transition-all" style={{width:`${disagreePercent}%`}} /></div><button className="text-emerald-600" aria-pressed={reaction==='agree'} onClick={()=>vote('agree')}><ThumbsUp size={14} /> Agree {agreePercent}%</button><button className="text-rose-600" aria-pressed={reaction==='disagree'} onClick={()=>vote('disagree')}><ThumbsDown size={14} /> Disagree {disagreePercent}%</button><small className="ml-1 text-[9px] text-slate-400">{total} voters</small><button onClick={() => onCommunityChart(post.name)}><LineChart size={14} /> View chart</button></article>;
+  return <article id={`community-${instrument.symbol.replaceAll('/', '-')}-${post.tag}`} className="concept-post market-tag-target"><div><span className="concept-avatar">{post.initials}</span><b>{post.name}<small>Community contributor · {post.time}</small></b><span className={`ml-auto rounded-full px-2 py-1 text-[8px] font-bold ${direction==='Long'?'bg-emerald-50 text-emerald-600':'bg-rose-50 text-rose-600'}`}>Community vote · {direction} {agreePercent}%</span></div><a className="concept-post-tag market-context-tag" href={`#chart-${instrument.symbol.replaceAll('/', '-')}-${post.tag}`}>#{instrument.symbol}_{post.tag}</a><p>{post.text}</p><div className="mb-2 flex h-1.5 overflow-hidden rounded-full"><div className="h-full bg-emerald-400 transition-all" style={{width:`${agreePercent}%`}} /><div className="h-full bg-rose-400 transition-all" style={{width:`${disagreePercent}%`}} /></div><button className="text-emerald-600" aria-pressed={reaction==='agree'} onClick={()=>vote('agree')}><ThumbsUp size={14} /> Agree {agreePercent}%</button><button className="text-rose-600" aria-pressed={reaction==='disagree'} onClick={()=>vote('disagree')}><ThumbsDown size={14} /> Disagree {disagreePercent}%</button><small className="ml-1 text-[9px] text-slate-400">{total} voters</small><button onClick={() => onCommunityChart(post.name,post.tag)}><LineChart size={14} /> View chart</button></article>;
 }
 
 function LegacyInstrumentDetail({

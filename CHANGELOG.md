@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.68.0] - 2026-09-14
+
+### Changed
+
+- Connected community View chart actions to their highlighted Advanced Chart markers and positioned prediction tags along related price points.
+
 ## [0.67.1] - 2026-09-14
 
 ### Changed
