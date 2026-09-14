@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.66.0] - 2026-09-14
+
+### Changed
+
+- Moved linked context markers into the Advanced Chart plot and removed the separate timeline strip.
+
 ## [0.65.1] - 2026-09-14
 ### Changed
 - Changed chart tag markers to open a News or Community destination chooser before navigating.
