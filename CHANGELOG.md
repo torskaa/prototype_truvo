@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.71.0] - 2026-09-14
+
+### Added
+
+- Synchronized followed community publishers with the Advanced Chart Alerts sidebar.
+- Added a hide/show control for the Advanced Chart right sidebar.
+- Added watchlist-driven comparison lines on the active chart timeline.
+
+### Changed
+
+- Removed the comment composer and reply affordance from the Advanced Chart community sidebar.
+
 ## [0.70.0] - 2026-09-14
 
 ### Added

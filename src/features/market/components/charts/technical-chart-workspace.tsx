@@ -87,7 +87,7 @@ type Props = {
   tier: Tier;
   requestEventAccess?: () => void;
   sharedBy?: string;
-  followedTag?: string;
+  followedPublisher?: { name: string; tag: string };
   showLinkedTags?: boolean;
   instrument: Instrument;
   timeframe: string;
@@ -156,7 +156,7 @@ export function TechnicalChartWorkspace(props: Props) {
   const {
     tier,
     sharedBy,
-    followedTag,
+    followedPublisher,
     showLinkedTags = true,
     instrument,
     timeframe,
@@ -180,6 +180,8 @@ export function TechnicalChartWorkspace(props: Props) {
   const [rightTab, setRightTab] = useState(
     sharedBy ? "Community" : "Watchlist",
   );
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
+  const [comparisonSymbols, setComparisonSymbols] = useState<string[]>([]);
   const [bottomTab, setBottomTab] = useState("Technicals");
   const [replay, setReplay] = useState(false);
   const [layout, setLayout] = useState("1");
@@ -535,9 +537,16 @@ export function TechnicalChartWorkspace(props: Props) {
           >
             <Maximize2 />
           </button>
+          <button
+            onClick={() => setRightSidebarOpen((open) => !open)}
+            className={`chart-tool ${rightSidebarOpen ? "selected" : ""}`}
+            title={rightSidebarOpen ? "Hide right sidebar" : "Show right sidebar"}
+          >
+            <List />
+          </button>
         </div>
       </div>
-      <div className="grid min-h-[705px] grid-cols-[38px_minmax(0,1fr)_286px] gap-2 max-xl:grid-cols-[38px_minmax(0,1fr)]">
+      <div className={`grid min-h-[705px] gap-2 ${rightSidebarOpen ? "grid-cols-[38px_minmax(0,1fr)_286px] max-xl:grid-cols-[38px_minmax(0,1fr)]" : "grid-cols-[38px_minmax(0,1fr)]"}`}>
         <aside className="panel flex flex-col items-center gap-0.5 py-1.5">
           {drawingTools.map(([name, I]) => (
             <button
@@ -668,12 +677,13 @@ export function TechnicalChartWorkspace(props: Props) {
                   }}
                 />
               </TradingViewChartHost>
+              {comparisonSymbols.length > 0 && engine === "prototype" && <svg className="pointer-events-none absolute inset-0 z-10 size-full" viewBox="0 0 1000 430" preserveAspectRatio="none" aria-label={`Comparison chart for ${comparisonSymbols.join(", ")}`}>{comparisonSymbols.map((symbol,index)=>{const colors=["#38bdf8","#f59e0b","#e879f9","#a3e635"];const color=colors[index%colors.length];const offset=index*18;return <g key={symbol}><path d={`M45 ${330-offset} C150 ${300+offset},210 ${345-offset},320 ${270+offset} S480 ${250-offset},570 ${210+offset} S760 ${175-offset},955 ${120+offset}`} fill="none" stroke={color} strokeWidth="3" strokeDasharray="8 5"/><rect x="820" y={82+index*24} width="115" height="18" rx="5" fill="#101824" stroke={color}/><text x="830" y={95+index*24} fill={color} fontSize="11" fontWeight="700">{symbol} comparison</text></g>})}</svg>}
               {showLinkedTags && engine === "prototype" && (
                 <div className="pointer-events-none absolute inset-0 z-20">
                   {linkedTagTopics.map((topic, index) => {
                     const vote = linkedTagVotes[topic];
                     const long = vote >= 50;
-                    const followed = followedTag === topic;
+                    const followed = followedPublisher?.tag === topic;
                     return (
                       <span
                         key={topic}
@@ -831,7 +841,7 @@ export function TechnicalChartWorkspace(props: Props) {
             )}
           </div>
         </div>
-        <aside className="panel overflow-hidden max-xl:hidden">
+        {rightSidebarOpen && <aside className="panel overflow-hidden max-xl:hidden">
           <div className="grid grid-cols-6 border-b border-white/8">
             {[
               ["Watchlist", List],
@@ -861,6 +871,9 @@ export function TechnicalChartWorkspace(props: Props) {
               toggleWatch={toggleWatch}
               createAlert={createAlert}
               inspectSignal={inspectSignal}
+              followedPublisher={followedPublisher}
+              comparisonSymbols={comparisonSymbols}
+              toggleComparison={(symbol) => setComparisonSymbols((current) => current.includes(symbol) ? current.filter((item) => item !== symbol) : [...current, symbol])}
               events={visibleEvents}
               selectedEvent={eventsUnlocked ? selectedEvent : null}
               onSelectEvent={(event) =>
@@ -868,7 +881,7 @@ export function TechnicalChartWorkspace(props: Props) {
               }
             />
           )}
-        </aside>
+        </aside>}
       </div>
       {toast && (
         <div className="fixed bottom-5 left-1/2 z-[70] -translate-x-1/2 rounded-md border border-cyan-400/20 bg-[#12202a] px-4 py-2 text-[10px] text-cyan-300">
@@ -1542,6 +1555,9 @@ function RightPanel({
   toggleWatch,
   createAlert,
   inspectSignal,
+  followedPublisher,
+  comparisonSymbols,
+  toggleComparison,
   events,
   selectedEvent,
   onSelectEvent,
@@ -1552,6 +1568,9 @@ function RightPanel({
   toggleWatch: () => void;
   createAlert: () => void;
   inspectSignal: () => void;
+  followedPublisher?: { name: string; tag: string };
+  comparisonSymbols: string[];
+  toggleComparison: (symbol: string) => void;
   events: MarketEvent[];
   selectedEvent: MarketEvent | null;
   onSelectEvent: (event: MarketEvent) => void;
@@ -1578,7 +1597,9 @@ function RightPanel({
         {instruments.slice(0, 9).map((i) => (
           <button
             key={i.symbol}
-            className={`grid w-full grid-cols-[1fr_54px_54px] items-center px-3 py-2 text-left text-[9px] hover:bg-white/[.035] ${i.symbol === instrument.symbol ? "border-l-2 border-cyan-400 bg-cyan-400/5" : ""}`}
+            onClick={() => i.symbol !== instrument.symbol && toggleComparison(i.symbol)}
+            aria-pressed={comparisonSymbols.includes(i.symbol)}
+            className={`grid w-full grid-cols-[1fr_54px_54px] items-center px-3 py-2 text-left text-[9px] hover:bg-white/[.035] ${i.symbol === instrument.symbol ? "border-l-2 border-cyan-400 bg-cyan-400/5" : comparisonSymbols.includes(i.symbol) ? "border-l-2 border-amber-400 bg-amber-400/5" : ""}`}
           >
             <span>
               <b>{i.symbol}</b>
@@ -1615,6 +1636,7 @@ function RightPanel({
           <Bell />
           Create alert on {instrument.symbol}
         </button>
+        {followedPublisher && <div className="mt-3 rounded border border-amber-400/25 bg-amber-400/5 p-3"><div className="flex items-center justify-between text-[9px]"><b className="text-amber-300"><Bell className="mr-1 inline size-3" fill="currentColor"/>Publisher alert</b><span className="text-emerald-300">Synced</span></div><p className="mt-2 text-[9px] text-slate-300">Following {followedPublisher.name} · #{instrument.symbol}_{followedPublisher.tag}</p><p className="sub">Publisher changes will appear on the chart marker.</p></div>}
         {[
           ["Price crosses 142.00", "Active"],
           ["RSI crosses below 40", "Active"],
@@ -1749,8 +1771,6 @@ function MiniMetric({ l, v, s }: { l: string; v: string; s: string }) {
 }
 
 function CommunityPanel({ instrument }: { instrument: Instrument }) {
-  const [draft, setDraft] = useState("");
-  const [shared, setShared] = useState(false);
   return (
     <div className="space-y-3 p-3">
       <div className="flex items-center justify-between">
@@ -1788,34 +1808,9 @@ function CommunityPanel({ instrument }: { instrument: Instrument }) {
         </p>
         <div className="mt-2 flex justify-between text-[8px] text-slate-500">
           <span>♡ 104 · 🔥 2 · ↗ 2</span>
-          <span>3 replies</span>
+          <span>Publisher alert available</span>
         </div>
       </article>
-      {shared && (
-        <div className="rounded border border-violet-400/20 bg-violet-400/5 p-2 text-[9px] text-violet-200">
-          Shared chart snapshot and cited news for #{instrument.symbol}:
-          {instrument.name}
-        </div>
-      )}
-      <div className="flex gap-2">
-        <input
-          aria-label={`Share chart for ${instrument.symbol}`}
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          placeholder={`Add a note about ${instrument.symbol}...`}
-          className="min-w-0 flex-1 rounded border border-white/10 bg-[#0b1119] px-2 py-1.5 text-[9px] text-slate-300 outline-none"
-        />
-        <button
-          onClick={() => {
-            setShared(true);
-            setDraft("");
-          }}
-          className="rounded bg-cyan-400/15 px-2.5 py-1.5 text-[9px] font-semibold text-cyan-300"
-        >
-          <Send className="mr-1 inline size-3" />
-          Share
-        </button>
-      </div>
     </div>
   );
 }

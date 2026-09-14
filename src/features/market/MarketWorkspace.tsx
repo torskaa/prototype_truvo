@@ -137,7 +137,7 @@ export default function MarketWorkspace({
               <TechnicalChartWorkspace
                 key={sharedChartBy ?? "personal"}
                 sharedBy={sharedChartBy ?? undefined}
-                followedTag={followedPublisher?.tag}
+              followedPublisher={followedPublisher ?? undefined}
                 showLinkedTags={showLinkedTags}
                 instrument={instrument}
                 tier={tier}
