@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.62.0] - 2026-09-14
+### Added
+- Added an interactive Financial Report visualization with annual/quarterly views, growth charts, profitability trends, valuation ratios, and financial-health indicators.
+
 ## [0.61.1] - 2026-09-14
 ### Added
 - Added demo broker coverage for NVDA products and hover/focus detail cards for products and broker rows.

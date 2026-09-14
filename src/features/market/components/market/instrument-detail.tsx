@@ -2241,51 +2241,61 @@ function Forecast({
   );
 }
 function FinancialReport({ instrument }: { instrument: Instrument }) {
+  const [period, setPeriod] = useState<'Annual' | 'Quarterly'>('Annual');
+  const annual = [
+    { label: 'FY22', revenue: 27.0, income: 9.8, margin: 36.2 },
+    { label: 'FY23', revenue: 27.0, income: 4.4, margin: 16.2 },
+    { label: 'FY24', revenue: 60.9, income: 29.8, margin: 48.9 },
+    { label: 'FY25', revenue: 130.5, income: 72.9, margin: 55.8 },
+  ];
+  const quarterly = [
+    { label: 'Q2 25', revenue: 30.0, income: 16.6, margin: 55.3 },
+    { label: 'Q3 25', revenue: 35.1, income: 19.3, margin: 55.0 },
+    { label: 'Q4 25', revenue: 39.3, income: 22.1, margin: 56.2 },
+    { label: 'Q1 26', revenue: 44.1, income: 24.8, margin: 56.3 },
+  ];
+  const series = period === 'Annual' ? annual : quarterly;
+  const maxRevenue = Math.max(...series.map((item) => item.revenue));
   return (
     <div className="space-y-4">
       <section className="panel p-5">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="label">Financial report</p>
+            <p className="label">Fundamentals & stats</p>
             <h2 className="mt-1 text-sm font-semibold text-slate-900">
-              Financials, earnings & dividends
+              {instrument.symbol} financial overview
             </h2>
             <p className="mt-1 text-[10px] text-slate-400">
-              One consolidated report for {instrument.name}.
+              Interactive demo statements, profitability, valuation, and financial health.
             </p>
           </div>
-          <span className="badge positive">DEMO DATA</span>
+          <div className="flex items-center gap-2"><div className="seg">{(['Annual', 'Quarterly'] as const).map((item) => <button key={item} onClick={() => setPeriod(item)} className={period === item ? 'active' : ''}>{item}</button>)}</div><span className="badge positive">DEMO DATA</span></div>
         </div>
-        <div className="mt-4 grid grid-cols-4 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
-          <Metric
-            label="Revenue"
-            value={`$${(instrument.marketCap * 0.18).toFixed(1)}B`}
-          />
-          <Metric
-            label="Net income"
-            value={`$${(instrument.marketCap * 0.036).toFixed(1)}B`}
-          />
-          <Metric
-            label="EPS"
-            value={`$${(instrument.price / (instrument.pe ?? 25)).toFixed(2)}`}
-          />
-          <Metric
-            label="Dividend yield"
-            value={`${Math.max(0, instrument.change * 0.18).toFixed(2)}%`}
-          />
-          <Metric
-            label="EBITDA margin"
-            value={`${(18 + instrument.sentiment * 0.12).toFixed(1)}%`}
-          />
-          <Metric
-            label="Free cash flow"
-            value={`$${(instrument.marketCap * 0.022).toFixed(1)}B`}
-          />
-          <Metric label="Next earnings" value="Demo  -  24 days" />
-          <Metric label="Dividend status" value="Demo schedule" />
+        <div className="mt-5 grid grid-cols-4 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
+          <Metric label="Market capitalization" value={`$${instrument.marketCap?.toLocaleString() ?? '—'}B`} />
+          <Metric label="P/E ratio (TTM)" value={instrument.pe ? `${instrument.pe.toFixed(1)}×` : '—'} />
+          <Metric label="Basic EPS (TTM)" value={`$${(instrument.price / (instrument.pe ?? 25)).toFixed(2)}`} />
+          <Metric label="Revenue growth" value="+114.2%" />
         </div>
       </section>
-      <AssetSpecific kind="Stock" instrument={instrument} />
+      <div className="grid grid-cols-2 gap-4 max-xl:grid-cols-1">
+        <section className="panel p-5">
+          <div className="flex items-start justify-between"><div><p className="label">Growth</p><h3 className="mt-1 text-sm font-semibold text-slate-900">Revenue & net income</h3></div><div className="flex gap-3 text-[9px] text-slate-500"><span><i className="mr-1 inline-block size-2 rounded-sm bg-violet-500" />Revenue</span><span><i className="mr-1 inline-block size-2 rounded-sm bg-emerald-400" />Net income</span></div></div>
+          <div className="mt-5 flex h-64 items-end gap-4 border-b border-slate-200 px-2">
+            {series.map((item) => <div key={item.label} className="group flex h-full flex-1 flex-col justify-end"><div className="relative flex flex-1 items-end justify-center gap-1"><div className="w-2/5 rounded-t bg-violet-500 transition-opacity group-hover:opacity-80" style={{height: `${(item.revenue / maxRevenue) * 88}%`}} title={`${item.label} revenue: $${item.revenue}B`} /><div className="w-2/5 rounded-t bg-emerald-400 transition-opacity group-hover:opacity-80" style={{height: `${(item.income / maxRevenue) * 88}%`}} title={`${item.label} net income: $${item.income}B`} /><div className="pointer-events-none absolute bottom-2 left-1/2 z-20 hidden w-36 -translate-x-1/2 rounded-lg bg-slate-900 p-2 text-[9px] text-white shadow-xl group-hover:block"><b>{item.label}</b><span className="mt-1 block">Revenue ${item.revenue}B</span><span className="block">Net income ${item.income}B</span></div></div><span className="py-2 text-center text-[9px] text-slate-500">{item.label}</span></div>)}
+          </div>
+        </section>
+        <section className="panel p-5">
+          <p className="label">Profitability</p><h3 className="mt-1 text-sm font-semibold text-slate-900">Net margin trend</h3>
+          <div className="mt-5 space-y-5">{series.map((item) => <div key={item.label}><div className="mb-2 flex justify-between text-[10px]"><span className="text-slate-500">{item.label}</span><b className="text-slate-900">{item.margin}%</b></div><div className="h-3 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-emerald-400" style={{width: `${item.margin}%`}} title={`${item.label} net margin: ${item.margin}%`} /></div></div>)}</div>
+          <div className="mt-6 grid grid-cols-2 gap-3"><Metric label="Gross margin" value="75.0%" /><Metric label="Operating margin" value="62.1%" /><Metric label="ROE" value="91.4%" /><Metric label="Free cash flow" value="$60.9B" /></div>
+        </section>
+      </div>
+      <section className="panel overflow-hidden">
+        <div className="border-b border-border p-5"><p className="label">Financial health</p><h3 className="mt-1 text-sm font-semibold text-slate-900">Balance sheet & valuation</h3></div>
+        <div className="grid grid-cols-2 max-lg:grid-cols-1"><div className="p-5"><div className="space-y-4">{[['Cash & equivalents','$43.2B',72],['Total debt','$10.3B',24],['Current assets','$80.1B',88],['Total liabilities','$32.3B',42]].map(([label,value,width]) => <div key={label as string}><div className="mb-2 flex justify-between text-[10px]"><span className="text-slate-500">{label}</span><b>{value}</b></div><div className="h-2 rounded-full bg-slate-100"><div className="h-full rounded-full bg-violet-500" style={{width: `${width}%`}} /></div></div>)}</div></div><div className="border-l border-border p-5 max-lg:border-l-0 max-lg:border-t"><table className="w-full text-[10px]"><tbody className="divide-y divide-border">{[['Price / sales','26.1×'],['Price / book','51.8×'],['EV / EBITDA','42.7×'],['Debt / equity','11.5%'],['Current ratio','4.1×'],['Dividend yield','0.03%']].map(([label,value]) => <tr key={label}><td className="py-3 text-slate-500">{label}</td><td className="py-3 text-right font-semibold text-slate-900">{value}</td></tr>)}</tbody></table></div></div>
+      </section>
+      <p className="px-1 text-[9px] leading-relaxed text-slate-400">All figures are synthetic demo data for interface evaluation and are not investment information.</p>
     </div>
   );
 }
