@@ -98,6 +98,7 @@ main:has(.concept-instrument) > div:first-of-type { max-width:1600px; padding:24
 .concept-tabs button[aria-current] { background:#eeebff; color:#6046ff; font-weight:650; }
 .concept-tabs-workspace { margin-bottom:16px; padding:0 0 14px; border-top:0; border-bottom:1px solid #edf0f6; }
 .concept-tabs-panel { padding:20px 20px 4px; }
+.market-context-tag { display:inline-flex; width:max-content; color:#6046ff; background:#f0edff; border-radius:5px; padding:3px 6px; font-size:9px; font-weight:650; text-decoration:none; }.market-context-tag:hover { background:#e3ddff; }.market-tag-target:target { border-radius:12px; background:#f1edff; box-shadow:0 0 0 3px rgba(96,70,255,.2); animation:market-tag-pulse 1.8s ease-out; }@keyframes market-tag-pulse { 0%,35% { box-shadow:0 0 0 7px rgba(96,70,255,.28); } 100% { box-shadow:0 0 0 3px rgba(96,70,255,.2); } }
 .concept-columns { display:grid; grid-template-columns:minmax(230px,1fr) minmax(0,2.1fr) minmax(230px,1fr); align-items:start; gap:24px; }
 .concept-news,.concept-community { padding:20px; }
 .concept-section-title { display:flex; gap:10px; align-items:center; padding-bottom:17px; border-bottom:1px solid #edf1f7; }

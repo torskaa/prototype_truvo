@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.64.0] - 2026-09-14
+### Added
+- Added linked instrument-context hashtags across news, community prediction posts, and performance-chart timeline markers.
+
 ## [0.63.2] - 2026-09-14
 ### Added
 - Expanded Forecast to five synchronized community scenarios and matching prediction posts.
