@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.63.2] - 2026-09-14
+### Added
+- Expanded Forecast to five synchronized community scenarios and matching prediction posts.
+
 ## [0.63.1] - 2026-09-14
 ### Added
 - Added a top-of-Forecast scenario chart whose contributor paths scroll to and highlight matching community prediction posts.
