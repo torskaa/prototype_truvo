@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.64.2] - 2026-09-14
+### Changed
+- Moved the Linked tags checkbox to the Performance panel footer and strengthened News and chart destination highlighting.
+
 ## [0.64.1] - 2026-09-14
 ### Added
 - Added a Linked tags visibility checkbox and separate News and Community destinations on chart timeline markers.
