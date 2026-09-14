@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.65.1] - 2026-09-14
+### Changed
+- Changed chart tag markers to open a News or Community destination chooser before navigating.
+
 ## [0.65.0] - 2026-09-14
 ### Added
 - Synchronized linked-tag visibility and News/Community timeline navigation between Performance and Advanced Chart.
