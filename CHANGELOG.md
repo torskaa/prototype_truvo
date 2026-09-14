@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.69.0] - 2026-09-14
+
+### Added
+
+- Added community-vote colors to chart markers, inline post comments, and direct broker connections from prediction posts.
+
 ## [0.68.0] - 2026-09-14
 
 ### Changed
