@@ -18,6 +18,19 @@ export const BrokerDirectory: React.FC<BrokerDirectoryProps> = ({
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const params = new URLSearchParams(window.location.search);
+  const selectedProduct = params.get('product');
+  const selectedReward = params.get('reward');
+  const selectedSymbol = params.get('symbol');
+  const campaignLimit = selectedReward === 'Extra points'
+    ? 3
+    : selectedReward === 'Extra cashback'
+      ? 5
+      : selectedReward === 'Extra credits'
+        ? 4
+        : selectedReward === 'Free feature'
+          ? 2
+          : brokers.length;
 
   const categories = ['All', 'Forex', 'Raw Spread', 'Multi-Asset'];
 
@@ -27,8 +40,18 @@ export const BrokerDirectory: React.FC<BrokerDirectoryProps> = ({
       b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       b.platforms.some((p) => p.toLowerCase().includes(searchQuery.toLowerCase())) ||
       b.regulations.some((r) => r.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCategory && matchesSearch;
-  });
+    const matchesProduct = !selectedProduct || selectedProduct === 'Share' || b.platforms.some((platform) =>
+      platform.toLowerCase().includes(selectedProduct.toLowerCase()),
+    );
+    return matchesCategory && matchesSearch && matchesProduct;
+  }).filter((_, index) => index < campaignLimit);
+  const rewardDetails = selectedReward === 'Extra points'
+    ? { label: 'Points reward', value: '+250 points', note: 'Credited after your first qualifying trade' }
+    : selectedReward === 'Extra credits'
+      ? { label: 'Syde credit reward', value: '+100 credits', note: 'Added after account verification' }
+      : selectedReward === 'Free feature'
+        ? { label: 'Feature reward', value: 'AI Tracking · 7 days', note: 'Unlocks after your first qualifying trade' }
+        : { label: 'Automated rebate', value: 'Extra cashback', note: 'Applied automatically per qualifying lot' };
 
   return (
     <div id="broker-partners-section" className="space-y-4">
@@ -40,11 +63,13 @@ export const BrokerDirectory: React.FC<BrokerDirectoryProps> = ({
               Verified Broker Partners
             </h3>
             <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#eef2ff] text-[#5338ec]">
-              {brokers.length} Partners
+              {selectedReward ? `${filteredBrokers.length} Campaign Partners` : `${brokers.length} Partners`}
             </span>
           </div>
           <p className="text-xs text-[#474556] mt-0.5">
-            Institutional rebate agreements with top tier-1 regulated trading platforms
+          {selectedReward
+            ? `${selectedReward} campaign for ${selectedSymbol ?? 'your instrument'}${selectedProduct ? ` · ${selectedProduct}` : ''} · available from selected broker brands`
+            : 'Institutional rebate agreements with top tier-1 regulated trading platforms'}
           </p>
         </div>
 
@@ -189,14 +214,19 @@ export const BrokerDirectory: React.FC<BrokerDirectoryProps> = ({
                 {/* Cashback Highlight Box */}
                 <div className="bg-[#f8f9ff] border border-[#d6d0ff]/50 rounded-xl p-3 mb-4 text-center">
                   <span className="text-[11px] uppercase tracking-wider font-bold text-slate-500 block mb-0.5">
-                    Automated Rebate
+                    {rewardDetails.label}
                   </span>
                   <div className="text-lg font-bold font-display text-[#5338ec] tabular-nums">
-                    {broker.maxCashback}
+                    {selectedReward ? rewardDetails.value : broker.maxCashback}
                   </div>
                   <span className="text-[11px] text-slate-500">
-                    Direct automated deposit per round turn lot
+                    {selectedReward ? rewardDetails.note : 'Direct automated deposit per round turn lot'}
                   </span>
+                  {selectedReward && (
+                    <span className="mt-1 block text-[10px] font-semibold text-[#5338ec]">
+                      {broker.name} campaign
+                    </span>
+                  )}
                 </div>
 
                 {/* Specs List */}

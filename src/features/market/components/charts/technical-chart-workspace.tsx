@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
   AreaChart,
   BarChart3,
   Bell,
+  Bot,
   Brush,
   Camera,
   ChevronDown,
@@ -15,14 +16,14 @@ import {
   GitBranch,
   Globe2,
   Grid2X2,
-  Info,
-  LayoutGrid,
   LineChart,
   List,
   Lock,
   Magnet,
   Maximize2,
   MessageCircle,
+  PanelRightClose,
+  PanelRightOpen,
   MousePointer2,
   Newspaper,
   Pause,
@@ -182,9 +183,9 @@ export function TechnicalChartWorkspace(props: Props) {
   );
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
   const [comparisonSymbols, setComparisonSymbols] = useState<string[]>([]);
+  const [watchlistFilter, setWatchlistFilter] = useState<"All" | "Gainers" | "Losers">("All");
   const [bottomTab, setBottomTab] = useState("Technicals");
   const [replay, setReplay] = useState(false);
-  const [layout, setLayout] = useState("1");
   const [zoom, setZoom] = useState(1);
   const [grid, setGrid] = useState(true);
   const [logScale, setLogScale] = useState(false);
@@ -207,6 +208,18 @@ export function TechnicalChartWorkspace(props: Props) {
   const eventsUnlocked = can(tier, "eventIntelligence", {
     eventIntelligence: hasAccess("eventIntelligence"),
   });
+  useEffect(() => {
+    const handleCommunityContext = (
+      event: Event,
+    ) => {
+      const detail = (event as CustomEvent<{ mode?: "Alerts" | "Signals"; tag?: string }>).detail;
+      setRightSidebarOpen(true);
+      setRightTab(detail.mode ?? "Signals");
+      if (detail.tag) setOpenLinkedTag(detail.tag);
+    };
+    window.addEventListener("market-community-context", handleCommunityContext);
+    return () => window.removeEventListener("market-community-context", handleCommunityContext);
+  }, []);
   const visibleEvents = useMemo(
     () =>
       mockMarketEvents.filter(
@@ -244,8 +257,13 @@ export function TechnicalChartWorkspace(props: Props) {
           >
             Practice risk sizing · +40 C
           </button>
-          <button className="secondary" onClick={requestEventAccess}>
-            Event intelligence {eventsUnlocked ? "· active" : "· unlock"}
+          <button
+            className="secondary"
+            onClick={requestEventAccess}
+            title="Evaluate real-time AI signal precision. Uses credits to unlock."
+          >
+            Real-time AI signal enhancement{" "}
+            {eventsUnlocked ? "· active" : "· unlock with credits"}
           </button>
           <button className="primary" onClick={openBrokerAccess}>
             Broker access
@@ -399,13 +417,24 @@ export function TechnicalChartWorkspace(props: Props) {
             </PopoverContent>
           </Popover>
           <button
-            onClick={() => flash("Compare symbol layer opened")}
+            onClick={() => {
+              setRightSidebarOpen(true);
+              setRightTab("Watchlist");
+              flash("Compare symbol layer opened");
+            }}
             className="chart-tool wide"
           >
             <Plus />
             Compare
           </button>
-          <button onClick={createAlert} className="chart-tool wide">
+          <button
+            onClick={() => {
+              setRightSidebarOpen(true);
+              setRightTab("Alerts");
+              createAlert();
+            }}
+            className="chart-tool wide"
+          >
             <Bell />
             Alert
           </button>
@@ -471,11 +500,12 @@ export function TechnicalChartWorkspace(props: Props) {
             {replay ? <Pause /> : <Play />}Replay
           </button>
           <button
-            onClick={() => setRightTab("Community")}
+            onClick={() => setRightSidebarOpen((open) => !open)}
             className="chart-tool wide"
+            title={rightSidebarOpen ? "Hide sidebar" : "Show sidebar"}
           >
-            <MessageCircle />
-            Share chart
+            {rightSidebarOpen ? <PanelRightClose /> : <PanelRightOpen />}
+            {rightSidebarOpen ? "Hide sidebar" : "Show sidebar"}
           </button>
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -493,36 +523,6 @@ export function TechnicalChartWorkspace(props: Props) {
           <button className="chart-tool" title="Redo">
             <Redo2 />
           </button>
-          <Popover>
-            <PopoverTrigger className="chart-tool wide">
-              <LayoutGrid />
-              {layout} chart
-            </PopoverTrigger>
-            <PopoverContent
-              align="end"
-              className="w-52 border-white/10 bg-[#111a26]"
-            >
-              <div className="label mb-2">Workspace layout</div>
-              <div className="grid grid-cols-3 gap-2">
-                {["1", "2", "4", "6"].map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => {
-                      setLayout(n);
-                      flash(`${n}-chart layout selected`);
-                    }}
-                    className={`grid aspect-square place-items-center rounded border text-xs ${layout === n ? "border-cyan-400 bg-cyan-400/10 text-cyan-300" : "border-white/10"}`}
-                  >
-                    {n}
-                  </button>
-                ))}
-                <button className="relative grid aspect-square place-items-center rounded border border-violet-400/20 text-violet-300">
-                  <Lock className="size-3" />
-                  <span className="absolute bottom-1 text-[7px]">CUSTOM</span>
-                </button>
-              </div>
-            </PopoverContent>
-          </Popover>
           <button
             onClick={() => flash("Layout saved")}
             className="chart-tool"
@@ -848,8 +848,7 @@ export function TechnicalChartWorkspace(props: Props) {
               ["Alerts", Bell],
               ["Signals", Zap],
               ["News", Newspaper],
-              ["Community", MessageCircle],
-              ["Data", Info],
+              ["AI Tracking", Bot],
             ].map(([t, I]) => (
               <button
                 title={t as string}
@@ -873,6 +872,8 @@ export function TechnicalChartWorkspace(props: Props) {
               inspectSignal={inspectSignal}
               followedPublisher={followedPublisher}
               comparisonSymbols={comparisonSymbols}
+              watchlistFilter={watchlistFilter}
+              setWatchlistFilter={setWatchlistFilter}
               toggleComparison={(symbol) => setComparisonSymbols((current) => current.includes(symbol) ? current.filter((item) => item !== symbol) : [...current, symbol])}
               events={visibleEvents}
               selectedEvent={eventsUnlocked ? selectedEvent : null}
@@ -1557,6 +1558,8 @@ function RightPanel({
   inspectSignal,
   followedPublisher,
   comparisonSymbols,
+  watchlistFilter,
+  setWatchlistFilter,
   toggleComparison,
   events,
   selectedEvent,
@@ -1570,17 +1573,40 @@ function RightPanel({
   inspectSignal: () => void;
   followedPublisher?: { name: string; tag: string };
   comparisonSymbols: string[];
+  watchlistFilter: "All" | "Gainers" | "Losers";
+  setWatchlistFilter: (filter: "All" | "Gainers" | "Losers") => void;
   toggleComparison: (symbol: string) => void;
   events: MarketEvent[];
   selectedEvent: MarketEvent | null;
   onSelectEvent: (event: MarketEvent) => void;
 }) {
+  const [alertFilter, setAlertFilter] = useState<"All" | "Following">("All");
+  const [signalFilter, setSignalFilter] = useState<"Platform" | "Community">("Platform");
+  useEffect(() => {
+    const handleCommunitySignal = (event: Event) => {
+      const detail = (event as CustomEvent<{ mode?: "Alerts" | "Signals" }>).detail;
+      if (detail.mode === "Signals") setSignalFilter("Community");
+    };
+    window.addEventListener("market-community-context", handleCommunitySignal);
+    return () => window.removeEventListener("market-community-context", handleCommunitySignal);
+  }, []);
+  const [personalDefault, setPersonalDefault] = useState<"Balanced" | "Conservative" | "Active">("Balanced");
   if (tab === "Watchlist")
     return (
       <div>
         <div className="flex items-center justify-between border-b border-white/8 p-2">
           <b className="text-[10px]">Primary watchlist</b>
-          <div className="flex">
+          <div className="flex items-center gap-1">
+            <select
+              aria-label="Filter watchlist"
+              value={watchlistFilter}
+              onChange={(event) => setWatchlistFilter(event.target.value as "All" | "Gainers" | "Losers")}
+              className="rounded border border-white/10 bg-transparent px-1 py-1 text-[8px] text-slate-400"
+            >
+              <option value="All">All</option>
+              <option value="Gainers">Gainers</option>
+              <option value="Losers">Losers</option>
+            </select>
             <button className="chart-tool">
               <Plus />
             </button>
@@ -1594,7 +1620,10 @@ function RightPanel({
           <span>Last</span>
           <span>Chg</span>
         </div>
-        {instruments.slice(0, 9).map((i) => (
+        {instruments
+          .slice(0, 9)
+          .filter((i) => watchlistFilter === "All" || (watchlistFilter === "Gainers" ? i.change >= 0 : i.change < 0))
+          .map((i) => (
           <button
             key={i.symbol}
             onClick={() => i.symbol !== instrument.symbol && toggleComparison(i.symbol)}
@@ -1632,12 +1661,26 @@ function RightPanel({
   if (tab === "Alerts")
     return (
       <div className="p-3">
+        <label className="mb-2 flex items-center justify-between gap-2 text-[9px] text-slate-500">
+          Alert source
+          <select
+            aria-label="Filter alerts by followed community user"
+            value={alertFilter}
+            onChange={(event) => setAlertFilter(event.target.value as "All" | "Following")}
+            className="rounded border border-white/10 bg-transparent px-1.5 py-1 text-[8px] text-slate-400"
+          >
+            <option value="All">All alerts</option>
+            <option value="Following" disabled={!followedPublisher}>
+              {followedPublisher ? `Following ${followedPublisher.name}` : "Follow a community user first"}
+            </option>
+          </select>
+        </label>
         <button onClick={createAlert} className="primary w-full">
           <Bell />
           Create alert on {instrument.symbol}
         </button>
         {followedPublisher && <div className="mt-3 rounded border border-amber-400/25 bg-amber-400/5 p-3"><div className="flex items-center justify-between text-[9px]"><b className="text-amber-300"><Bell className="mr-1 inline size-3" fill="currentColor"/>Publisher alert</b><span className="text-emerald-300">Synced</span></div><p className="mt-2 text-[9px] text-slate-300">Following {followedPublisher.name} · #{instrument.symbol}_{followedPublisher.tag}</p><p className="sub">Publisher changes will appear on the chart marker.</p></div>}
-        {[
+        {alertFilter === "All" && [
           ["Price crosses 142.00", "Active"],
           ["RSI crosses below 40", "Active"],
           ["Signal confidence > 80%", "Pro"],
@@ -1661,10 +1704,22 @@ function RightPanel({
   if (tab === "Signals")
     return (
       <div className="p-3">
+        <label className="mb-2 flex items-center justify-between gap-2 text-[9px] text-slate-500">
+          Signal source
+          <select
+            aria-label="Filter signals by platform or community"
+            value={signalFilter}
+            onChange={(event) => setSignalFilter(event.target.value as "Platform" | "Community")}
+            className="rounded border border-white/10 bg-transparent px-1.5 py-1 text-[8px] text-slate-400"
+          >
+            <option value="Platform">Platform Signal</option>
+            <option value="Community">Community Signal</option>
+          </select>
+        </label>
         <div className="rounded border border-emerald-400/15 bg-emerald-400/5 p-3">
           <div className="flex justify-between">
             <div>
-              <div className="label">Composite signal</div>
+              <div className="label">{signalFilter === "Platform" ? "Platform signal" : "Community signal"}</div>
               <b className="mt-2 block text-lg text-emerald-300">LONG</b>
             </div>
             <span className="badge positive h-fit">82% confidence</span>
@@ -1736,7 +1791,24 @@ function RightPanel({
     );
   return (
     <div className="p-3">
-      <div className="label mb-3">Instrument data · mock</div>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div>
+          <div className="label">AI Tracking · personal defaults</div>
+          <p className="mt-1 text-[8px] text-slate-500">
+            Linked alerts and signals use this profile.
+          </p>
+        </div>
+        <select
+          aria-label="Personal AI tracking default"
+          value={personalDefault}
+          onChange={(event) => setPersonalDefault(event.target.value as "Balanced" | "Conservative" | "Active")}
+          className="rounded border border-white/10 bg-transparent px-1.5 py-1 text-[8px] text-slate-400"
+        >
+          <option value="Balanced">Balanced</option>
+          <option value="Conservative">Conservative</option>
+          <option value="Active">Active</option>
+        </select>
+      </div>
       {[
         ["Market cap", "$3.40T"],
         ["Avg volume", "184.2M"],

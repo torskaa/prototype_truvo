@@ -165,7 +165,6 @@ const tabList: DetailTab[] = [
   "Technicals",
   "Market Data",
   "News",
-  "Analysis",
   "Forecast",
   "Products",
   "Brokers",
@@ -432,16 +431,47 @@ export function InstrumentDetail({
     <div className="concept-instrument">
       <section className="concept-bounty">
         <div className="concept-bounty-icon">
-          <TrendingUp />
+          <WalletCards />
         </div>
-        <div>
-          <span className="concept-gold-label">DAILY MARKET FOCUS</span>
-          <h2>Explore {instrument.symbol}, from price to perspective</h2>
-          <p>Review the chart, market context, and community outlook.</p>
+        <div className="min-w-0 flex-1">
+          <span className="concept-gold-label">BROKER PROMOTIONS</span>
+          <h2>Offers for {instrument.symbol}</h2>
+          <p>Choose an available broker and product to unlock a special reward.</p>
+          <div className="mt-0 ml-auto flex flex-wrap justify-end gap-2">
+            {[
+              ["Extra points", "Earn +250 points", "Extra points"],
+              ["Extra cashback", "Get +0.10% cashback", "Extra cashback"],
+              ["Extra credits", "Receive +100 Syde Credits", "Extra credits"],
+              ["Free feature", "Unlock AI Tracking for 7 days", "Free feature"],
+            ].map(([title, detail, reward]) => {
+              const matches = brokers.filter(
+                (broker) =>
+                  broker.symbols.includes(instrument.symbol) &&
+                  broker.products.includes(product),
+              );
+              const broker = matches[0];
+              return (
+                <button
+                  key={title}
+                  type="button"
+                  disabled={!broker}
+                  title={`${title}: ${detail}${broker ? ` · ${broker.name} · ${product}` : ""}`}
+                  onClick={() =>
+                    broker &&
+                    window.open(
+                      `?view=brokers&symbol=${encodeURIComponent(instrument.symbol)}&product=${encodeURIComponent(product)}&reward=${encodeURIComponent(title)}`,
+                      "_blank",
+                      "noopener,noreferrer,width=980,height=760",
+                    )
+                  }
+                  className="!m-0 rounded-lg border border-[#ffc92855] bg-white/[.06] px-2.5 py-2 text-left text-white transition hover:bg-white/[.12] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <span className="text-[10px] font-bold text-[#ffd02d]">{reward}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <button onClick={onChart}>
-          Open advanced chart <ArrowRight size={16} />
-        </button>
       </section>
       <section className="concept-quote">
         <div className="concept-identity">
@@ -533,7 +563,7 @@ export function InstrumentDetail({
         </div>
       </section>
       <div className="concept-columns">
-        <aside className="concept-news concept-card">
+        <aside className="concept-news concept-card" id="financial-news">
           <div className="concept-section-title">
             <Newspaper size={19} />
             <div>
@@ -564,6 +594,17 @@ export function InstrumentDetail({
                 id={`news-${instrument.symbol.replaceAll("/", "-")}-${item.tag}`}
                 className="market-tag-target"
                 key={item.title}
+                onClick={() => {
+                  setArticle(item);
+                  const target = document.getElementById(
+                    `news-${instrument.symbol.replaceAll("/", "-")}-${item.tag}`,
+                  );
+                  target?.classList.add("market-context-highlight");
+                  window.setTimeout(
+                    () => target?.classList.remove("market-context-highlight"),
+                    1800,
+                  );
+                }}
               >
                 <div className="concept-news-meta">
                   <span>{item.source}</span>
@@ -654,6 +695,8 @@ export function InstrumentDetail({
               instrument={instrument}
               kind={kind}
               onCommunityScenario={focusCommunityPost}
+              onConnectTrade={() => onToast(`Connect a broker to trade ${instrument.symbol}`)}
+              onToast={onToast}
             />
           )}
           {["Products", "Brokers", "Products & Brokers"].includes(tab) && (
@@ -916,6 +959,15 @@ function CommunityPredictionPost({
     <article
       id={`community-${instrument.symbol.replaceAll("/", "-")}-${post.tag}`}
       className="concept-post market-tag-target"
+      onClick={(event) => {
+        if ((event.target as HTMLElement).closest("button, a")) return;
+        event.currentTarget.scrollIntoView({ behavior: "smooth", block: "center" });
+        event.currentTarget.classList.add("concept-post-focus");
+        window.setTimeout(
+          () => event.currentTarget.classList.remove("concept-post-focus"),
+          2200,
+        );
+      }}
     >
       <div>
         <span className="concept-avatar">{post.initials}</span>
@@ -931,13 +983,25 @@ function CommunityPredictionPost({
       </div>
       <a
         className="concept-post-tag market-context-tag"
-        href={`#chart-${instrument.symbol.replaceAll("/", "-")}-${post.tag}`}
+        href="#seasonal-performance"
+        onClick={() => {
+          document
+            .getElementById("seasonal-performance")
+            ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }}
       >
         #{instrument.symbol}_{post.tag}
       </a>
       <button
         aria-pressed={followed}
-        onClick={onFollow}
+        onClick={() => {
+          onFollow();
+          window.dispatchEvent(
+            new CustomEvent("market-community-context", {
+              detail: { mode: "Alerts", tag: post.tag },
+            }),
+          );
+        }}
         className={followed ? "text-amber-600" : ""}
       >
         <Bell size={14} fill={followed ? "currentColor" : "none"} />
@@ -969,7 +1033,16 @@ function CommunityPredictionPost({
         <ThumbsDown size={14} /> Disagree {disagreePercent}%
       </button>
       <small className="ml-1 text-[9px] text-slate-400">{total} voters</small>
-      <button onClick={() => onCommunityChart(post.name, post.tag)}>
+      <button
+        onClick={() => {
+          window.dispatchEvent(
+            new CustomEvent("market-community-context", {
+              detail: { mode: "Signals", tag: post.tag },
+            }),
+          );
+          onCommunityChart(post.name, post.tag);
+        }}
+      >
         <LineChart size={14} /> View chart
       </button>
       <button
@@ -1171,7 +1244,7 @@ function LegacyInstrumentDetail({
               <MessageCircle />
               {insightsOpen ? "Hide insights" : "Show insights"}
             </button>
-            <button onClick={onChart} className="primary">
+            <button onClick={() => !chartOpen && onChart()} className="primary">
               <LineChart />
               Advanced chart
             </button>
@@ -2300,11 +2373,20 @@ function Overview({
                   >
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
                         setOpenLinkedTag((current) =>
                           current === topic ? null : topic,
-                        )
-                      }
+                        );
+                        const post = document.getElementById(
+                          `community-${instrument.symbol.replaceAll("/", "-")}-${topic}`,
+                        );
+                        post?.scrollIntoView({ behavior: "smooth", block: "center" });
+                        post?.classList.add("concept-post-focus");
+                        window.setTimeout(
+                          () => post?.classList.remove("concept-post-focus"),
+                          2200,
+                        );
+                      }}
                       aria-expanded={openLinkedTag === topic}
                       aria-label={`Choose destination for ${instrument.symbol} ${topic}`}
                       className="grid size-5 place-items-center rounded-full border-2 border-white bg-violet-600 text-[7px] font-bold text-white shadow-md transition hover:scale-125"
@@ -2400,6 +2482,12 @@ function Overview({
 }
 
 function TechnicalSummary({ instrument }: { instrument: Instrument }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const defaultFrom = new Date(Date.now() - 30 * 86400000)
+    .toISOString()
+    .slice(0, 10);
+  const [fromDate, setFromDate] = useState(defaultFrom);
+  const [toDate, setToDate] = useState(today);
   const oscillatorScore = Math.max(0, Math.min(100, 100 - instrument.rsi));
   const movingAverageScore = Math.max(
     0,
@@ -2408,9 +2496,22 @@ function TechnicalSummary({ instrument }: { instrument: Instrument }) {
   const overallScore = Math.round(
     (oscillatorScore + movingAverageScore + instrument.confidence) / 3,
   );
+  const oscillators = [
+    ["Relative Strength Index (14)", instrument.rsi.toFixed(2)],
+    ["Stochastic %K (14, 3, 3)", (instrument.rsi * 0.96).toFixed(2)],
+    ["Commodity Channel Index (20)", (-instrument.rsi * 0.39).toFixed(2)],
+    ["Average Directional Index (14)", (instrument.rvol * 7.1).toFixed(2)],
+    ["Momentum (10)", (instrument.return1m * 0.76).toFixed(2)],
+    ["MACD Level (12, 26)", (instrument.return1m * 0.2).toFixed(2)],
+  ];
+  const averages = [10, 20, 30, 50, 100, 200].map((period) => [
+    `Exponential Moving Average (${period})`,
+    (instrument.price * (1 - instrument.return1m / 1000 - period / 10000)).toFixed(2),
+    period <= 20 ? "Sell" : "Buy",
+  ]);
   return (
     <section className="panel p-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="label">Technical summary</p>
           <h2 className="mt-1 text-sm font-semibold text-slate-900">
@@ -2419,6 +2520,32 @@ function TechnicalSummary({ instrument }: { instrument: Instrument }) {
         </div>
         <span className="badge positive">
           {instrument.signal} - {instrument.confidence}%
+        </span>
+      </div>
+      <div className="mt-4 flex flex-wrap items-end gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <label className="text-[10px] font-semibold text-slate-500">
+          From
+          <input
+            type="date"
+            value={fromDate}
+            max={toDate}
+            onChange={(event) => setFromDate(event.target.value)}
+            className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700"
+          />
+        </label>
+        <label className="text-[10px] font-semibold text-slate-500">
+          To
+          <input
+            type="date"
+            value={toDate}
+            min={fromDate}
+            max={today}
+            onChange={(event) => setToDate(event.target.value)}
+            className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700"
+          />
+        </label>
+        <span className="pb-1 text-[10px] text-slate-400">
+          Showing technicals for the selected period
         </span>
       </div>
       <div className="mt-5 grid grid-cols-3 gap-3 max-md:grid-cols-1">
@@ -2443,7 +2570,39 @@ function TechnicalSummary({ instrument }: { instrument: Instrument }) {
         Confidence summarizes demo evidence quality and is not a probability of
         profit.
       </div>
+      <div className="mt-5 grid grid-cols-2 gap-6 max-lg:grid-cols-1">
+        <TechnicalTable title="Oscillators" rows={oscillators} />
+        <TechnicalTable title="Moving Averages" rows={averages} />
+      </div>
     </section>
+  );
+}
+
+function TechnicalTable({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: string[][];
+}) {
+  return (
+    <div>
+      <h3 className="mb-2 text-sm font-semibold text-slate-900">{title} ›</h3>
+      <div className="overflow-hidden rounded-lg border border-slate-200">
+        {rows.map(([name, value, action]) => (
+          <div
+            key={name}
+            className="grid grid-cols-[minmax(0,1fr)_70px_52px] items-center gap-2 border-b border-slate-100 px-3 py-2 text-[10px] last:border-b-0"
+          >
+            <span className="text-slate-700">{name}</span>
+            <span className="text-right font-medium text-slate-800">{value}</span>
+            <span className={action === "Buy" ? "text-blue-600" : action === "Sell" ? "text-rose-500" : "text-slate-500"}>
+              {action ?? "Neutral"}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 function CompassGauge({
@@ -2771,7 +2930,9 @@ function SeasonalPerformance({ instrument }: { instrument: Instrument }) {
           </table>
         </div>
       ) : (
-        <SeasonalChart values={average} labels={periods} />
+        <div id="seasonal-performance">
+          <SeasonalChart values={average} labels={periods} />
+        </div>
       )}
     </section>
   );
@@ -2817,6 +2978,13 @@ function SeasonalChart({
                 cy={92 - ((value - min) / span) * 72}
                 r="1.6"
                 fill={value >= 0 ? "#10b981" : "#ef4444"}
+                className="cursor-pointer"
+                onClick={() => {
+                  const topic = marketTagTopics[index % marketTagTopics.length];
+                  document
+                    .getElementById(`community-NVDA-${topic}`)
+                    ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }}
               />
             ))}
           </g>
@@ -2928,10 +3096,14 @@ function Forecast({
   instrument,
   kind,
   onCommunityScenario,
+  onConnectTrade,
+  onToast,
 }: {
   instrument: Instrument;
   kind: string;
   onCommunityScenario?: (name: string) => void;
+  onConnectTrade?: () => void;
+  onToast: (message: string) => void;
 }) {
   const forecast = instrument.return1m * 1.35;
   const communityScenarios = [
@@ -3204,7 +3376,7 @@ function Forecast({
         </div>
       </section>
       <section className="panel overflow-hidden">
-        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-5">
+        <div className="border-b border-border p-5">
           <div>
             <p className="label">Community scenarios</p>
             <h2 className="mt-1 text-sm font-semibold text-slate-900">
@@ -3218,11 +3390,11 @@ function Forecast({
           <span className="badge">5 VIEWS</span>
         </div>
         <div className="grid grid-cols-2 gap-4 p-5 max-lg:grid-cols-1">
-          {communityScenarios.map((scenario) => (
+          {communityScenarios.map((scenario, scenarioIndex) => (
             <button
               key={scenario.author}
               onClick={() => onCommunityScenario?.(scenario.author)}
-              className="group rounded-xl border border-border bg-white p-4 text-left transition hover:border-violet-300 hover:bg-violet-50/40 hover:shadow-md"
+              className="group relative rounded-xl border border-border bg-white p-4 pb-12 text-left transition hover:border-violet-300 hover:bg-violet-50/40 hover:shadow-md"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -3238,6 +3410,14 @@ function Forecast({
                   {scenario.bias}
                 </span>
               </div>
+              {scenarioIndex % 2 === 0 && (
+                <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-1 text-[8px] font-semibold text-amber-700">
+                  <span className="grid size-4 place-items-center rounded-full bg-amber-500 text-[7px] font-bold text-white">
+                    {scenarioIndex === 0 ? "NM" : "AT"}
+                  </span>
+                  Sponsored by {scenarioIndex === 0 ? "Northstar Markets" : "ApexTrade"}
+                </span>
+              )}
               <p className="mt-4 text-[11px] leading-relaxed text-slate-600">
                 {scenario.summary}
               </p>
@@ -3257,8 +3437,28 @@ function Forecast({
                   <b className="mt-1 block text-sm text-slate-900">
                     {scenario.confidence}%
                   </b>
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onToast(`AI signal confidence evaluation unlocked for ${scenario.author}`);
+                    }}
+                    className="mt-2 rounded border border-violet-200 px-2 py-1 text-[8px] font-semibold text-violet-600"
+                  >
+                    Evaluate with AI · unlock credit
+                  </button>
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onConnectTrade?.();
+                }}
+                className="absolute bottom-3 right-3 rounded-md bg-violet-600 px-2.5 py-1.5 text-[9px] font-semibold text-white"
+              >
+                Connect & trade
+              </button>
               <div className="mt-4 flex items-center justify-between text-[9px] font-medium text-violet-600">
                 <span>View original community post</span>
                 <ArrowRight className="size-3 transition-transform group-hover:translate-x-1" />
@@ -3276,6 +3476,34 @@ function Forecast({
 }
 function FinancialReport({ instrument }: { instrument: Instrument }) {
   const [period, setPeriod] = useState<"Annual" | "Quarterly">("Annual");
+  const [selectedReport, setSelectedReport] = useState<string | null>(null);
+  const [aiSummary, setAiSummary] = useState(false);
+  const openRelatedNews = () => {
+    const news = document.querySelector(`#news-${instrument.symbol}-BREADTH`);
+    news?.scrollIntoView({ behavior: "smooth", block: "center" });
+    news?.classList.add("market-context-highlight");
+    window.setTimeout(() => news?.classList.remove("market-context-highlight"), 1800);
+  };
+  const openRelatedCommunity = () => {
+    const community = document.querySelector(
+      `#community-${instrument.symbol.replaceAll("/", "-")}-TECHNICAL`,
+    );
+    community?.scrollIntoView({ behavior: "smooth", block: "center" });
+    community?.classList.add("market-context-highlight");
+    window.setTimeout(
+      () => community?.classList.remove("market-context-highlight"),
+      1800,
+    );
+  };
+  const downloadReport = () => {
+    if (!selectedReport) return;
+    const content = `${selectedReport}\n${instrument.symbol} official release report\nDemo document for interface evaluation.`;
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([content], { type: "text/plain" }));
+    link.download = `${instrument.symbol}-${selectedReport.toLowerCase().replaceAll(" ", "-")}.txt`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
   const annual = [
     { label: "FY22", revenue: 27.0, income: 9.8, margin: 36.2 },
     { label: "FY23", revenue: 27.0, income: 4.4, margin: 16.2 },
@@ -3334,6 +3562,36 @@ function FinancialReport({ instrument }: { instrument: Instrument }) {
           />
           <Metric label="Revenue growth" value="+114.2%" />
         </div>
+      </section>
+      <section className="panel p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="label">Official release reports</p>
+            <h3 className="mt-1 text-sm font-semibold text-slate-900">SEC filings and company financial documents</h3>
+            <p className="mt-1 text-[10px] text-slate-400">Open a document to review the release and link it to related news.</p>
+          </div>
+          <button className="secondary px-2 py-1 text-[9px]" onClick={() => setAiSummary((current) => !current)}>
+            {aiSummary ? "Hide AI summary" : "AI summary assistance"}
+          </button>
+        </div>
+        {aiSummary && <div className="mt-4 rounded-lg border border-violet-200 bg-violet-50 p-3 text-[10px] text-violet-800">AI summary: {instrument.symbol} shows strong reported growth and expanding profitability in this demo filing set. Verify every figure against the official source.</div>}
+        <div className="mt-4 grid grid-cols-3 gap-3 max-md:grid-cols-1">
+          {["FY25 annual report", "Q1 FY26 earnings release", "10-Q filing"].map((report) => (
+            <button key={report} className={`rounded-lg border p-3 text-left text-[10px] ${selectedReport === report ? "border-violet-300 bg-violet-50" : "border-slate-200 bg-white"}`} onClick={() => setSelectedReport(report)}>
+              <b className="block text-slate-900">{report}</b>
+              <span className="mt-1 block text-slate-400">Official release document · demo link</span>
+            </button>
+          ))}
+        </div>
+        {selectedReport && <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-[10px] text-slate-600">
+          <b className="text-slate-900">{selectedReport}</b>
+          <p className="mt-2">Document viewer: reported revenue, net income, margins, and management commentary for {instrument.symbol}.</p>
+          <div className="mt-3 flex flex-wrap gap-3">
+            <button className="text-violet-600 underline" onClick={openRelatedNews}>View related news</button>
+            <button className="text-violet-600 underline" onClick={openRelatedCommunity}>View related community</button>
+            <button className="secondary px-2 py-1 text-[9px]" onClick={downloadReport}>Download document</button>
+          </div>
+        </div>}
       </section>
       <div className="grid grid-cols-2 gap-4 max-xl:grid-cols-1">
         <section className="panel p-5">
@@ -3502,17 +3760,28 @@ function ProductsAndBrokersTable({
     Future: "Standardized contract with a defined expiry and contract size.",
     Perpetual: "Derivative contract without expiry; funding charges may apply.",
   };
+  const productCategories: Record<ProductType, string> = {
+    Spot: "Digital assets",
+    Share: "Equities",
+    "Fractional share": "Equities",
+    "FX spot": "Currencies",
+    CFD: "Leveraged derivatives",
+    Future: "Futures",
+    Perpetual: "Leveraged derivatives",
+  };
   return (
     <section className="panel overflow-hidden">
-      <div className="border-b border-border p-5">
-        <p className="label">Products & broker access</p>
-        <h2 className="mt-1 text-sm font-semibold text-slate-900">
-          Trade {instrument.symbol} by product
-        </h2>
-        <p className="mt-1 text-[10px] text-slate-400">
-          Choose a product to compare matching providers, costs, minimums, and
-          access.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-5">
+        <div>
+          <p className="label">Products & broker access</p>
+          <h2 className="mt-1 text-sm font-semibold text-slate-900">
+            Trade {instrument.symbol} by product
+          </h2>
+          <p className="mt-1 text-[10px] text-slate-400">
+            Choose a product to compare matching providers, costs, minimums, and
+            access.
+          </p>
+        </div>
         <div className="mt-4 flex flex-wrap gap-2">
           {products.map((item) => (
             <span key={item} className="group relative">
@@ -3523,6 +3792,9 @@ function ProductsAndBrokersTable({
               >
                 {item}
               </button>
+              <span className="ml-1 inline-block rounded-full bg-slate-100 px-1.5 py-0.5 text-[8px] text-slate-500">
+                {productCategories[item]}
+              </span>
               <span
                 id={`product-tip-${item.replaceAll(" ", "-")}`}
                 role="tooltip"
@@ -3535,12 +3807,13 @@ function ProductsAndBrokersTable({
           ))}
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] text-left text-[10px]">
+      <div className="w-full overflow-hidden">
+        <table className="w-full table-fixed text-left text-[9px]">
           <thead className="bg-slate-50 text-slate-500">
             <tr>
               <th className="px-5 py-3">Product</th>
               <th className="px-4 py-3">Broker</th>
+              <th className="px-4 py-3">Category</th>
               <th className="px-4 py-3">Venue</th>
               <th className="px-4 py-3">Spread</th>
               <th className="px-4 py-3">Minimum</th>
@@ -3553,13 +3826,16 @@ function ProductsAndBrokersTable({
             {matchedBrokers.map((broker) => (
               <tr
                 key={`${product}-${broker.name}`}
-                className="group bg-white hover:bg-violet-50/40"
+                className="group cursor-pointer bg-white hover:bg-violet-50/40"
+                onClick={() => {
+                  window.location.href = "?view=brokers";
+                }}
               >
-                <td className="px-5 py-4 font-semibold text-violet-700">
+                <td className="w-[11%] px-2 py-3 font-semibold text-violet-700">
                   {product}
                 </td>
                 <td
-                  className="relative px-4 py-4 font-semibold text-slate-900"
+                  className="relative w-[18%] px-2 py-3 font-semibold text-slate-900"
                   tabIndex={0}
                 >
                   {broker.name}
@@ -3591,19 +3867,30 @@ function ProductsAndBrokersTable({
                     </dl>
                   </div>
                 </td>
-                <td className="px-4 py-4 text-slate-500">{broker.venue}</td>
-                <td className="px-4 py-4 text-slate-600">{broker.spread}</td>
-                <td className="px-4 py-4 text-slate-600">{broker.minimum}</td>
-                <td className="px-4 py-4 text-slate-600">{broker.platform}</td>
-                <td className="px-4 py-4">
+                <td className="w-[14%] px-2 py-3 text-slate-500">
+                  {productCategories[product]}
+                </td>
+                <td className="w-[16%] px-2 py-3 text-slate-500">{broker.venue}</td>
+                <td className="w-[9%] px-2 py-3 text-slate-600">{broker.spread}</td>
+                <td className="w-[8%] px-2 py-3 text-slate-600">{broker.minimum}</td>
+                <td className="w-[12%] px-2 py-3 text-slate-600">{broker.platform}</td>
+                <td className="w-[10%] px-2 py-3">
                   <span
                     className={`badge ${broker.status === "Available" ? "positive" : ""}`}
                   >
                     {broker.status}
                   </span>
                 </td>
-                <td className="px-5 py-4 text-right">
-                  <button className="primary justify-center">Connect</button>
+                <td className="w-[10%] px-2 py-3 text-right">
+                  <button
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      window.location.href = "?view=brokers";
+                    }}
+                    className="primary justify-center"
+                  >
+                    Connect
+                  </button>
                 </td>
               </tr>
             ))}

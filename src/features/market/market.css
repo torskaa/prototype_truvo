@@ -121,3 +121,11 @@ main:has(.concept-instrument) > div:first-of-type { max-width:1600px; padding:24
 @media(max-width:760px) { main:has(.concept-instrument)>div:first-of-type { padding:16px; }.concept-quote { grid-template-columns:1fr; padding:20px 16px 12px; gap:20px; }.concept-back { margin-bottom:16px; }.concept-columns { display:flex; flex-direction:column; }.concept-columns>* { width:100%; }.concept-analysis { order:0; }.concept-news { order:1; }.concept-community { order:2; }.concept-bounty,.concept-cashback { flex-wrap:wrap; padding:20px; }.concept-bounty>button,.concept-cashback>button { margin-left:0; }.concept-bounty-icon { display:none; }.concept-tabs { max-width:100%; }.concept-price h2 { font-size:34px; }.concept-footer small { margin-left:0; }.concept-summary-top { flex-wrap:wrap; } }
 
 }
+ .market-context-highlight {
+  animation: market-context-pulse 1.8s ease-out;
+}
+
+@keyframes market-context-pulse {
+  0%, 100% { background-color: transparent; }
+  25% { background-color: rgba(83, 56, 236, 0.14); }
+}

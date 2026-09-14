@@ -1,5 +1,224 @@
 # Changelog
 
+## [1.0.4] - 2026-09-14
+
+### Changed
+
+- Added broker-specific campaign groups for each reward category.
+- Reward popup windows now show different campaign counts, broker brands, and campaign details.
+
+## [1.0.3] - 2026-09-14
+
+### Reverted
+
+- Restored the previous behavior where all broker rewards are enabled whenever a matching broker exists.
+
+## [1.0.2] - 2026-09-14
+
+### Changed
+
+- Added per-offer eligibility so only supported broker promotions are enabled.
+
+## [1.0.1] - 2026-09-14
+
+### Fixed
+
+- Broker offer cards now change their reward label, value, and explanation based on the selected promotion.
+
+## [1.0.0] - 2026-09-14
+
+### Changed
+
+- Broker offer windows now carry instrument, product, and reward context into the broker directory.
+- Broker directory headings and matching filters reflect the selected offer context.
+
+## [0.99.0] - 2026-09-14
+
+### Changed
+
+- Restored the compact first-format reward buttons.
+- Clicking an eligible reward now opens the broker offer window with the selected reward context.
+
+## [0.98.0] - 2026-09-14
+
+### Changed
+
+- Matched broker promotion rewards to different eligible brokers instead of always selecting the first broker.
+- Displayed the matched broker name directly in each promotion control.
+
+## [0.97.0] - 2026-09-14
+
+### Added
+
+- Added related-community navigation and highlighting for financial reports.
+
+## [0.96.0] - 2026-09-14
+
+### Changed
+
+- Removed the standalone Analysis tab from the instrument navigation.
+
+## [0.95.0] - 2026-09-14
+
+### Added
+
+- Linked financial report documents to highlighted related news.
+- Added document download action.
+
+## [0.94.0] - 2026-09-14
+
+### Added
+
+- Added official release report cards, inline document viewing, related-news linking, and optional AI summary assistance to Financial Report.
+
+## [0.93.0] - 2026-09-14
+
+### Changed
+
+- Removed the standalone Browse broker marketplace button from the Products & Brokers header.
+- Kept broker marketplace navigation available through table rows and Connect actions.
+
+## [0.92.0] - 2026-09-14
+
+### Changed
+
+- Made the broker comparison table fit its container without horizontal scrolling.
+- Made broker table rows and actions navigate to the full broker marketplace.
+
+## [0.91.0] - 2026-09-14
+
+### Changed
+
+- Linked Products & Brokers access to the full broker marketplace view.
+- Added marketplace navigation to the section header and broker Connect actions.
+
+## [0.90.0] - 2026-09-14
+
+### Changed
+
+- Added product categories to each Products & Brokers option.
+- Included the selected category in broker comparison rows alongside existing broker information.
+
+## [0.89.0] - 2026-09-14
+
+### Changed
+
+- Added compact broker logo marks beside sponsored scenario disclosures.
+
+## [0.88.0] - 2026-09-14
+
+### Added
+
+- Added sponsored-by-broker labels to selected community scenario cards.
+- Kept non-sponsored scenarios clearly unlabelled to distinguish organic community opinions.
+
+## [0.87.0] - 2026-09-14
+
+### Added
+
+- Added Connect & trade actions to community scenario cards.
+- Added AI signal-confidence evaluation actions that clearly require a credit unlock.
+
+## [0.86.0] - 2026-09-14
+
+### Changed
+
+- Linked seasonal performance markers with community context tags and posts.
+- Added synchronized navigation between the seasonal chart and community context.
+
+## [0.85.0] - 2026-09-14
+
+### Changed
+
+- Linked chart context markers to their matching community posts.
+- Added focus behavior when selecting a community post body.
+
+## [0.84.0] - 2026-09-14
+
+### Added
+
+- Added date-range filtering to the Technicals tab, defaulting to the current period.
+- Added oscillator and moving-average detail tables to the technical summary.
+
+## [0.83.0] - 2026-09-14
+
+### Changed
+
+- Renamed chart Event intelligence to Real-time AI signal enhancement.
+- Clarified that precision evaluation requires a credit unlock.
+
+## [0.82.0] - 2026-09-14
+
+### Changed
+
+- Linked the chart Compare control to the Watchlist sidebar.
+- Linked the chart Alert control to the Alerts sidebar.
+
+## [0.81.0] - 2026-09-14
+
+### Fixed
+
+- Imported the React effect hook required by the chart workspace, preventing the Advanced chart view from blanking the page.
+
+## [0.80.0] - 2026-09-14
+
+### Fixed
+
+- Made the primary Advanced chart action explicitly open the chart instead of toggling it closed.
+
+## [0.79.0] - 2026-09-14
+
+### Changed
+
+- Linked community follow-alert actions to the chart workspace Alerts tab.
+- Linked community chart actions to the Signals tab and Community Signal filter.
+
+## [0.78.0] - 2026-09-14
+
+### Changed
+
+- Linked followed-user alert filtering to the actual community profile name.
+- Added personal AI Tracking defaults to the AI Tracking sidebar panel.
+
+## [0.77.0] - 2026-09-14
+
+### Changed
+
+- Compressed broker promotions into same-line highlighted reward buttons with full offer details available on hover.
+
+## [0.76.0] - 2026-09-14
+
+### Changed
+
+- Restored the spacious two-column promotion-card layout and added hover descriptions for offer details.
+
+## [0.75.0] - 2026-09-14
+
+### Changed
+
+- Compact broker promotion actions into small highlighted offer buttons aligned to the right side of the promotion panel.
+
+## [0.74.0] - 2026-09-14
+
+### Changed
+
+- Replaced the advanced-chart promotion call-to-action with symbol- and product-linked broker offers for points, cashback, credits, and free features.
+
+## [0.73.0] - 2026-09-14
+
+### Changed
+
+- Removed the inline sidebar hide button and chart layout selector.
+- Reframed the Data tab as AI Tracking.
+- Added followed-user alert filtering and Platform Signal / Community Signal filtering.
+
+## [0.72.0] - 2026-09-14
+
+### Changed
+
+- Removed the Community tab from the chart sidebar and replaced chart sharing with a hide/show sidebar control.
+- Added gainers/losers filtering to the watchlist while preserving synchronized comparison overlays.
+
 ## [0.71.0] - 2026-09-14
 
 ### Added
