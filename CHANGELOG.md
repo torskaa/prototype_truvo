@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.67.1] - 2026-09-14
+
+### Changed
+
+- Updated community prediction votes with a proportional green Long and red Short split indicator and matching vote colors.
+
 ## [0.67.0] - 2026-09-14
 
 ### Added
