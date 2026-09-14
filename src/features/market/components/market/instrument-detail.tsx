@@ -363,6 +363,13 @@ export function InstrumentDetail({ instrument, chartOpen, chartContent, onCommun
   const kind = assetClass(instrument);
   const news = instrumentNews(instrument);
   const positive = instrument.change >= 0;
+  const focusCommunityPost = (name: string) => {
+    const post = Array.from(document.querySelectorAll<HTMLElement>('.concept-post')).find((item) => item.querySelector('b')?.textContent?.includes(name));
+    if (!post) return;
+    post.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    post.classList.add('concept-post-focus');
+    window.setTimeout(() => post.classList.remove('concept-post-focus'), 2200);
+  };
   const instrumentTabs = <nav className="concept-tabs concept-tabs-workspace" aria-label="Instrument sections">{[...tabList.filter(item => !['News', 'Products', 'Brokers'].includes(item)), 'Products & Brokers', ...(kind === 'Stock' ? ['Financial Report'] : [])].map(item => <button key={item} onClick={() => setTab(item)} aria-current={tab === item ? 'page' : undefined}>{item}</button>)}</nav>;
   return <div className="concept-instrument">
     <section className="concept-bounty"><div className="concept-bounty-icon"><TrendingUp /></div><div><span className="concept-gold-label">DAILY MARKET FOCUS</span><h2>Explore {instrument.symbol}, from price to perspective</h2><p>Review the chart, market context, and community outlook.</p></div><button onClick={onChart}>Open advanced chart <ArrowRight size={16} /></button></section>
@@ -378,7 +385,7 @@ export function InstrumentDetail({ instrument, chartOpen, chartContent, onCommun
         {tab === 'Technicals' && <TechnicalSummary instrument={instrument} />}
         {tab === 'Market Data' && <MarketStats instrument={instrument} kind={kind} />}
         {tab === 'Analysis' && <Analysis instrument={instrument} kind={kind} />}
-        {tab === 'Forecast' && <Forecast instrument={instrument} kind={kind} />}
+        {tab === 'Forecast' && <Forecast instrument={instrument} kind={kind} onCommunityScenario={focusCommunityPost} />}
         {['Products', 'Brokers', 'Products & Brokers'].includes(tab) && <ProductsAndBrokersTable instrument={instrument} product={product} products={availableProducts(instrument)} setProduct={setProduct} brokers={brokers.filter(b => b.symbols.includes(instrument.symbol))} />}
         {tab === 'Financial Report' && <FinancialReport instrument={instrument} />}
       </div>
@@ -2187,12 +2194,19 @@ function Analysis({
 function Forecast({
   instrument,
   kind,
+  onCommunityScenario,
 }: {
   instrument: Instrument;
   kind: string;
+  onCommunityScenario?: (name: string) => void;
 }) {
   const forecast = instrument.return1m * 1.35;
+  const communityScenarios = [
+    { author: 'Daniel Markson', initials: 'DM', bias: 'Bullish pullback', target: `+${Math.max(6, instrument.return1m * 0.9).toFixed(1)}%`, confidence: 76, summary: 'Participation remains constructive; confirmation is expected around the next controlled pullback.' },
+    { author: 'CLORA', initials: 'CL', bias: 'Constructive trend', target: `+${Math.max(4, instrument.return1m * 0.65).toFixed(1)}%`, confidence: 69, summary: `Volume and broader ${instrument.sector.toLowerCase()} breadth support a continuation scenario.` },
+  ];
   return (
+    <div className="space-y-4">
     <section className="panel p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -2238,6 +2252,12 @@ function Forecast({
         validated data provider and model provenance.
       </div>
     </section>
+    <section className="panel overflow-hidden">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-5"><div><p className="label">Community scenarios</p><h2 className="mt-1 text-sm font-semibold text-slate-900">What contributors expect next</h2><p className="mt-1 text-[10px] text-slate-400">Community-authored demo scenarios linked to their original discussion posts.</p></div><span className="badge">2 VIEWS</span></div>
+      <div className="grid grid-cols-2 gap-4 p-5 max-lg:grid-cols-1">{communityScenarios.map((scenario) => <button key={scenario.author} onClick={() => onCommunityScenario?.(scenario.author)} className="group rounded-xl border border-border bg-white p-4 text-left transition hover:border-violet-300 hover:bg-violet-50/40 hover:shadow-md"><div className="flex items-start justify-between gap-3"><div className="flex items-center gap-3"><span className="concept-avatar">{scenario.initials}</span><div><b className="text-xs text-slate-900">{scenario.author}</b><span className="mt-1 block text-[9px] text-slate-400">Community contributor</span></div></div><span className="text-[10px] font-semibold text-emerald-600">{scenario.bias}</span></div><p className="mt-4 text-[11px] leading-relaxed text-slate-600">{scenario.summary}</p><div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded-lg bg-slate-50 p-3"><span className="text-[8px] uppercase tracking-wide text-slate-400">Scenario target</span><b className="mt-1 block text-sm text-emerald-600">{scenario.target}</b></div><div className="rounded-lg bg-slate-50 p-3"><span className="text-[8px] uppercase tracking-wide text-slate-400">Confidence</span><b className="mt-1 block text-sm text-slate-900">{scenario.confidence}%</b></div></div><div className="mt-4 flex items-center justify-between text-[9px] font-medium text-violet-600"><span>View original community post</span><ArrowRight className="size-3 transition-transform group-hover:translate-x-1" /></div></button>)}</div>
+      <div className="border-t border-border bg-amber-50/60 px-5 py-3 text-[9px] text-amber-700">Community scenarios are opinions and synthetic demo content, not analyst research or investment advice.</div>
+    </section>
+    </div>
   );
 }
 function FinancialReport({ instrument }: { instrument: Instrument }) {

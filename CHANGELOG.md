@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.63.0] - 2026-09-14
+### Added
+- Added contributor-authored scenario summaries to Forecast with smooth-scroll links and temporary highlighting for the original community posts.
+
 ## [0.62.0] - 2026-09-14
 ### Added
 - Added an interactive Financial Report visualization with annual/quarterly views, growth charts, profitability trends, valuation ratios, and financial-health indicators.
