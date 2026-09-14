@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.66.1] - 2026-09-14
+
+### Changed
+
+- Removed the legacy event-intelligence markers from the Advanced Chart plot to avoid duplicating linked context markers.
+
 ## [0.66.0] - 2026-09-14
 
 ### Changed
