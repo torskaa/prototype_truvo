@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.67.0] - 2026-09-14
+
+### Added
+
+- Added Agree and Disagree voting, live percentages, voter totals, and community Long/Short vote labels to prediction posts.
+
 ## [0.66.1] - 2026-09-14
 
 ### Changed
