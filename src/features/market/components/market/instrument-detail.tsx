@@ -3106,6 +3106,10 @@ function Forecast({
   onToast: (message: string) => void;
 }) {
   const forecast = instrument.return1m * 1.35;
+  const today = new Date().toISOString().slice(0, 10);
+  const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+  const [fromDate, setFromDate] = useState(monthAgo);
+  const [toDate, setToDate] = useState(today);
   const communityScenarios = [
     {
       author: "Daniel Markson",
@@ -3166,6 +3170,11 @@ function Forecast({
             </p>
           </div>
           <span className="badge">DEMO MODEL</span>
+        </div>
+        <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <label className="text-[10px] text-slate-500">From<input type="date" value={fromDate} max={toDate} onChange={(event) => setFromDate(event.target.value)} className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-[10px]" /></label>
+          <label className="text-[10px] text-slate-500">To<input type="date" value={toDate} min={fromDate} max={today} onChange={(event) => setToDate(event.target.value)} className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-[10px]" /></label>
+          <span className="text-[10px] text-slate-400">Scenario dates update to match this range.</span>
         </div>
         <div className="mt-5 overflow-hidden rounded-xl border border-border bg-white">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
@@ -3390,7 +3399,16 @@ function Forecast({
           <span className="badge">5 VIEWS</span>
         </div>
         <div className="grid grid-cols-2 gap-4 p-5 max-lg:grid-cols-1">
-          {communityScenarios.map((scenario, scenarioIndex) => (
+          {communityScenarios
+            .map((scenario, scenarioIndex) => ({
+              scenario,
+              scenarioIndex,
+              date: new Date(Date.now() - scenarioIndex * 7 * 86400000)
+                .toISOString()
+                .slice(0, 10),
+            }))
+            .filter(({ date }) => date >= fromDate && date <= toDate)
+            .map(({ scenario, scenarioIndex, date }) => (
             <button
               key={scenario.author}
               onClick={() => onCommunityScenario?.(scenario.author)}
@@ -3402,7 +3420,7 @@ function Forecast({
                   <div>
                     <b className="text-xs text-slate-900">{scenario.author}</b>
                     <span className="mt-1 block text-[9px] text-slate-400">
-                      Community contributor
+                      Community contributor · {date}
                     </span>
                   </div>
                 </div>

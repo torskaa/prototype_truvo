@@ -21,7 +21,7 @@ import {
   UserProfile,
   CommunityInfluencer,
 } from '../../types';
-import { TRENDING_TOKENS } from '../../data/communityData';
+import { instruments } from '../../features/market/data/mock-market';
 
 interface CommunityFeedsViewProps {
   posts: CommunityPost[];
@@ -44,9 +44,27 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
   onReactionClick,
   user,
 }) => {
-  const [tokenFilterTab, setTokenFilterTab] = useState<'trending' | 'top' | 'watchlist'>('trending');
+  const [tokenFilterTab, setTokenFilterTab] = useState<'trending' | 'gainers' | 'losers'>('trending');
+  const [tokenDuration, setTokenDuration] = useState('1D');
+  const [assetFilter, setAssetFilter] = useState('All');
+  const assetCategories = ['All', 'Stocks', 'Crypto', 'Forex', 'Commodities', 'Indices'];
+  const syncedTokens = Array.from({ length: 15 }, (_, index) => {
+    const instrument = instruments[index % instruments.length];
+    const category = assetCategories[(index % (assetCategories.length - 1)) + 1];
+    const change = instrument.change + ((index % 5) - 2) * 0.8;
+    return {
+      id: `${instrument.symbol}-${category}-${index}`,
+      symbol: `${instrument.symbol}${index >= instruments.length ? `-${index + 1}` : ''}`,
+      icon: ['📈', '🟢', '🔵', '💠', '🪙'][index % 5],
+      marketCap: `$${Math.max(1, instrument.marketCap + index * 0.37).toFixed(2)}B`,
+      price: `$${(instrument.price * (1 + index * 0.012)).toLocaleString(undefined, { maximumFractionDigits: 4 })}`,
+      change24h: Number(change.toFixed(2)),
+      rank: index + 1,
+      category,
+    };
+  });
   const [selectedTokenSymbol, setSelectedTokenSymbol] = useState<string | null>(null);
-  const [feedTab, setFeedTab] = useState<'foryou' | 'mindshare'>('foryou');
+  const [feedTab, setFeedTab] = useState<'popular' | 'ai' | 'foryou' | 'following'>('popular');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [newCommentText, setNewCommentText] = useState<Record<string, string>>({});
@@ -118,30 +136,41 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
             </button>
             <button
               onClick={() => {
-                setTokenFilterTab('top');
+                setTokenFilterTab('gainers');
                 setSelectedTokenSymbol(null);
               }}
               className={`flex-1 py-1 px-2 rounded-lg font-medium transition-all ${
-                tokenFilterTab === 'top'
+                tokenFilterTab === 'gainers'
                   ? 'bg-white text-[#5338ec] font-bold shadow-xs'
                   : 'text-[#474556] hover:text-[#0b1c30]'
               }`}
             >
-              Top
+              Top gain
             </button>
             <button
               onClick={() => {
-                setTokenFilterTab('watchlist');
+                setTokenFilterTab('losers');
                 setSelectedTokenSymbol(null);
               }}
               className={`flex-1 py-1 px-2 rounded-lg font-medium transition-all ${
-                tokenFilterTab === 'watchlist'
+                tokenFilterTab === 'losers'
                   ? 'bg-white text-[#5338ec] font-bold shadow-xs'
                   : 'text-[#474556] hover:text-[#0b1c30]'
               }`}
             >
-              Watchlist
+              Top loser
             </button>
+          </div>
+          <div className="mb-3 flex flex-wrap items-center gap-1 rounded-lg border border-slate-200 p-1 text-[10px]">
+            <span className="px-1 text-slate-400">Period</span>
+            {['1D', '1W', '1M', '1Y'].map((duration) => (
+              <button key={duration} onClick={() => setTokenDuration(duration)} className={`rounded-md px-2 py-1 font-semibold ${tokenDuration === duration ? 'bg-violet-600 text-white' : 'text-slate-500 hover:bg-violet-50'}`}>{duration}</button>
+            ))}
+          </div>
+          <div className="mb-3 flex flex-wrap gap-1">
+            {assetCategories.map((category) => (
+              <button key={category} onClick={() => setAssetFilter(category)} className={`rounded-full border px-2 py-1 text-[9px] font-semibold ${assetFilter === category ? 'border-violet-300 bg-violet-50 text-violet-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>{category}</button>
+            ))}
           </div>
 
           {/* Table Header */}
@@ -153,7 +182,11 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
 
           {/* Token Rows */}
           <div className="divide-y divide-[#f1f5f9] max-h-[620px] overflow-y-auto pr-1">
-            {TRENDING_TOKENS.map((token) => {
+            {syncedTokens
+              .filter((token) => tokenFilterTab === 'trending' || (tokenFilterTab === 'gainers' ? token.change24h >= 0 : token.change24h < 0))
+              .filter((token) => assetFilter === 'All' || token.category === assetFilter)
+              .sort((a, b) => tokenFilterTab === 'losers' ? a.change24h - b.change24h : b.change24h - a.change24h)
+              .map((token) => {
               const isSelected = selectedTokenSymbol === token.symbol;
               const isPositive = token.change24h >= 0;
               return (
@@ -191,7 +224,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                         isPositive ? 'text-emerald-600' : 'text-rose-600'
                       }`}
                     >
-                      {isPositive ? `+${token.change24h}%` : `${token.change24h}%`}
+                      {isPositive ? `+${(token.change24h * ({ '1D': 1, '1W': 1.8, '1M': 3.2, '1Y': 6.5 }[tokenDuration] ?? 1)).toFixed(2)}%` : `${(token.change24h * ({ '1D': 1, '1W': 1.8, '1M': 3.2, '1Y': 6.5 }[tokenDuration] ?? 1)).toFixed(2)}%`}
                     </div>
                   </div>
                 </div>
@@ -225,26 +258,19 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
             </h3>
 
             <div className="flex items-center gap-1 bg-[#f1f5f9] border border-slate-200 p-1 rounded-xl text-xs">
-              <button
-                onClick={() => setFeedTab('foryou')}
+              {(['popular', 'ai', 'foryou', 'following'] as const).map((tab) => (
+                <button
+                key={tab}
+                onClick={() => setFeedTab(tab)}
                 className={`py-1 px-3 rounded-lg font-medium transition-all ${
-                  feedTab === 'foryou'
+                  feedTab === tab
                     ? 'bg-white text-[#5338ec] font-bold shadow-xs'
                     : 'text-[#474556] hover:text-[#0b1c30]'
                 }`}
               >
-                For You
+                {tab === 'ai' ? 'AI' : tab === 'foryou' ? 'For You' : tab[0].toUpperCase() + tab.slice(1)}
               </button>
-              <button
-                onClick={() => setFeedTab('mindshare')}
-                className={`py-1 px-3 rounded-lg font-medium transition-all ${
-                  feedTab === 'mindshare'
-                    ? 'bg-white text-[#5338ec] font-bold shadow-xs'
-                    : 'text-[#474556] hover:text-[#0b1c30]'
-                }`}
-              >
-                Mindshare
-              </button>
+              ))}
             </div>
           </div>
 

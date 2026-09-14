@@ -1,5 +1,59 @@
 # Changelog
 
+## [1.1.3] - 2026-09-14
+
+### Changed
+
+- Expanded synced community market data into a randomized 15-row demo table across all asset categories.
+
+## [1.1.2] - 2026-09-14
+
+### Changed
+
+- Synced the community market table with the shared instrument mock data source.
+
+## [1.1.1] - 2026-09-14
+
+### Added
+
+- Added Stocks, Crypto, Forex, Commodities, and Indices filters to the community token table.
+
+## [1.1.0] - 2026-09-14
+
+### Added
+
+- Added Trending, Top gain, and Top loser token tables with 1D, 1W, 1M, and 1Y filters.
+
+## [1.0.9] - 2026-09-14
+
+### Changed
+
+- Replaced community feed tabs with Popular, AI, For You, and Following options.
+
+## [1.0.8] - 2026-09-14
+
+### Changed
+
+- Changed the liquidation mini chart to show long and short bars on the same zero-centered timeline.
+
+## [1.0.7] - 2026-09-14
+
+### Changed
+
+- Moved the market duration selector into the Market Pulse header.
+
+## [1.0.6] - 2026-09-14
+
+### Added
+
+- Restyled market mini charts with duration controls for 1H through 1Y views.
+
+## [1.0.5] - 2026-09-14
+
+### Added
+
+- Added date-range controls to Forecast.
+
 ## [1.0.4] - 2026-09-14
 
 ### Changed

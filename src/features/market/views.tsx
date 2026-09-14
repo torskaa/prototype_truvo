@@ -82,8 +82,12 @@ function DerivativesPanel({ data }: { data: DerivativesSnapshot }) {
    <div><span className="block text-slate-400">Long</span><b className="font-mono text-emerald-500">{data.long}</b></div>
    <div><span className="block text-slate-400">Short</span><b className="font-mono text-rose-500">{data.short}</b></div>
   </div>
-  <div className="mt-2 flex h-7 items-end gap-px border-b border-slate-200">
-   {data.bars.map((bar, index) => <span key={`${index}-${bar}`} className={`min-w-0 flex-1 rounded-t-sm ${index % 4 === 2 ? 'bg-rose-400' : 'bg-emerald-400'}`} style={{ height: `${Math.max(4, bar * 7)}%` }} />)}
+  <div className="relative mt-2 flex h-7 items-center gap-px border-b border-slate-200">
+   <div className="absolute inset-x-0 top-1/2 border-t border-slate-300" />
+   {data.bars.map((bar, index) => <span key={`${index}-${bar}`} className="relative flex min-w-0 flex-1 flex-col justify-center">
+    <i className="block w-full rounded-t-sm bg-emerald-400" style={{ height: `${Math.max(2, bar * 2.8)}px` }} />
+    <i className="block w-full rounded-b-sm bg-rose-400" style={{ height: `${Math.max(2, (bar * (index % 3 === 0 ? 0.7 : 0.45)) * 2.8)}px` }} />
+   </span>)}
   </div>
   <div className="mt-2 grid grid-cols-2 gap-2 text-[9px]">
    <div><span className="block text-slate-400">Open interest</span><b className="font-mono text-slate-800">{data.openInterest}</b> <span className="text-emerald-500">↑ {data.openInterestChange}</span></div>
@@ -241,14 +245,20 @@ const customFilterOptions = (market: MarketFilter): CustomFilterOption[] => {
 };
 
 function MarketHighlights({ openInstrument, market, currentResults }: { openInstrument: (instrument: Instrument) => void; market: MarketFilter; currentResults: Instrument[] }) {
+ const [duration, setDuration] = useState('24H');
+ const durations = ['1H', '6H', '12H', '24H', '1W', '1M', '6M', '1Y'];
  const topMovers = [...instruments].sort((a, b) => Math.abs(b.change) - Math.abs(a.change)).slice(0, 3);
  return <section aria-label="CFD market highlights" className="mb-4 space-y-3">
   <div className="rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 via-white to-slate-50 p-4">
    <div className="flex flex-wrap items-end justify-between gap-3">
     <div><p className="text-[9px] font-semibold uppercase tracking-[.18em] text-violet-600">Market pulse · CFD discovery</p><h2 className="mt-1 text-lg font-semibold text-slate-900">Understand the market before screening</h2><p className="mt-1 max-w-2xl text-xs text-slate-500">Explorer highlights are now linked to the scanner. Use the briefs to choose a market, then validate the idea with independent filters and risk conditions.</p></div>
+    <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-200 bg-white/70 p-2">
+     <span className="mr-1 text-[9px] font-semibold uppercase tracking-wider text-slate-500">Duration</span>
+     {durations.map(option => <button key={option} onClick={() => setDuration(option)} className={`rounded-md px-2 py-1 text-[9px] font-semibold ${duration === option ? 'bg-violet-600 text-white' : 'text-slate-500 hover:bg-violet-50'}`}>{option}</button>)}
+    </div>
    </div>
    <div className="mt-4 grid grid-cols-5 gap-2 max-xl:grid-cols-3 max-md:grid-cols-2">
-    {marketCards.map(([label, size, change, participation, , fearGreed, derivatives]) => <div className="rounded-xl border border-white bg-white/80 p-3 shadow-sm" key={label}><span className="text-[10px] font-semibold text-slate-500">{label} CFDs</span><b className="mt-2 block font-mono text-sm text-slate-900">{size}</b><div className="mt-1 flex justify-between gap-2 text-[10px]"><span className={change.includes('−') ? 'down' : 'up'}>{change}</span></div><span className="mt-1 block text-[10px] text-slate-400">Activity {participation}</span><FearGreedGauge score={fearGreed} /><MarketChangeHighlights data={derivatives} /><DerivativesPanel data={derivatives} /></div>)}
+    {marketCards.map(([label, size, change, participation, , fearGreed, derivatives]) => <div className="rounded-xl border border-white bg-white/80 p-3 shadow-sm" key={label}><span className="text-[10px] font-semibold text-slate-500">{label} CFDs</span><b className="mt-2 block font-mono text-sm text-slate-900">{size}</b><div className="mt-1 flex justify-between gap-2 text-[10px]"><span className={change.includes('−') ? 'down' : 'up'}>{change}</span></div><span className="mt-1 block text-[10px] text-slate-400">Activity {participation}</span><FearGreedGauge score={fearGreed} /><MarketChangeHighlights data={derivatives} /><DerivativesPanel data={{ ...derivatives, bars: derivatives.bars.map((bar, index) => Math.max(1, Math.round(bar * (duration === '1H' ? .55 : duration === '1Y' ? 1.25 : 1 + index % 3 * .08)))) }} /></div>)}
    </div>
   </div>
   <div className="grid grid-cols-[minmax(0,1fr)_340px] gap-3 max-xl:grid-cols-1">
