@@ -96,6 +96,8 @@ main:has(.concept-instrument) > div:first-of-type { max-width:1600px; padding:24
 .concept-tabs { grid-column:1/-1; display:flex; gap:5px; overflow:auto; padding-top:14px; border-top:1px solid #edf0f6; }
 .concept-tabs button { padding:9px 12px; white-space:nowrap; border-radius:8px; font-size:12px; color:#6b7891; }
 .concept-tabs button[aria-current] { background:#eeebff; color:#6046ff; font-weight:650; }
+.concept-tabs-workspace { margin-bottom:16px; padding:0 0 14px; border-top:0; border-bottom:1px solid #edf0f6; }
+.concept-tabs-panel { padding:20px 20px 4px; }
 .concept-columns { display:grid; grid-template-columns:minmax(230px,1fr) minmax(0,2.1fr) minmax(230px,1fr); align-items:start; gap:24px; }
 .concept-news,.concept-community { padding:20px; }
 .concept-section-title { display:flex; gap:10px; align-items:center; padding-bottom:17px; border-bottom:1px solid #edf1f7; }

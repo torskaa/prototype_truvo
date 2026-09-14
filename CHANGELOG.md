@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.60.0] - 2026-09-14
+### Added
+- Added an inline Performance / Advanced chart toggle to the instrument workspace using the integrated technical chart.
+
+### Removed
+- Removed the separate "Open advanced chart workspace" link below the performance metrics.
+
+## [0.59.2] - 2026-09-14
+### Changed
+- Moved the instrument section navigation into the Performance workspace while keeping it available across every instrument tab.
+
 ## [0.59.1] - 2026-09-11
 ### Changed
 - Synced the preferred Instrument detail page and styling from `codex/integrate-market-intelligence`.

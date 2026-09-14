@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -331,7 +331,7 @@ function performanceSeries(
   });
 }
 
-export function InstrumentDetail({ instrument, onBack, onChart, onToast }: { instrument: Instrument; onBack: () => void; onChart: () => void; onToast: (message: string) => void }) {
+export function InstrumentDetail({ instrument, chartOpen, chartContent, onBack, onChart, onToast }: { instrument: Instrument; chartOpen: boolean; chartContent: ReactNode; onBack: () => void; onChart: () => void; onToast: (message: string) => void }) {
   const [tab, setTab] = useState('Overview');
   const [watching, setWatching] = useState(false);
   const [vote, setVote] = useState<string | null>(null);
@@ -341,17 +341,18 @@ export function InstrumentDetail({ instrument, onBack, onChart, onToast }: { ins
   const kind = assetClass(instrument);
   const news = instrumentNews(instrument);
   const positive = instrument.change >= 0;
+  const instrumentTabs = <nav className="concept-tabs concept-tabs-workspace" aria-label="Instrument sections">{[...tabList, ...(kind === 'Stock' ? ['Financial Report'] : [])].map(item => <button key={item} onClick={() => setTab(item)} aria-current={tab === item ? 'page' : undefined}>{item}</button>)}</nav>;
   return <div className="concept-instrument">
     <section className="concept-bounty"><div className="concept-bounty-icon"><TrendingUp /></div><div><span className="concept-gold-label">DAILY MARKET FOCUS</span><h2>Explore {instrument.symbol}, from price to perspective</h2><p>Review the chart, market context, and community outlook.</p></div><button onClick={onChart}>Open advanced chart <ArrowRight size={16} /></button></section>
     <section className="concept-quote">
       <div className="concept-identity"><button onClick={onBack} className="concept-back"><ArrowLeft size={14} /> Markets / {kind}</button><div className="concept-name"><div className="concept-symbol">{instrument.symbol.slice(0, 4)}</div><div><h1>{instrument.name}</h1><div className="concept-tags"><span>{instrument.primaryMarket ?? instrument.market}: {instrument.symbol}</span><span>{instrument.subSector ?? instrument.sector}</span></div><p>Demo quote · {kind === 'Crypto' ? '24/7 market' : 'Regular market session'} · USD</p></div></div></div>
       <div className="concept-price"><h2>{kind === 'Forex' ? '' : '$'}{displayValue(instrument)}</h2><span className={positive ? 'concept-up' : 'concept-down'}>{positive ? '↗ +' : '↘ '}{instrument.change.toFixed(2)}%</span><small> Today · demo snapshot</small><div className="concept-quote-stats"><div><small>MARKET CAP</small><b>{instrument.marketCap ? `$${instrument.marketCap.toLocaleString()}B` : '—'}</b></div><div><small>VOLUME</small><b>{instrument.volume.toLocaleString()}M</b></div><div><small>RELATIVE VOLUME</small><b>{instrument.rvol.toFixed(2)}×</b></div><div><small>1 MONTH RETURN</small><b>{instrument.return1m > 0 ? '+' : ''}{instrument.return1m}%</b></div></div><div className="concept-actions"><button onClick={() => { setWatching(!watching); onToast(watching ? 'Removed from watchlist' : 'Added to watchlist'); }}><Star size={15} fill={watching ? 'currentColor' : 'none'} />{watching ? 'Watching' : 'Watchlist'}</button><button onClick={() => onToast(`Demo price alert created for ${instrument.symbol}`)}><Bell size={15} /> Alert</button><button className="concept-primary" onClick={() => setTab('Brokers')}>Trade via broker <ArrowRight size={16} /></button></div></div>
-      <nav className="concept-tabs" aria-label="Instrument sections">{[...tabList, ...(kind === 'Stock' ? ['Financial Report'] : [])].map(item => <button key={item} onClick={() => setTab(item)} aria-current={tab === item ? 'page' : undefined}>{item}</button>)}</nav>
     </section>
     <div className="concept-columns">
       <aside className="concept-news concept-card"><div className="concept-section-title"><Newspaper size={19} /><div><h2>Latest news</h2><p>Market context for {instrument.symbol}</p></div><span className="concept-demo">DEMO</span></div><div className="concept-news-filters">{['All news', 'Market', 'Research'].map(item => <button key={item} className={newsFilter === item ? 'selected' : ''} onClick={() => setNewsFilter(item)}>{item}</button>)}</div>{news.filter((_, index) => newsFilter === 'All news' || (newsFilter === 'Market' ? index < 3 : index >= 3)).map(item => <article key={item.title}><div className="concept-news-meta"><span>{item.source}</span><small>{item.time}</small></div><h3>{item.title}</h3><p>{item.summary}</p><button onClick={() => setArticle(item)}>Read full <ArrowRight size={12} /></button></article>)}<button className="concept-outline" onClick={() => setTab('News')}>View all {instrument.symbol} news <ArrowRight size={14} /></button></aside>
       <div className="concept-analysis">
-        {tab === 'Overview' && <><Overview instrument={instrument} kind={kind} onChart={onChart} /><section className="concept-card concept-summary"><div className="concept-summary-top"><div><p className="concept-eyebrow">TECHNICAL OUTLOOK</p><h2 className={positive ? 'concept-up' : 'concept-down'}>{instrument.signal === 'LONG' ? 'Positive momentum' : instrument.signal === 'WATCH' ? 'Watch for confirmation' : 'Neutral outlook'}</h2><p>Synthetic signal · {instrument.confidence}% confidence</p></div><div><p className="concept-eyebrow">COMMUNITY OUTLOOK</p><b>{instrument.sentiment}% bullish</b></div></div><div className="concept-sentiment-bar"><i style={{width: `${instrument.sentiment}%`}} /></div><h3>Key valuation & activity</h3><div className="concept-metrics"><Metric label="P/E ratio" value={instrument.pe ? `${instrument.pe.toFixed(1)}x` : '—'} /><Metric label="RSI (14)" value={instrument.rsi.toFixed(1)} /><Metric label="Relative volume" value={`${instrument.rvol.toFixed(2)}x`} /><Metric label="1M return" value={`${instrument.return1m}%`} /></div><h3>Technical evidence</h3><TechnicalSummary instrument={instrument} /></section></>}
+        {tab !== 'Overview' && <section className="panel concept-tabs-panel">{instrumentTabs}</section>}
+        {tab === 'Overview' && <><Overview instrument={instrument} kind={kind} onChart={onChart} chartOpen={chartOpen} chartContent={chartContent} tabs={instrumentTabs} /><section className="concept-card concept-summary"><div className="concept-summary-top"><div><p className="concept-eyebrow">TECHNICAL OUTLOOK</p><h2 className={positive ? 'concept-up' : 'concept-down'}>{instrument.signal === 'LONG' ? 'Positive momentum' : instrument.signal === 'WATCH' ? 'Watch for confirmation' : 'Neutral outlook'}</h2><p>Synthetic signal · {instrument.confidence}% confidence</p></div><div><p className="concept-eyebrow">COMMUNITY OUTLOOK</p><b>{instrument.sentiment}% bullish</b></div></div><div className="concept-sentiment-bar"><i style={{width: `${instrument.sentiment}%`}} /></div><h3>Key valuation & activity</h3><div className="concept-metrics"><Metric label="P/E ratio" value={instrument.pe ? `${instrument.pe.toFixed(1)}x` : '—'} /><Metric label="RSI (14)" value={instrument.rsi.toFixed(1)} /><Metric label="Relative volume" value={`${instrument.rvol.toFixed(2)}x`} /><Metric label="1M return" value={`${instrument.return1m}%`} /></div><h3>Technical evidence</h3><TechnicalSummary instrument={instrument} /></section></>}
         {tab === 'Technicals' && <TechnicalSummary instrument={instrument} />}
         {tab === 'Market Data' && <MarketStats instrument={instrument} kind={kind} />}
         {tab === 'News' && <News instrument={instrument} onSelect={setArticle} onShare={item => { setArticle(item); onToast('Article opened for review'); }} onCommunity={setArticle} />}
@@ -1471,10 +1472,16 @@ function Overview({
   instrument,
   kind,
   onChart,
+  chartOpen = false,
+  chartContent = null,
+  tabs = null,
 }: {
   instrument: Instrument;
   kind: string;
   onChart: () => void;
+  chartOpen?: boolean;
+  chartContent?: ReactNode;
+  tabs?: ReactNode;
 }) {
   const [period, setPeriod] = useState<PerformancePeriod>('1D');
   const [priceInterval, setPriceInterval] = useState<PriceInterval>('1d');
@@ -1498,6 +1505,7 @@ function Overview({
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_320px] gap-4 max-xl:grid-cols-1">
       <section className="panel p-5">
+        {tabs}
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="label">Performance</p>
@@ -1509,6 +1517,11 @@ function Overview({
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <div className="seg" aria-label="Chart display">
+              <button onClick={() => chartOpen && onChart()} className={!chartOpen ? 'active' : ''}>Performance</button>
+              <button onClick={() => !chartOpen && onChart()} className={chartOpen ? 'active' : ''}>Advanced chart</button>
+            </div>
+            {!chartOpen && <>
             <select
               aria-label="Price interval"
               value={priceInterval}
@@ -1550,8 +1563,10 @@ function Overview({
                 </button>
               ))}
             </div>
+            </>}
           </div>
         </div>
+        {chartOpen ? <div className="mt-5 min-w-0 overflow-hidden rounded-xl">{chartContent}</div> : <>
         <div className="relative mt-5 h-52 overflow-hidden rounded-xl border border-border bg-white grid-surface">
           <svg
             viewBox="0 0 100 100"
@@ -1611,12 +1626,7 @@ function Overview({
             value={`${instrument.signal} ${instrument.confidence}%`}
           />
         </div>
-        <button
-          onClick={onChart}
-          className="mt-4 text-[10px] font-medium text-violet-600"
-        >
-          Open advanced chart workspace
-        </button>
+        </>}
       </section>
       <section className="panel p-5">
         <p className="label">Key information</p>
