@@ -318,7 +318,7 @@ export function InstrumentDetail({ instrument, chartOpen, chartContent, onCommun
   const kind = assetClass(instrument);
   const news = instrumentNews(instrument);
   const positive = instrument.change >= 0;
-  const instrumentTabs = <nav className="concept-tabs concept-tabs-workspace" aria-label="Instrument sections">{[...tabList.filter(item => item !== 'News'), ...(kind === 'Stock' ? ['Financial Report'] : [])].map(item => <button key={item} onClick={() => setTab(item)} aria-current={tab === item ? 'page' : undefined}>{item}</button>)}</nav>;
+  const instrumentTabs = <nav className="concept-tabs concept-tabs-workspace" aria-label="Instrument sections">{[...tabList.filter(item => !['News', 'Products', 'Brokers'].includes(item)), 'Products & Brokers', ...(kind === 'Stock' ? ['Financial Report'] : [])].map(item => <button key={item} onClick={() => setTab(item)} aria-current={tab === item ? 'page' : undefined}>{item}</button>)}</nav>;
   return <div className="concept-instrument">
     <section className="concept-bounty"><div className="concept-bounty-icon"><TrendingUp /></div><div><span className="concept-gold-label">DAILY MARKET FOCUS</span><h2>Explore {instrument.symbol}, from price to perspective</h2><p>Review the chart, market context, and community outlook.</p></div><button onClick={onChart}>Open advanced chart <ArrowRight size={16} /></button></section>
     <section className="concept-quote">
@@ -334,8 +334,7 @@ export function InstrumentDetail({ instrument, chartOpen, chartContent, onCommun
         {tab === 'Market Data' && <MarketStats instrument={instrument} kind={kind} />}
         {tab === 'Analysis' && <Analysis instrument={instrument} kind={kind} />}
         {tab === 'Forecast' && <Forecast instrument={instrument} kind={kind} />}
-        {tab === 'Products' && <ProductPanel products={availableProducts(instrument)} product={product} setProduct={setProduct} />}
-        {tab === 'Brokers' && <BrokerPanel instrument={instrument} product={product} products={availableProducts(instrument)} setProduct={setProduct} brokers={brokers.filter(b => b.symbols.includes(instrument.symbol) && b.products.includes(product))} />}
+        {['Products', 'Brokers', 'Products & Brokers'].includes(tab) && <ProductsAndBrokersTable instrument={instrument} product={product} products={availableProducts(instrument)} setProduct={setProduct} brokers={brokers.filter(b => b.symbols.includes(instrument.symbol))} />}
         {tab === 'Financial Report' && <FinancialReport instrument={instrument} />}
       </div>
       <aside className="concept-community concept-card"><div className="concept-section-title"><Users size={20} /><div><h2>Community sentiment</h2><p>{instrument.symbol} trader perspectives</p></div></div><div className="concept-voting"><div><b className="concept-up">↗ {instrument.sentiment}% Bullish</b><b className="concept-down">{100-instrument.sentiment}% Bearish ↘</b></div><div className="concept-sentiment-bar"><i style={{width: `${instrument.sentiment}%`}} /></div><div>{['Bullish', 'Bearish'].map(item => <button key={item} aria-pressed={vote === item} onClick={() => {setVote(item); onToast(`${item} demo vote recorded`);}}>{vote === item ? '✓ ' : ''}Vote {item}</button>)}</div></div><h3 className="concept-eyebrow">PREDICTOR SPOTLIGHT</h3><div className="concept-predictor"><span className="concept-avatar">MC</span><div><b>Maya Chen</b><p>Momentum analyst</p></div><strong>82%<small>accuracy · demo</small></strong></div><button className="concept-outline" onClick={() => onToast(`Community discussion for ${instrument.symbol} is in demo mode`)}>Discuss {instrument.symbol} <MessageCircle size={15} /></button>{[{name:'Daniel Markson',initials:'DM',time:'19h',text:`Watching ${instrument.symbol}: participation is stronger than the prior session. Looking for confirmation around the next pullback.`},{name:'CLORA',initials:'CL',time:'21h',text:`The ${instrument.symbol} setup looks constructive. Volume and broader ${instrument.sector.toLowerCase()} activity are the next things on my checklist.`}].map(post => <article className="concept-post" key={post.name}><div><span className="concept-avatar">{post.initials}</span><b>{post.name}<small>Community contributor · {post.time}</small></b></div><span className="concept-post-tag">#{instrument.symbol}</span><p>{post.text}</p><button onClick={() => onToast('Reaction recorded in demo')}><ThumbsUp size={14} /> Agree</button><button onClick={() => onCommunityChart(post.name)}><LineChart size={14} /> View chart</button></article>)}</aside>
@@ -2243,6 +2242,42 @@ function FinancialReport({ instrument }: { instrument: Instrument }) {
       </section>
       <AssetSpecific kind="Stock" instrument={instrument} />
     </div>
+  );
+}
+function ProductsAndBrokersTable({
+  instrument,
+  products,
+  product,
+  setProduct,
+  brokers,
+}: {
+  instrument: Instrument;
+  products: ProductType[];
+  product: ProductType;
+  setProduct: (product: ProductType) => void;
+  brokers: Broker[];
+}) {
+  const matchedBrokers = brokers.filter((broker) => broker.products.includes(product));
+  return (
+    <section className="panel overflow-hidden">
+      <div className="border-b border-border p-5">
+        <p className="label">Products & broker access</p>
+        <h2 className="mt-1 text-sm font-semibold text-slate-900">Trade {instrument.symbol} by product</h2>
+        <p className="mt-1 text-[10px] text-slate-400">Choose a product to compare matching providers, costs, minimums, and access.</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {products.map((item) => <button key={item} onClick={() => setProduct(item)} className={`rounded-lg border px-3 py-2 text-[10px] font-medium ${product === item ? 'border-violet-300 bg-violet-50 text-violet-700' : 'border-border bg-white text-slate-600'}`}>{item}</button>)}
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[720px] text-left text-[10px]">
+          <thead className="bg-slate-50 text-slate-500"><tr><th className="px-5 py-3">Product</th><th className="px-4 py-3">Broker</th><th className="px-4 py-3">Venue</th><th className="px-4 py-3">Spread</th><th className="px-4 py-3">Minimum</th><th className="px-4 py-3">Platform</th><th className="px-4 py-3">Access</th><th className="px-5 py-3 text-right">Action</th></tr></thead>
+          <tbody className="divide-y divide-border">
+            {matchedBrokers.map((broker) => <tr key={`${product}-${broker.name}`} className="bg-white hover:bg-slate-50/70"><td className="px-5 py-4 font-semibold text-violet-700">{product}</td><td className="px-4 py-4 font-semibold text-slate-900">{broker.name}</td><td className="px-4 py-4 text-slate-500">{broker.venue}</td><td className="px-4 py-4 text-slate-600">{broker.spread}</td><td className="px-4 py-4 text-slate-600">{broker.minimum}</td><td className="px-4 py-4 text-slate-600">{broker.platform}</td><td className="px-4 py-4"><span className={`badge ${broker.status === 'Available' ? 'positive' : ''}`}>{broker.status}</span></td><td className="px-5 py-4 text-right"><button className="primary justify-center">Connect</button></td></tr>)}
+          </tbody>
+        </table>
+      </div>
+      {matchedBrokers.length === 0 && <div className="m-5 rounded-xl bg-amber-50 p-4 text-xs text-amber-700"><Lock className="mr-2 inline size-3" />No demo provider supports this exact product combination.</div>}
+    </section>
   );
 }
 function ProductPanel({

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.61.0] - 2026-09-14
+### Changed
+- Merged the separate Products and Brokers instrument tabs into one product-filtered broker comparison table.
+
 ## [0.60.3] - 2026-09-14
 ### Changed
 - Consolidated the duplicate price interval and comparison selectors into one synchronized chart-range control.
