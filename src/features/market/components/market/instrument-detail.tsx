@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -26,41 +26,45 @@ import {
   TrendingUp,
   Users,
   WalletCards,
-} from 'lucide-react';
-import type { Instrument, InstrumentDetailData, MarketIndex } from '@market/types';
-import { instrumentDetailData, marketIndices } from '@market/data/mock-market';
+} from "lucide-react";
+import type {
+  Instrument,
+  InstrumentDetailData,
+  MarketIndex,
+} from "@market/types";
+import { instrumentDetailData, marketIndices } from "@market/data/mock-market";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from '@market/components/ui/resizable';
-import type { PanelImperativeHandle } from 'react-resizable-panels';
+} from "@market/components/ui/resizable";
+import type { PanelImperativeHandle } from "react-resizable-panels";
 
 type DetailTab =
-  | 'Overview'
-  | 'Technicals'
-  | 'Market Data'
-  | 'News'
-  | 'Analysis'
-  | 'Forecast'
-  | 'Products'
-  | 'Brokers'
-  | 'Tokenomics'
-  | 'Financial Report';
+  | "Overview"
+  | "Technicals"
+  | "Market Data"
+  | "News"
+  | "Analysis"
+  | "Forecast"
+  | "Products"
+  | "Brokers"
+  | "Tokenomics"
+  | "Financial Report";
 type ProductType =
-  | 'Spot'
-  | 'Share'
-  | 'Fractional share'
-  | 'FX spot'
-  | 'CFD'
-  | 'Future'
-  | 'Perpetual';
+  | "Spot"
+  | "Share"
+  | "Fractional share"
+  | "FX spot"
+  | "CFD"
+  | "Future"
+  | "Perpetual";
 type Broker = {
   name: string;
   venue: string;
   products: ProductType[];
   symbols: string[];
-  status: 'Available' | 'Requires account' | 'Restricted';
+  status: "Available" | "Requires account" | "Restricted";
   spread: string;
   minimum: string;
   platform: string;
@@ -71,98 +75,100 @@ type Broker = {
 
 const brokers: Broker[] = [
   {
-    name: 'Marketsyde Demo',
-    venue: 'Multi-asset gateway',
-    products: ['Share', 'Fractional share', 'FX spot', 'CFD', 'Future', 'Spot'],
-    symbols: ['AAPL', 'NVDA', 'EUR/USD', 'BTC/USD', 'XAU/USD', 'SPX'],
-    status: 'Available',
-    spread: 'Demo quote',
-    minimum: '$0',
-    platform: 'Marketsyde',
-    commission: '$0 demo',
-    execution: 'Simulated instant fill',
-    details: 'Practice account with synthetic quotes and no real-money execution.',
+    name: "Marketsyde Demo",
+    venue: "Multi-asset gateway",
+    products: ["Share", "Fractional share", "FX spot", "CFD", "Future", "Spot"],
+    symbols: ["AAPL", "NVDA", "EUR/USD", "BTC/USD", "XAU/USD", "SPX"],
+    status: "Available",
+    spread: "Demo quote",
+    minimum: "$0",
+    platform: "Marketsyde",
+    commission: "$0 demo",
+    execution: "Simulated instant fill",
+    details:
+      "Practice account with synthetic quotes and no real-money execution.",
   },
   {
-    name: 'ApexTrade Demo',
-    venue: 'US equity routing demo',
-    products: ['Share', 'Fractional share'],
-    symbols: ['AAPL', 'MSFT', 'NVDA'],
-    status: 'Available',
-    spread: 'From $0.01',
-    minimum: '$5',
-    platform: 'Apex Web',
-    commission: '$0 per share',
-    execution: 'Demo smart routing',
-    details: 'Dummy US equity broker with whole and fractional share access.',
+    name: "ApexTrade Demo",
+    venue: "US equity routing demo",
+    products: ["Share", "Fractional share"],
+    symbols: ["AAPL", "MSFT", "NVDA"],
+    status: "Available",
+    spread: "From $0.01",
+    minimum: "$5",
+    platform: "Apex Web",
+    commission: "$0 per share",
+    execution: "Demo smart routing",
+    details: "Dummy US equity broker with whole and fractional share access.",
   },
   {
-    name: 'Nova CFD Lab',
-    venue: 'Multi-asset CFD demo',
-    products: ['CFD'],
-    symbols: ['AAPL', 'NVDA', 'XAU/USD', 'SPX'],
-    status: 'Requires account',
-    spread: 'From 0.12%',
-    minimum: '$100',
-    platform: 'Nova Terminal',
-    commission: 'Included in spread',
-    execution: 'Demo market execution',
-    details: 'Dummy leveraged-product provider for testing eligibility and account flows.',
+    name: "Nova CFD Lab",
+    venue: "Multi-asset CFD demo",
+    products: ["CFD"],
+    symbols: ["AAPL", "NVDA", "XAU/USD", "SPX"],
+    status: "Requires account",
+    spread: "From 0.12%",
+    minimum: "$100",
+    platform: "Nova Terminal",
+    commission: "Included in spread",
+    execution: "Demo market execution",
+    details:
+      "Dummy leveraged-product provider for testing eligibility and account flows.",
   },
   {
-    name: 'FractionHub Sandbox',
-    venue: 'Fractional equity demo',
-    products: ['Fractional share'],
-    symbols: ['AAPL', 'MSFT', 'NVDA'],
-    status: 'Restricted',
-    spread: 'Reference quote',
-    minimum: '$1',
-    platform: 'Mobile + web',
-    commission: '$0 demo',
-    execution: 'Scheduled batch demo',
-    details: 'Dummy fractional-share venue with region-dependent availability.',
+    name: "FractionHub Sandbox",
+    venue: "Fractional equity demo",
+    products: ["Fractional share"],
+    symbols: ["AAPL", "MSFT", "NVDA"],
+    status: "Restricted",
+    spread: "Reference quote",
+    minimum: "$1",
+    platform: "Mobile + web",
+    commission: "$0 demo",
+    execution: "Scheduled batch demo",
+    details: "Dummy fractional-share venue with region-dependent availability.",
   },
   {
-    name: 'Northstar Markets',
-    venue: 'Regulated broker demo',
-    products: ['Share', 'FX spot', 'CFD', 'Future'],
-    symbols: ['AAPL', 'MSFT', 'EUR/USD', 'XAU/USD', 'SPX'],
-    status: 'Requires account',
-    spread: 'From 0.8 pip',
-    minimum: '$250',
-    platform: 'WebTrader',
+    name: "Northstar Markets",
+    venue: "Regulated broker demo",
+    products: ["Share", "FX spot", "CFD", "Future"],
+    symbols: ["AAPL", "MSFT", "EUR/USD", "XAU/USD", "SPX"],
+    status: "Requires account",
+    spread: "From 0.8 pip",
+    minimum: "$250",
+    platform: "WebTrader",
   },
   {
-    name: 'Atlas Exchange',
-    venue: 'Digital asset venue demo',
-    products: ['Spot', 'Perpetual'],
-    symbols: ['BTC/USD', 'ETH/USD', 'SOL/USD'],
-    status: 'Requires account',
-    spread: 'From 0.04%',
-    minimum: '$10',
-    platform: 'API + web',
+    name: "Atlas Exchange",
+    venue: "Digital asset venue demo",
+    products: ["Spot", "Perpetual"],
+    symbols: ["BTC/USD", "ETH/USD", "SOL/USD"],
+    status: "Requires account",
+    spread: "From 0.04%",
+    minimum: "$10",
+    platform: "API + web",
   },
   {
-    name: 'Regional Access Desk',
-    venue: 'Jurisdiction-dependent',
-    products: ['CFD', 'Future'],
-    symbols: ['XAU/USD', 'WTI/USD', 'SPX'],
-    status: 'Restricted',
-    spread: 'Check conditions',
-    minimum: 'Varies',
-    platform: 'Partner platform',
+    name: "Regional Access Desk",
+    venue: "Jurisdiction-dependent",
+    products: ["CFD", "Future"],
+    symbols: ["XAU/USD", "WTI/USD", "SPX"],
+    status: "Restricted",
+    spread: "Check conditions",
+    minimum: "Varies",
+    platform: "Partner platform",
   },
 ];
 
 const tabList: DetailTab[] = [
-  'Overview',
-  'Technicals',
-  'Market Data',
-  'News',
-  'Analysis',
-  'Forecast',
-  'Products',
-  'Brokers',
+  "Overview",
+  "Technicals",
+  "Market Data",
+  "News",
+  "Analysis",
+  "Forecast",
+  "Products",
+  "Brokers",
 ];
 type InstrumentNews = {
   source: string;
@@ -172,168 +178,165 @@ type InstrumentNews = {
 };
 const instrumentNews = (instrument: Instrument): InstrumentNews[] => [
   {
-    source: 'Marketsyde AI',
-    time: '10:42',
+    source: "Marketsyde AI",
+    time: "10:42",
     title: `${instrument.name} holds its monitored technical level`,
     summary: `${instrument.symbol} is showing ${instrument.rvol.toFixed(2)}x relative volume with sentiment at ${instrument.sentiment}%.`,
   },
   {
-    source: 'Demo Wire',
-    time: '09:18',
+    source: "Demo Wire",
+    time: "09:18",
     title: `Participation broadens across ${instrument.sector}`,
-    summary: `The latest move is being tracked alongside ${instrument.subSector ?? 'the broader market'} activity.`,
+    summary: `The latest move is being tracked alongside ${instrument.subSector ?? "the broader market"} activity.`,
   },
   {
-    source: 'Market Brief',
-    time: 'Yesterday',
+    source: "Market Brief",
+    time: "Yesterday",
     title: `What matters next for ${instrument.symbol}`,
     summary:
-      'Macro context, liquidity, and provider availability remain the main watch items.',
+      "Macro context, liquidity, and provider availability remain the main watch items.",
   },
   {
-    source: 'Sector Pulse',
-    time: 'Yesterday',
+    source: "Sector Pulse",
+    time: "Yesterday",
     title: `${instrument.sector} breadth keeps expanding`,
     summary: `Related names are contributing to the ${instrument.symbol} move, with participation spreading across the group.`,
   },
   {
-    source: 'Exchange Desk',
-    time: 'Sep 9',
+    source: "Exchange Desk",
+    time: "Sep 9",
     title: `Liquidity remains healthy around ${instrument.symbol}`,
     summary:
-      'Demo market depth and relative activity remain above the recent baseline.',
+      "Demo market depth and relative activity remain above the recent baseline.",
   },
   {
-    source: 'Research Note',
-    time: 'Sep 8',
+    source: "Research Note",
+    time: "Sep 8",
     title: `Analysts update the ${instrument.name} watchlist`,
     summary:
-      'The latest context combines momentum, volume, and upcoming market catalysts.',
+      "The latest context combines momentum, volume, and upcoming market catalysts.",
   },
 ];
 
 function assetClass(instrument: Instrument) {
-  if (instrument.market === 'Forex') return 'Forex';
-  if (instrument.market === 'Crypto') return 'Crypto';
-  if (instrument.market === 'Commodity') return 'Commodity';
-  if (instrument.market === 'US Stocks' || instrument.market === 'Stocks')
-    return 'Stock';
-  return 'Index';
+  if (instrument.market === "Forex") return "Forex";
+  if (instrument.market === "Crypto") return "Crypto";
+  if (instrument.market === "Commodity") return "Commodity";
+  if (instrument.market === "US Stocks" || instrument.market === "Stocks")
+    return "Stock";
+  return "Index";
 }
 
 function availableProducts(instrument: Instrument): ProductType[] {
   const kind = assetClass(instrument);
-  if (kind === 'Crypto') return ['Spot', 'Perpetual', 'CFD'];
-  if (kind === 'Forex') return ['FX spot', 'CFD', 'Future'];
-  if (kind === 'Commodity') return ['Spot', 'CFD', 'Future'];
-  if (kind === 'Index') return ['CFD', 'Future'];
-  return ['Share', 'Fractional share', 'CFD'];
+  if (kind === "Crypto") return ["Spot", "Perpetual", "CFD"];
+  if (kind === "Forex") return ["FX spot", "CFD", "Future"];
+  if (kind === "Commodity") return ["Spot", "CFD", "Future"];
+  if (kind === "Index") return ["CFD", "Future"];
+  return ["Share", "Fractional share", "CFD"];
 }
 
 function recommendedProductCopy(
   kind: string,
 ): { product: ProductType; detail: string }[] {
-  if (kind === 'Crypto')
+  if (kind === "Crypto")
     return [
-      { product: 'Spot', detail: 'Direct 24/7 asset exposure' },
-      { product: 'Perpetual', detail: 'Leveraged directional product' },
+      { product: "Spot", detail: "Direct 24/7 asset exposure" },
+      { product: "Perpetual", detail: "Leveraged directional product" },
     ];
-  if (kind === 'Forex')
+  if (kind === "Forex")
     return [
-      { product: 'FX spot', detail: 'Standard currency-pair access' },
-      { product: 'CFD', detail: 'Flexible margin product' },
+      { product: "FX spot", detail: "Standard currency-pair access" },
+      { product: "CFD", detail: "Flexible margin product" },
     ];
-  if (kind === 'Commodity')
+  if (kind === "Commodity")
     return [
-      { product: 'Future', detail: 'Exchange-traded contract' },
-      { product: 'CFD', detail: 'Flexible margin product' },
+      { product: "Future", detail: "Exchange-traded contract" },
+      { product: "CFD", detail: "Flexible margin product" },
     ];
-  if (kind === 'Index')
+  if (kind === "Index")
     return [
-      { product: 'CFD', detail: 'Broad index exposure' },
-      { product: 'Future', detail: 'Exchange-traded contract' },
+      { product: "CFD", detail: "Broad index exposure" },
+      { product: "Future", detail: "Exchange-traded contract" },
     ];
   return [
-    { product: 'Share', detail: 'Direct company ownership' },
-    { product: 'Fractional share', detail: 'Smaller position sizing' },
+    { product: "Share", detail: "Direct company ownership" },
+    { product: "Fractional share", detail: "Smaller position sizing" },
   ];
 }
 
 function displayValue(instrument: Instrument) {
-  if (assetClass(instrument) === 'Forex') return instrument.price.toFixed(4);
+  if (assetClass(instrument) === "Forex") return instrument.price.toFixed(4);
   if (instrument.price < 1) return instrument.price.toFixed(4);
   return instrument.price.toLocaleString(undefined, {
     maximumFractionDigits: 2,
   });
 }
 
-type PerformancePeriod = '1D' | '1W' | '1M' | '1Y';
+type PerformancePeriod = "1D" | "1W" | "1M" | "1Y";
 type CompareRange =
-  | '1d'
-  | '3d'
-  | '7d'
-  | '14d'
-  | '1m'
-  | '3m'
-  | '6m'
-  | '1y'
-  | '3y'
-  | '5y';
+  "1d" | "3d" | "7d" | "14d" | "1m" | "3m" | "6m" | "1y" | "3y" | "5y";
 const periodDays: Record<PerformancePeriod, number> = {
-  '1D': 1,
-  '1W': 7,
-  '1M': 30,
-  '1Y': 365,
+  "1D": 1,
+  "1W": 7,
+  "1M": 30,
+  "1Y": 365,
 };
 const thirtyTwo = 32;
 const compareRanges: CompareRange[] = [
-  '1d',
-  '3d',
-  '7d',
-  '14d',
-  '1m',
-  '3m',
-  '6m',
-  '1y',
-  '3y',
-  '5y',
+  "1d",
+  "3d",
+  "7d",
+  "14d",
+  "1m",
+  "3m",
+  "6m",
+  "1y",
+  "3y",
+  "5y",
 ];
-const marketTagTopics = ['TECHNICAL', 'BREADTH', 'MACRO', 'SECTOR', 'RISK'] as const;
+const marketTagTopics = [
+  "TECHNICAL",
+  "BREADTH",
+  "MACRO",
+  "SECTOR",
+  "RISK",
+] as const;
 const rangeReturnMultiplier: Record<CompareRange, number> = {
-  '1d': 1,
-  '3d': 1.35,
-  '7d': 1.8,
-  '14d': 2.2,
-  '1m': 1,
-  '3m': 2.2,
-  '6m': 3.8,
-  '1y': 7.4,
-  '3y': 16,
-  '5y': 25,
+  "1d": 1,
+  "3d": 1.35,
+  "7d": 1.8,
+  "14d": 2.2,
+  "1m": 1,
+  "3m": 2.2,
+  "6m": 3.8,
+  "1y": 7.4,
+  "3y": 16,
+  "5y": 25,
 };
 const compareReturn = (instrument: Instrument, range: CompareRange) =>
-  range === '1m'
+  range === "1m"
     ? instrument.return1m
     : instrument.change * rangeReturnMultiplier[range];
 const periodReturn = (instrument: Instrument, period: PerformancePeriod) =>
-  period === '1D'
+  period === "1D"
     ? instrument.change
-    : period === '1W'
-      ? compareReturn(instrument, '7d')
-      : period === '1M'
+    : period === "1W"
+      ? compareReturn(instrument, "7d")
+      : period === "1M"
         ? instrument.return1m
-        : compareReturn(instrument, '1y');
+        : compareReturn(instrument, "1y");
 const periodToRange: Record<PerformancePeriod, CompareRange> = {
-  '1D': '1d',
-  '1W': '7d',
-  '1M': '1m',
-  '1Y': '1y',
+  "1D": "1d",
+  "1W": "7d",
+  "1M": "1m",
+  "1Y": "1y",
 };
 const rangeToPeriod: Partial<Record<CompareRange, PerformancePeriod>> = {
-  '1d': '1D',
-  '7d': '1W',
-  '1m': '1M',
-  '1y': '1Y',
+  "1d": "1D",
+  "7d": "1W",
+  "1m": "1M",
+  "1y": "1Y",
 };
 function performanceSeries(
   instrument: Instrument,
@@ -354,64 +357,684 @@ function performanceSeries(
   });
 }
 
-export function InstrumentDetail({ instrument, chartOpen, chartContent, showLinkedTags, onShowLinkedTagsChange, onCommunityChart, onBack, onChart, onToast }: { instrument: Instrument; chartOpen: boolean; chartContent: ReactNode; showLinkedTags: boolean; onShowLinkedTagsChange: (show: boolean) => void; onCommunityChart: (name: string, tag: string) => void; onBack: () => void; onChart: () => void; onToast: (message: string) => void }) {
-  const [tab, setTab] = useState('Overview');
+export function InstrumentDetail({
+  instrument,
+  chartOpen,
+  chartContent,
+  showLinkedTags,
+  onShowLinkedTagsChange,
+  followedPublisher,
+  onFollowPublisher,
+  onCommunityChart,
+  onBack,
+  onChart,
+  onToast,
+}: {
+  instrument: Instrument;
+  chartOpen: boolean;
+  chartContent: ReactNode;
+  showLinkedTags: boolean;
+  onShowLinkedTagsChange: (show: boolean) => void;
+  followedPublisher: { name: string; tag: string } | null;
+  onFollowPublisher: (name: string, tag: string) => void;
+  onCommunityChart: (name: string, tag: string) => void;
+  onBack: () => void;
+  onChart: () => void;
+  onToast: (message: string) => void;
+}) {
+  const [tab, setTab] = useState("Overview");
   const [watching, setWatching] = useState(false);
   const [vote, setVote] = useState<string | null>(null);
   const [article, setArticle] = useState<InstrumentNews | null>(null);
-  const [product, setProduct] = useState<ProductType>(availableProducts(instrument)[0]);
-  const [newsFilter, setNewsFilter] = useState('All news');
+  const [product, setProduct] = useState<ProductType>(
+    availableProducts(instrument)[0],
+  );
+  const [newsFilter, setNewsFilter] = useState("All news");
   const kind = assetClass(instrument);
   const news = instrumentNews(instrument);
-  const taggedNews = news.map((item, index) => ({ ...item, tag: marketTagTopics[index % marketTagTopics.length] }));
+  const taggedNews = news.map((item, index) => ({
+    ...item,
+    tag: marketTagTopics[index % marketTagTopics.length],
+  }));
   const positive = instrument.change >= 0;
   const focusCommunityPost = (name: string) => {
-    const post = Array.from(document.querySelectorAll<HTMLElement>('.concept-post')).find((item) => item.querySelector('b')?.textContent?.includes(name));
+    const post = Array.from(
+      document.querySelectorAll<HTMLElement>(".concept-post"),
+    ).find((item) => item.querySelector("b")?.textContent?.includes(name));
     if (!post) return;
-    post.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    post.classList.add('concept-post-focus');
-    window.setTimeout(() => post.classList.remove('concept-post-focus'), 2200);
+    post.scrollIntoView({ behavior: "smooth", block: "center" });
+    post.classList.add("concept-post-focus");
+    window.setTimeout(() => post.classList.remove("concept-post-focus"), 2200);
   };
-  const instrumentTabs = <nav className="concept-tabs concept-tabs-workspace" aria-label="Instrument sections">{[...tabList.filter(item => !['News', 'Products', 'Brokers'].includes(item)), 'Products & Brokers', ...(kind === 'Stock' ? ['Financial Report'] : [])].map(item => <button key={item} onClick={() => setTab(item)} aria-current={tab === item ? 'page' : undefined}>{item}</button>)}</nav>;
-  return <div className="concept-instrument">
-    <section className="concept-bounty"><div className="concept-bounty-icon"><TrendingUp /></div><div><span className="concept-gold-label">DAILY MARKET FOCUS</span><h2>Explore {instrument.symbol}, from price to perspective</h2><p>Review the chart, market context, and community outlook.</p></div><button onClick={onChart}>Open advanced chart <ArrowRight size={16} /></button></section>
-    <section className="concept-quote">
-      <div className="concept-identity"><button onClick={onBack} className="concept-back"><ArrowLeft size={14} /> Markets / {kind}</button><div className="concept-name"><div className="concept-symbol">{instrument.symbol.slice(0, 4)}</div><div><h1>{instrument.name}</h1><div className="concept-tags"><span>{instrument.primaryMarket ?? instrument.market}: {instrument.symbol}</span><span>{instrument.subSector ?? instrument.sector}</span></div><p>Demo quote · {kind === 'Crypto' ? '24/7 market' : 'Regular market session'} · USD</p></div></div></div>
-      <div className="concept-price"><h2>{kind === 'Forex' ? '' : '$'}{displayValue(instrument)}</h2><span className={positive ? 'concept-up' : 'concept-down'}>{positive ? '↗ +' : '↘ '}{instrument.change.toFixed(2)}%</span><small> Today · demo snapshot</small><div className="concept-quote-stats"><div><small>MARKET CAP</small><b>{instrument.marketCap ? `$${instrument.marketCap.toLocaleString()}B` : '—'}</b></div><div><small>VOLUME</small><b>{instrument.volume.toLocaleString()}M</b></div><div><small>RELATIVE VOLUME</small><b>{instrument.rvol.toFixed(2)}×</b></div><div><small>1 MONTH RETURN</small><b>{instrument.return1m > 0 ? '+' : ''}{instrument.return1m}%</b></div></div><div className="concept-actions"><button onClick={() => { setWatching(!watching); onToast(watching ? 'Removed from watchlist' : 'Added to watchlist'); }}><Star size={15} fill={watching ? 'currentColor' : 'none'} />{watching ? 'Watching' : 'Watchlist'}</button><button onClick={() => onToast(`Demo price alert created for ${instrument.symbol}`)}><Bell size={15} /> Alert</button><button className="concept-primary" onClick={() => setTab('Brokers')}>Trade via broker <ArrowRight size={16} /></button></div></div>
-    </section>
-    <div className="concept-columns">
-      <aside className="concept-news concept-card"><div className="concept-section-title"><Newspaper size={19} /><div><h2>Latest news</h2><p>Market context for {instrument.symbol}</p></div><span className="concept-demo">DEMO</span></div><div className="concept-news-filters">{['All news', 'Market', 'Research'].map(item => <button key={item} className={newsFilter === item ? 'selected' : ''} onClick={() => setNewsFilter(item)}>{item}</button>)}</div>{taggedNews.filter((_, index) => newsFilter === 'All news' || (newsFilter === 'Market' ? index < 3 : index >= 3)).map(item => <article id={`news-${instrument.symbol.replaceAll('/', '-')}-${item.tag}`} className="market-tag-target" key={item.title}><div className="concept-news-meta"><span>{item.source}</span><small>{item.time}</small></div><a className="market-context-tag" href={`#community-${instrument.symbol.replaceAll('/', '-')}-${item.tag}`}>#{instrument.symbol}_{item.tag}</a><h3>{item.title}</h3><p>{item.summary}</p><button onClick={() => setArticle(item)}>Read full <ArrowRight size={12} /></button></article>)}</aside>
-      <div className="concept-analysis">
-        {tab !== 'Overview' && <section className="panel concept-tabs-panel">{instrumentTabs}</section>}
-        {tab === 'Overview' && <><Overview instrument={instrument} kind={kind} onChart={onChart} chartOpen={chartOpen} chartContent={chartContent} showLinkedTags={showLinkedTags} onShowLinkedTagsChange={onShowLinkedTagsChange} tabs={instrumentTabs} /><section className="concept-card concept-summary"><div className="concept-summary-top"><div><p className="concept-eyebrow">TECHNICAL OUTLOOK</p><h2 className={positive ? 'concept-up' : 'concept-down'}>{instrument.signal === 'LONG' ? 'Positive momentum' : instrument.signal === 'WATCH' ? 'Watch for confirmation' : 'Neutral outlook'}</h2><p>Synthetic signal · {instrument.confidence}% confidence</p></div><div><p className="concept-eyebrow">COMMUNITY OUTLOOK</p><b>{instrument.sentiment}% bullish</b></div></div><div className="concept-sentiment-bar"><i style={{width: `${instrument.sentiment}%`}} /></div><h3>Key valuation & activity</h3><div className="concept-metrics"><Metric label="P/E ratio" value={instrument.pe ? `${instrument.pe.toFixed(1)}x` : '—'} /><Metric label="RSI (14)" value={instrument.rsi.toFixed(1)} /><Metric label="Relative volume" value={`${instrument.rvol.toFixed(2)}x`} /><Metric label="1M return" value={`${instrument.return1m}%`} /></div><h3>Technical evidence</h3><TechnicalSummary instrument={instrument} /></section></>}
-        {tab === 'Technicals' && <TechnicalSummary instrument={instrument} />}
-        {tab === 'Market Data' && <MarketStats instrument={instrument} kind={kind} />}
-        {tab === 'Analysis' && <Analysis instrument={instrument} kind={kind} />}
-        {tab === 'Forecast' && <Forecast instrument={instrument} kind={kind} onCommunityScenario={focusCommunityPost} />}
-        {['Products', 'Brokers', 'Products & Brokers'].includes(tab) && <ProductsAndBrokersTable instrument={instrument} product={product} products={availableProducts(instrument)} setProduct={setProduct} brokers={brokers.filter(b => b.symbols.includes(instrument.symbol))} />}
-        {tab === 'Financial Report' && <FinancialReport instrument={instrument} />}
+  const instrumentTabs = (
+    <nav
+      className="concept-tabs concept-tabs-workspace"
+      aria-label="Instrument sections"
+    >
+      {[
+        ...tabList.filter(
+          (item) => !["News", "Products", "Brokers"].includes(item),
+        ),
+        "Products & Brokers",
+        ...(kind === "Stock" ? ["Financial Report"] : []),
+      ].map((item) => (
+        <button
+          key={item}
+          onClick={() => setTab(item)}
+          aria-current={tab === item ? "page" : undefined}
+        >
+          {item}
+        </button>
+      ))}
+    </nav>
+  );
+  return (
+    <div className="concept-instrument">
+      <section className="concept-bounty">
+        <div className="concept-bounty-icon">
+          <TrendingUp />
+        </div>
+        <div>
+          <span className="concept-gold-label">DAILY MARKET FOCUS</span>
+          <h2>Explore {instrument.symbol}, from price to perspective</h2>
+          <p>Review the chart, market context, and community outlook.</p>
+        </div>
+        <button onClick={onChart}>
+          Open advanced chart <ArrowRight size={16} />
+        </button>
+      </section>
+      <section className="concept-quote">
+        <div className="concept-identity">
+          <button onClick={onBack} className="concept-back">
+            <ArrowLeft size={14} /> Markets / {kind}
+          </button>
+          <div className="concept-name">
+            <div className="concept-symbol">
+              {instrument.symbol.slice(0, 4)}
+            </div>
+            <div>
+              <h1>{instrument.name}</h1>
+              <div className="concept-tags">
+                <span>
+                  {instrument.primaryMarket ?? instrument.market}:{" "}
+                  {instrument.symbol}
+                </span>
+                <span>{instrument.subSector ?? instrument.sector}</span>
+              </div>
+              <p>
+                Demo quote ·{" "}
+                {kind === "Crypto" ? "24/7 market" : "Regular market session"} ·
+                USD
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="concept-price">
+          <h2>
+            {kind === "Forex" ? "" : "$"}
+            {displayValue(instrument)}
+          </h2>
+          <span className={positive ? "concept-up" : "concept-down"}>
+            {positive ? "↗ +" : "↘ "}
+            {instrument.change.toFixed(2)}%
+          </span>
+          <small> Today · demo snapshot</small>
+          <div className="concept-quote-stats">
+            <div>
+              <small>MARKET CAP</small>
+              <b>
+                {instrument.marketCap
+                  ? `$${instrument.marketCap.toLocaleString()}B`
+                  : "—"}
+              </b>
+            </div>
+            <div>
+              <small>VOLUME</small>
+              <b>{instrument.volume.toLocaleString()}M</b>
+            </div>
+            <div>
+              <small>RELATIVE VOLUME</small>
+              <b>{instrument.rvol.toFixed(2)}×</b>
+            </div>
+            <div>
+              <small>1 MONTH RETURN</small>
+              <b>
+                {instrument.return1m > 0 ? "+" : ""}
+                {instrument.return1m}%
+              </b>
+            </div>
+          </div>
+          <div className="concept-actions">
+            <button
+              onClick={() => {
+                setWatching(!watching);
+                onToast(
+                  watching ? "Removed from watchlist" : "Added to watchlist",
+                );
+              }}
+            >
+              <Star size={15} fill={watching ? "currentColor" : "none"} />
+              {watching ? "Watching" : "Watchlist"}
+            </button>
+            <button
+              onClick={() =>
+                onToast(`Demo price alert created for ${instrument.symbol}`)
+              }
+            >
+              <Bell size={15} /> Alert
+            </button>
+            <button
+              className="concept-primary"
+              onClick={() => setTab("Brokers")}
+            >
+              Trade via broker <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+      </section>
+      <div className="concept-columns">
+        <aside className="concept-news concept-card">
+          <div className="concept-section-title">
+            <Newspaper size={19} />
+            <div>
+              <h2>Latest news</h2>
+              <p>Market context for {instrument.symbol}</p>
+            </div>
+            <span className="concept-demo">DEMO</span>
+          </div>
+          <div className="concept-news-filters">
+            {["All news", "Market", "Research"].map((item) => (
+              <button
+                key={item}
+                className={newsFilter === item ? "selected" : ""}
+                onClick={() => setNewsFilter(item)}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+          {taggedNews
+            .filter(
+              (_, index) =>
+                newsFilter === "All news" ||
+                (newsFilter === "Market" ? index < 3 : index >= 3),
+            )
+            .map((item) => (
+              <article
+                id={`news-${instrument.symbol.replaceAll("/", "-")}-${item.tag}`}
+                className="market-tag-target"
+                key={item.title}
+              >
+                <div className="concept-news-meta">
+                  <span>{item.source}</span>
+                  <small>{item.time}</small>
+                </div>
+                <a
+                  className="market-context-tag"
+                  href={`#community-${instrument.symbol.replaceAll("/", "-")}-${item.tag}`}
+                >
+                  #{instrument.symbol}_{item.tag}
+                </a>
+                <h3>{item.title}</h3>
+                <p>{item.summary}</p>
+                <button onClick={() => setArticle(item)}>
+                  Read full <ArrowRight size={12} />
+                </button>
+              </article>
+            ))}
+        </aside>
+        <div className="concept-analysis">
+          {tab !== "Overview" && (
+            <section className="panel concept-tabs-panel">
+              {instrumentTabs}
+            </section>
+          )}
+          {tab === "Overview" && (
+            <>
+              <Overview
+                instrument={instrument}
+                kind={kind}
+                onChart={onChart}
+                chartOpen={chartOpen}
+                chartContent={chartContent}
+                showLinkedTags={showLinkedTags}
+                onShowLinkedTagsChange={onShowLinkedTagsChange}
+                tabs={instrumentTabs}
+              />
+              <section className="concept-card concept-summary">
+                <div className="concept-summary-top">
+                  <div>
+                    <p className="concept-eyebrow">TECHNICAL OUTLOOK</p>
+                    <h2 className={positive ? "concept-up" : "concept-down"}>
+                      {instrument.signal === "LONG"
+                        ? "Positive momentum"
+                        : instrument.signal === "WATCH"
+                          ? "Watch for confirmation"
+                          : "Neutral outlook"}
+                    </h2>
+                    <p>
+                      Synthetic signal · {instrument.confidence}% confidence
+                    </p>
+                  </div>
+                  <div>
+                    <p className="concept-eyebrow">COMMUNITY OUTLOOK</p>
+                    <b>{instrument.sentiment}% bullish</b>
+                  </div>
+                </div>
+                <div className="concept-sentiment-bar">
+                  <i style={{ width: `${instrument.sentiment}%` }} />
+                </div>
+                <h3>Key valuation & activity</h3>
+                <div className="concept-metrics">
+                  <Metric
+                    label="P/E ratio"
+                    value={instrument.pe ? `${instrument.pe.toFixed(1)}x` : "—"}
+                  />
+                  <Metric label="RSI (14)" value={instrument.rsi.toFixed(1)} />
+                  <Metric
+                    label="Relative volume"
+                    value={`${instrument.rvol.toFixed(2)}x`}
+                  />
+                  <Metric label="1M return" value={`${instrument.return1m}%`} />
+                </div>
+                <h3>Technical evidence</h3>
+                <TechnicalSummary instrument={instrument} />
+              </section>
+            </>
+          )}
+          {tab === "Technicals" && <TechnicalSummary instrument={instrument} />}
+          {tab === "Market Data" && (
+            <MarketStats instrument={instrument} kind={kind} />
+          )}
+          {tab === "Analysis" && (
+            <Analysis instrument={instrument} kind={kind} />
+          )}
+          {tab === "Forecast" && (
+            <Forecast
+              instrument={instrument}
+              kind={kind}
+              onCommunityScenario={focusCommunityPost}
+            />
+          )}
+          {["Products", "Brokers", "Products & Brokers"].includes(tab) && (
+            <ProductsAndBrokersTable
+              instrument={instrument}
+              product={product}
+              products={availableProducts(instrument)}
+              setProduct={setProduct}
+              brokers={brokers.filter((b) =>
+                b.symbols.includes(instrument.symbol),
+              )}
+            />
+          )}
+          {tab === "Financial Report" && (
+            <FinancialReport instrument={instrument} />
+          )}
+        </div>
+        <aside className="concept-community concept-card">
+          <div className="concept-section-title">
+            <Users size={20} />
+            <div>
+              <h2>Community sentiment</h2>
+              <p>{instrument.symbol} trader perspectives</p>
+            </div>
+          </div>
+          <div className="concept-voting">
+            <div>
+              <b className="concept-up">↗ {instrument.sentiment}% Bullish</b>
+              <b className="concept-down">
+                {100 - instrument.sentiment}% Bearish ↘
+              </b>
+            </div>
+            <div className="concept-sentiment-bar">
+              <i style={{ width: `${instrument.sentiment}%` }} />
+            </div>
+            <div>
+              {["Bullish", "Bearish"].map((item) => (
+                <button
+                  key={item}
+                  aria-pressed={vote === item}
+                  onClick={() => {
+                    setVote(item);
+                    onToast(`${item} demo vote recorded`);
+                  }}
+                >
+                  {vote === item ? "✓ " : ""}Vote {item}
+                </button>
+              ))}
+            </div>
+          </div>
+          <h3 className="concept-eyebrow">PREDICTOR SPOTLIGHT</h3>
+          <div className="concept-predictor">
+            <span className="concept-avatar">MC</span>
+            <div>
+              <b>Maya Chen</b>
+              <p>Momentum analyst</p>
+            </div>
+            <strong>
+              82%<small>accuracy · demo</small>
+            </strong>
+          </div>
+          <button
+            className="concept-outline"
+            onClick={() =>
+              onToast(
+                `Community discussion for ${instrument.symbol} is in demo mode`,
+              )
+            }
+          >
+            Discuss {instrument.symbol} <MessageCircle size={15} />
+          </button>
+          {[
+            {
+              name: "Daniel Markson",
+              initials: "DM",
+              time: "19h",
+              tag: "TECHNICAL",
+              text: `Watching ${instrument.symbol}: participation is stronger than the prior session. Looking for confirmation around the next pullback.`,
+              agree: 14,
+              disagree: 6,
+            },
+            {
+              name: "CLORA",
+              initials: "CL",
+              time: "21h",
+              tag: "BREADTH",
+              text: `The ${instrument.symbol} setup looks constructive. Volume and broader ${instrument.sector.toLowerCase()} activity are the next things on my checklist.`,
+              agree: 13,
+              disagree: 5,
+            },
+            {
+              name: "Aisha Rahman",
+              initials: "AR",
+              time: "1d",
+              tag: "MACRO",
+              text: `Base case for ${instrument.symbol}: steady demand and improving breadth support a measured continuation, with volatility around earnings.`,
+              agree: 17,
+              disagree: 7,
+            },
+            {
+              name: "Leo Park",
+              initials: "LP",
+              time: "1d",
+              tag: "SECTOR",
+              text: `I see a range scenario for ${instrument.symbol}. A breakout needs stronger volume; otherwise consolidation remains likely.`,
+              agree: 9,
+              disagree: 8,
+            },
+            {
+              name: "Sofia Mendes",
+              initials: "SM",
+              time: "2d",
+              tag: "RISK",
+              text: `Risk case for ${instrument.symbol}: valuation sensitivity could create a deeper retest before the longer-term trend resumes.`,
+              agree: 8,
+              disagree: 12,
+            },
+          ].map((post) => (
+            <CommunityPredictionPost
+              key={post.name}
+              instrument={instrument}
+              post={post}
+              followed={followedPublisher?.tag === post.tag}
+              onFollow={() => onFollowPublisher(post.name, post.tag)}
+              onToast={onToast}
+              onCommunityChart={onCommunityChart}
+              onBroker={() => {
+                setTab("Products & Brokers");
+                window.setTimeout(
+                  () =>
+                    document
+                      .querySelector(".concept-analysis")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                  50,
+                );
+              }}
+            />
+          ))}
+        </aside>
       </div>
-      <aside className="concept-community concept-card"><div className="concept-section-title"><Users size={20} /><div><h2>Community sentiment</h2><p>{instrument.symbol} trader perspectives</p></div></div><div className="concept-voting"><div><b className="concept-up">↗ {instrument.sentiment}% Bullish</b><b className="concept-down">{100-instrument.sentiment}% Bearish ↘</b></div><div className="concept-sentiment-bar"><i style={{width: `${instrument.sentiment}%`}} /></div><div>{['Bullish', 'Bearish'].map(item => <button key={item} aria-pressed={vote === item} onClick={() => {setVote(item); onToast(`${item} demo vote recorded`);}}>{vote === item ? '✓ ' : ''}Vote {item}</button>)}</div></div><h3 className="concept-eyebrow">PREDICTOR SPOTLIGHT</h3><div className="concept-predictor"><span className="concept-avatar">MC</span><div><b>Maya Chen</b><p>Momentum analyst</p></div><strong>82%<small>accuracy · demo</small></strong></div><button className="concept-outline" onClick={() => onToast(`Community discussion for ${instrument.symbol} is in demo mode`)}>Discuss {instrument.symbol} <MessageCircle size={15} /></button>{[{name:'Daniel Markson',initials:'DM',time:'19h',tag:'TECHNICAL',text:`Watching ${instrument.symbol}: participation is stronger than the prior session. Looking for confirmation around the next pullback.`,agree:14,disagree:6},{name:'CLORA',initials:'CL',time:'21h',tag:'BREADTH',text:`The ${instrument.symbol} setup looks constructive. Volume and broader ${instrument.sector.toLowerCase()} activity are the next things on my checklist.`,agree:13,disagree:5},{name:'Aisha Rahman',initials:'AR',time:'1d',tag:'MACRO',text:`Base case for ${instrument.symbol}: steady demand and improving breadth support a measured continuation, with volatility around earnings.`,agree:17,disagree:7},{name:'Leo Park',initials:'LP',time:'1d',tag:'SECTOR',text:`I see a range scenario for ${instrument.symbol}. A breakout needs stronger volume; otherwise consolidation remains likely.`,agree:9,disagree:8},{name:'Sofia Mendes',initials:'SM',time:'2d',tag:'RISK',text:`Risk case for ${instrument.symbol}: valuation sensitivity could create a deeper retest before the longer-term trend resumes.`,agree:8,disagree:12}].map(post => <CommunityPredictionPost key={post.name} instrument={instrument} post={post} onToast={onToast} onCommunityChart={onCommunityChart} onBroker={()=>{setTab('Products & Brokers');window.setTimeout(()=>document.querySelector('.concept-analysis')?.scrollIntoView({behavior:'smooth',block:'start'}),50)}} />)}</aside>
+      <section className="concept-cashback">
+        <div className="concept-bounty-icon">
+          <WalletCards />
+        </div>
+        <div>
+          <span className="concept-gold-label">BROKER REWARDS</span>
+          <h2>Make your {instrument.symbol} trades go further</h2>
+          <p>
+            Explore matched brokers, product access, and available cashback
+            offers.
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            setTab("Brokers");
+            window.scrollTo({ top: 400, behavior: "smooth" });
+          }}
+        >
+          Explore broker offers <ArrowRight size={16} />
+        </button>
+      </section>
+      <footer className="concept-footer">
+        <b>marketsyde</b>
+        <span>Market intelligence · News · Community · Rewards</span>
+        <small>Demo market data and community content</small>
+      </footer>
+      {article && (
+        <div
+          className="concept-modal-backdrop"
+          onClick={() => setArticle(null)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label={article.title}
+            className="concept-card concept-article"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              className="concept-outline"
+              onClick={() => setArticle(null)}
+            >
+              Close article
+            </button>
+            <p className="concept-eyebrow">
+              {article.source} · {article.time} · DEMO
+            </p>
+            <h2>{article.title}</h2>
+            <p>{article.summary}</p>
+            <p>
+              This preview contains a synthetic market brief for{" "}
+              {instrument.symbol}.
+            </p>
+          </section>
+        </div>
+      )}
     </div>
-    <section className="concept-cashback"><div className="concept-bounty-icon"><WalletCards /></div><div><span className="concept-gold-label">BROKER REWARDS</span><h2>Make your {instrument.symbol} trades go further</h2><p>Explore matched brokers, product access, and available cashback offers.</p></div><button onClick={() => {setTab('Brokers'); window.scrollTo({top:400,behavior:'smooth'});}}>Explore broker offers <ArrowRight size={16} /></button></section>
-    <footer className="concept-footer"><b>marketsyde</b><span>Market intelligence · News · Community · Rewards</span><small>Demo market data and community content</small></footer>
-    {article && <div className="concept-modal-backdrop" onClick={() => setArticle(null)}><section role="dialog" aria-modal="true" aria-label={article.title} className="concept-card concept-article" onClick={event => event.stopPropagation()}><button className="concept-outline" onClick={() => setArticle(null)}>Close article</button><p className="concept-eyebrow">{article.source} · {article.time} · DEMO</p><h2>{article.title}</h2><p>{article.summary}</p><p>This preview contains a synthetic market brief for {instrument.symbol}.</p></section></div>}
-  </div>;
+  );
 }
 
-function CommunityPredictionPost({instrument,post,onToast,onCommunityChart,onBroker}:{instrument:Instrument;post:{name:string;initials:string;time:string;tag:string;text:string;agree:number;disagree:number};onToast:(message:string)=>void;onCommunityChart:(name:string,tag:string)=>void;onBroker:()=>void}) {
-  const [reaction,setReaction]=useState<'agree'|'disagree'|null>(null);
-  const [commentOpen,setCommentOpen]=useState(false);
-  const [comment,setComment]=useState('');
-  const [comments,setComments]=useState([{author:'Maya Chen',initials:'MC',time:'12m',text:'The volume confirmation is the key level I am watching.'},{author:'Alex Kim',initials:'AK',time:'34m',text:'This matches my base case, with risk kept below the recent swing.'},{author:'Priya S.',initials:'PS',time:'1h',text:'Useful scenario. I would wait for one more close above support.'}]);
-  const agree=post.agree+(reaction==='agree'?1:0);
-  const disagree=post.disagree+(reaction==='disagree'?1:0);
-  const total=agree+disagree;
-  const agreePercent=Math.round((agree/total)*100);
-  const disagreePercent=100-agreePercent;
-  const direction=agreePercent>=50?'Long':'Short';
-  const vote=(next:'agree'|'disagree')=>{setReaction(current=>current===next?null:next);onToast(`${next==='agree'?'Agree':'Disagree'} vote recorded · demo`)};
-  return <article id={`community-${instrument.symbol.replaceAll('/', '-')}-${post.tag}`} className="concept-post market-tag-target"><div><span className="concept-avatar">{post.initials}</span><b>{post.name}<small>Community contributor · {post.time}</small></b><span className={`ml-auto rounded-full px-2 py-1 text-[8px] font-bold ${direction==='Long'?'bg-emerald-50 text-emerald-600':'bg-rose-50 text-rose-600'}`}>Community vote · {direction} {agreePercent}%</span></div><a className="concept-post-tag market-context-tag" href={`#chart-${instrument.symbol.replaceAll('/', '-')}-${post.tag}`}>#{instrument.symbol}_{post.tag}</a><p>{post.text}</p><div className="mb-2 flex h-1.5 overflow-hidden rounded-full"><div className="h-full bg-emerald-400 transition-all" style={{width:`${agreePercent}%`}} /><div className="h-full bg-rose-400 transition-all" style={{width:`${disagreePercent}%`}} /></div><button className="text-emerald-600" aria-pressed={reaction==='agree'} onClick={()=>vote('agree')}><ThumbsUp size={14} /> Agree {agreePercent}%</button><button className="text-rose-600" aria-pressed={reaction==='disagree'} onClick={()=>vote('disagree')}><ThumbsDown size={14} /> Disagree {disagreePercent}%</button><small className="ml-1 text-[9px] text-slate-400">{total} voters</small><button onClick={() => onCommunityChart(post.name,post.tag)}><LineChart size={14} /> View chart</button><button aria-expanded={commentOpen} onClick={()=>setCommentOpen(open=>!open)}><MessageCircle size={14} /> Comment {comments.length}</button><button onClick={onBroker}><BriefcaseBusiness size={14} /> Connect broker</button>{commentOpen&&<div className="mt-3 space-y-2 rounded-xl bg-slate-50 p-2">{comments.map((item,index)=><div key={`${item.author}-${index}`} className="flex items-start gap-2 rounded-lg bg-white p-2 text-[9px]"><span className="grid size-6 shrink-0 place-items-center rounded-full bg-violet-100 font-bold text-violet-600">{item.initials}</span><div className="min-w-0"><b>{item.author} <small className="font-normal text-slate-400">· {item.time}</small></b><p className="mt-0.5 text-slate-600">{item.text}</p></div></div>)}<form className="flex gap-1" onSubmit={event=>{event.preventDefault();if(!comment.trim())return;setComments(current=>[...current,{author:'Josh',initials:'J',time:'now',text:comment.trim()}]);setComment('');onToast('Comment posted · demo')}}><input autoFocus value={comment} onChange={event=>setComment(event.target.value)} placeholder="Add a comment…" className="min-w-0 flex-1 rounded-lg border border-slate-200 px-2 py-1.5 text-[10px]"/><button type="submit" aria-label="Post comment"><Send size={13}/></button></form></div>}</article>;
+function CommunityPredictionPost({
+  instrument,
+  post,
+  followed,
+  onFollow,
+  onToast,
+  onCommunityChart,
+  onBroker,
+}: {
+  instrument: Instrument;
+  post: {
+    name: string;
+    initials: string;
+    time: string;
+    tag: string;
+    text: string;
+    agree: number;
+    disagree: number;
+  };
+  followed: boolean;
+  onFollow: () => void;
+  onToast: (message: string) => void;
+  onCommunityChart: (name: string, tag: string) => void;
+  onBroker: () => void;
+}) {
+  const [reaction, setReaction] = useState<"agree" | "disagree" | null>(null);
+  const [commentOpen, setCommentOpen] = useState(false);
+  const [comment, setComment] = useState("");
+  const [comments, setComments] = useState([
+    {
+      author: "Maya Chen",
+      initials: "MC",
+      time: "12m",
+      text: "The volume confirmation is the key level I am watching.",
+    },
+    {
+      author: "Alex Kim",
+      initials: "AK",
+      time: "34m",
+      text: "This matches my base case, with risk kept below the recent swing.",
+    },
+    {
+      author: "Priya S.",
+      initials: "PS",
+      time: "1h",
+      text: "Useful scenario. I would wait for one more close above support.",
+    },
+  ]);
+  const agree = post.agree + (reaction === "agree" ? 1 : 0);
+  const disagree = post.disagree + (reaction === "disagree" ? 1 : 0);
+  const total = agree + disagree;
+  const agreePercent = Math.round((agree / total) * 100);
+  const disagreePercent = 100 - agreePercent;
+  const direction = agreePercent >= 50 ? "Long" : "Short";
+  const vote = (next: "agree" | "disagree") => {
+    setReaction((current) => (current === next ? null : next));
+    onToast(`${next === "agree" ? "Agree" : "Disagree"} vote recorded · demo`);
+  };
+  return (
+    <article
+      id={`community-${instrument.symbol.replaceAll("/", "-")}-${post.tag}`}
+      className="concept-post market-tag-target"
+    >
+      <div>
+        <span className="concept-avatar">{post.initials}</span>
+        <b>
+          {post.name}
+          <small>Community contributor · {post.time}</small>
+        </b>
+        <span
+          className={`ml-auto rounded-full px-2 py-1 text-[8px] font-bold ${direction === "Long" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}
+        >
+          Community vote · {direction} {agreePercent}%
+        </span>
+      </div>
+      <a
+        className="concept-post-tag market-context-tag"
+        href={`#chart-${instrument.symbol.replaceAll("/", "-")}-${post.tag}`}
+      >
+        #{instrument.symbol}_{post.tag}
+      </a>
+      <button
+        aria-pressed={followed}
+        onClick={onFollow}
+        className={followed ? "text-amber-600" : ""}
+      >
+        <Bell size={14} fill={followed ? "currentColor" : "none"} />
+        {followed ? "Following alerts" : "Follow alerts"}
+      </button>
+      <p>{post.text}</p>
+      <div className="mb-2 flex h-1.5 overflow-hidden rounded-full">
+        <div
+          className="h-full bg-emerald-400 transition-all"
+          style={{ width: `${agreePercent}%` }}
+        />
+        <div
+          className="h-full bg-rose-400 transition-all"
+          style={{ width: `${disagreePercent}%` }}
+        />
+      </div>
+      <button
+        className="text-emerald-600"
+        aria-pressed={reaction === "agree"}
+        onClick={() => vote("agree")}
+      >
+        <ThumbsUp size={14} /> Agree {agreePercent}%
+      </button>
+      <button
+        className="text-rose-600"
+        aria-pressed={reaction === "disagree"}
+        onClick={() => vote("disagree")}
+      >
+        <ThumbsDown size={14} /> Disagree {disagreePercent}%
+      </button>
+      <small className="ml-1 text-[9px] text-slate-400">{total} voters</small>
+      <button onClick={() => onCommunityChart(post.name, post.tag)}>
+        <LineChart size={14} /> View chart
+      </button>
+      <button
+        aria-expanded={commentOpen}
+        onClick={() => setCommentOpen((open) => !open)}
+      >
+        <MessageCircle size={14} /> Comment {comments.length}
+      </button>
+      <button onClick={onBroker}>
+        <BriefcaseBusiness size={14} /> Connect broker
+      </button>
+      {commentOpen && (
+        <div className="mt-3 space-y-2 rounded-xl bg-slate-50 p-2">
+          {comments.map((item, index) => (
+            <div
+              key={`${item.author}-${index}`}
+              className="flex items-start gap-2 rounded-lg bg-white p-2 text-[9px]"
+            >
+              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-violet-100 font-bold text-violet-600">
+                {item.initials}
+              </span>
+              <div className="min-w-0">
+                <b>
+                  {item.author}{" "}
+                  <small className="font-normal text-slate-400">
+                    · {item.time}
+                  </small>
+                </b>
+                <p className="mt-0.5 text-slate-600">{item.text}</p>
+              </div>
+            </div>
+          ))}
+          <form
+            className="flex gap-1"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!comment.trim()) return;
+              setComments((current) => [
+                ...current,
+                {
+                  author: "Josh",
+                  initials: "J",
+                  time: "now",
+                  text: comment.trim(),
+                },
+              ]);
+              setComment("");
+              onToast("Comment posted · demo");
+            }}
+          >
+            <input
+              autoFocus
+              value={comment}
+              onChange={(event) => setComment(event.target.value)}
+              placeholder="Add a comment…"
+              className="min-w-0 flex-1 rounded-lg border border-slate-200 px-2 py-1.5 text-[10px]"
+            />
+            <button type="submit" aria-label="Post comment">
+              <Send size={13} />
+            </button>
+          </form>
+        </div>
+      )}
+    </article>
+  );
 }
 
 function LegacyInstrumentDetail({
@@ -427,7 +1050,7 @@ function LegacyInstrumentDetail({
 }) {
   const kind = assetClass(instrument);
   const products = availableProducts(instrument);
-  const [tab, setTab] = useState<DetailTab>('Overview');
+  const [tab, setTab] = useState<DetailTab>("Overview");
   const [product, setProduct] = useState<ProductType>(products[0]);
   const [watching, setWatching] = useState(false);
   const [alerting, setAlerting] = useState(false);
@@ -445,7 +1068,7 @@ function LegacyInstrumentDetail({
       broker.products.includes(product),
   );
   const related =
-    kind === 'Index'
+    kind === "Index"
       ? marketIndices
           .filter((index) => index.symbol !== instrument.symbol)
           .slice(0, 3)
@@ -456,10 +1079,10 @@ function LegacyInstrumentDetail({
           }))
       : [];
   const tabs =
-    kind === 'Crypto'
-      ? [...tabList, 'Tokenomics' as DetailTab]
-      : kind === 'Stock'
-        ? [...tabList, 'Financial Report' as DetailTab]
+    kind === "Crypto"
+      ? [...tabList, "Tokenomics" as DetailTab]
+      : kind === "Stock"
+        ? [...tabList, "Financial Report" as DetailTab]
         : tabList;
 
   return (
@@ -494,13 +1117,13 @@ function LegacyInstrumentDetail({
                 {instrument.name}
               </h1>
               <p className="mt-1 text-xs text-slate-500">
-                {instrument.symbol} - {instrument.sector} -{' '}
-                {instrument.subSector ?? 'Unclassified'} -{' '}
-                {kind === 'Crypto'
-                  ? '24/7 market'
-                  : kind === 'Forex'
-                    ? '24/5 market'
-                    : 'Market session applies'}
+                {instrument.symbol} - {instrument.sector} -{" "}
+                {instrument.subSector ?? "Unclassified"} -{" "}
+                {kind === "Crypto"
+                  ? "24/7 market"
+                  : kind === "Forex"
+                    ? "24/5 market"
+                    : "Market session applies"}
               </p>
             </div>
           </div>
@@ -509,31 +1132,31 @@ function LegacyInstrumentDetail({
               onClick={() => {
                 setWatching(!watching);
                 onToast(
-                  watching ? 'Removed from watchlist' : 'Added to watchlist',
+                  watching ? "Removed from watchlist" : "Added to watchlist",
                 );
               }}
               className="secondary"
             >
               <Star
-                className={watching ? 'fill-violet-600 text-violet-600' : ''}
+                className={watching ? "fill-violet-600 text-violet-600" : ""}
               />
-              {watching ? 'Watching' : 'Watchlist'}
+              {watching ? "Watching" : "Watchlist"}
             </button>
             <button
               onClick={() => {
                 setAlerting(!alerting);
-                onToast(alerting ? 'Alert removed' : 'Alert created');
+                onToast(alerting ? "Alert removed" : "Alert created");
               }}
               className="secondary"
             >
               <Bell />
-              {alerting ? 'Alert active' : 'Alert'}
+              {alerting ? "Alert active" : "Alert"}
             </button>
             <button
               onClick={() => {
                 setCompare(!compare);
                 onToast(
-                  compare ? 'Removed from comparison' : 'Added to comparison',
+                  compare ? "Removed from comparison" : "Added to comparison",
                 );
               }}
               className="secondary"
@@ -546,7 +1169,7 @@ function LegacyInstrumentDetail({
               className="secondary"
             >
               <MessageCircle />
-              {insightsOpen ? 'Hide insights' : 'Show insights'}
+              {insightsOpen ? "Hide insights" : "Show insights"}
             </button>
             <button onClick={onChart} className="primary">
               <LineChart />
@@ -561,21 +1184,21 @@ function LegacyInstrumentDetail({
                 {displayValue(instrument)}
               </span>
               <span className="mb-1 text-xs text-slate-400">
-                {kind === 'Forex'
-                  ? 'quote'
-                  : kind === 'Index'
-                    ? 'points'
-                    : 'USD'}
+                {kind === "Forex"
+                  ? "quote"
+                  : kind === "Index"
+                    ? "points"
+                    : "USD"}
               </span>
               <span
-                className={`mb-1 flex items-center gap-1 text-sm font-semibold ${instrument.change >= 0 ? 'up' : 'down'}`}
+                className={`mb-1 flex items-center gap-1 text-sm font-semibold ${instrument.change >= 0 ? "up" : "down"}`}
               >
                 {instrument.change >= 0 ? (
                   <TrendingUp className="size-4" />
                 ) : (
                   <TrendingDown className="size-4" />
                 )}
-                {instrument.change > 0 ? '+' : ''}
+                {instrument.change > 0 ? "+" : ""}
                 {instrument.change}% 1D
               </span>
             </div>
@@ -600,7 +1223,7 @@ function LegacyInstrumentDetail({
                   key={option.product}
                   onClick={() => {
                     setProduct(option.product);
-                    setTab('Brokers');
+                    setTab("Brokers");
                   }}
                   className="w-full rounded-lg border border-border bg-white p-2 text-left hover:border-violet-300"
                 >
@@ -614,7 +1237,7 @@ function LegacyInstrumentDetail({
               ))}
             </div>
             <button
-              onClick={() => setTab('Brokers')}
+              onClick={() => setTab("Brokers")}
               className="primary mt-2 w-full justify-center"
             >
               <BriefcaseBusiness />
@@ -627,7 +1250,7 @@ function LegacyInstrumentDetail({
             <button
               key={item}
               onClick={() => setTab(item)}
-              className={`whitespace-nowrap rounded-lg px-3 py-2 text-[10px] ${tab === item ? 'bg-violet-100 font-semibold text-violet-700' : 'text-slate-500 hover:bg-slate-50'}`}
+              className={`whitespace-nowrap rounded-lg px-3 py-2 text-[10px] ${tab === item ? "bg-violet-100 font-semibold text-violet-700" : "text-slate-500 hover:bg-slate-50"}`}
             >
               {item}
             </button>
@@ -643,19 +1266,19 @@ function LegacyInstrumentDetail({
       </div>
       <div className="grid grid-cols-1 items-start gap-4">
         <div className="min-w-0 space-y-4">
-          {tab === 'Overview' && (
+          {tab === "Overview" && (
             <AssetOverviewLayout
               instrument={instrument}
               kind={kind}
               onChart={onChart}
-              onNews={() => setTab('News')}
+              onNews={() => setTab("News")}
             />
           )}
-          {tab === 'Technicals' && <TechnicalSummary instrument={instrument} />}
-          {tab === 'Market Data' && (
+          {tab === "Technicals" && <TechnicalSummary instrument={instrument} />}
+          {tab === "Market Data" && (
             <MarketStats instrument={instrument} kind={kind} />
           )}
-          {tab === 'News' && (
+          {tab === "News" && (
             <News
               instrument={instrument}
               onSelect={(article) => {
@@ -674,20 +1297,20 @@ function LegacyInstrumentDetail({
               }}
             />
           )}
-          {tab === 'Analysis' && (
+          {tab === "Analysis" && (
             <Analysis instrument={instrument} kind={kind} />
           )}
-          {tab === 'Forecast' && (
+          {tab === "Forecast" && (
             <Forecast instrument={instrument} kind={kind} />
           )}
-          {tab === 'Products' && (
+          {tab === "Products" && (
             <ProductPanel
               products={products}
               product={product}
               setProduct={setProduct}
             />
           )}
-          {tab === 'Brokers' && (
+          {tab === "Brokers" && (
             <BrokerPanel
               instrument={instrument}
               product={product}
@@ -696,10 +1319,10 @@ function LegacyInstrumentDetail({
               brokers={matchingBrokers}
             />
           )}
-          {tab === 'Tokenomics' && (
+          {tab === "Tokenomics" && (
             <AssetSpecific kind="Crypto" instrument={instrument} />
           )}
-          {tab === 'Financial Report' && (
+          {tab === "Financial Report" && (
             <FinancialReport instrument={instrument} />
           )}
           {related.length > 0 && (
@@ -724,9 +1347,9 @@ function LegacyInstrumentDetail({
                       {item.symbol}
                     </p>
                     <span
-                      className={`mt-3 block text-xs font-semibold ${item.change >= 0 ? 'up' : 'down'}`}
+                      className={`mt-3 block text-xs font-semibold ${item.change >= 0 ? "up" : "down"}`}
                     >
-                      {item.change > 0 ? '+' : ''}
+                      {item.change > 0 ? "+" : ""}
                       {item.change}%
                     </span>
                   </div>
@@ -749,23 +1372,23 @@ function LegacyInstrumentDetail({
                 onClick={() => {
                   setWatching(!watching);
                   onToast(
-                    watching ? 'Removed from watchlist' : 'Added to watchlist',
+                    watching ? "Removed from watchlist" : "Added to watchlist",
                   );
                 }}
                 className="secondary justify-center"
               >
                 <Star />
-                {watching ? 'Watching' : 'Watch'}
+                {watching ? "Watching" : "Watch"}
               </button>
               <button
                 onClick={() => {
                   setAlerting(!alerting);
-                  onToast(alerting ? 'Alert removed' : 'Alert created');
+                  onToast(alerting ? "Alert removed" : "Alert created");
                 }}
                 className="secondary justify-center"
               >
                 <Bell />
-                {alerting ? 'Active' : 'Alert'}
+                {alerting ? "Active" : "Alert"}
               </button>
             </div>
           </div>
@@ -779,7 +1402,7 @@ function LegacyInstrumentDetail({
           shareReference={shareReference}
           communityReference={communityReference}
           onSelectNews={setSelectedNews}
-          openNews={() => setTab('News')}
+          openNews={() => setTab("News")}
           openChart={onChart}
           onClose={() => setInsightsOpen(false)}
         />
@@ -807,7 +1430,7 @@ function DailyMarketFocus({ instrument }: { instrument: Instrument }) {
             Analyze {instrument.symbol} and review today&apos;s market context
           </h2>
           <p className="mt-1 text-[10px] text-violet-100">
-            Chart, News, Community, and broker insights stay linked to{' '}
+            Chart, News, Community, and broker insights stay linked to{" "}
             {instrument.name}.
           </p>
         </div>
@@ -910,25 +1533,25 @@ function CommunityOverviewCard({ instrument }: { instrument: Instrument }) {
 function CampaignPromotion({ instrument }: { instrument: Instrument }) {
   const brokers = [
     {
-      name: 'HFM',
-      mark: 'HFM',
-      tone: 'bg-slate-950 text-white',
-      points: '1.5x',
-      credit: '50 credits',
+      name: "HFM",
+      mark: "HFM",
+      tone: "bg-slate-950 text-white",
+      points: "1.5x",
+      credit: "50 credits",
     },
     {
-      name: 'Exness',
-      mark: 'ex',
-      tone: 'bg-yellow-400 text-slate-950',
-      points: '1.25x',
-      credit: '50 credits',
+      name: "Exness",
+      mark: "ex",
+      tone: "bg-yellow-400 text-slate-950",
+      points: "1.25x",
+      credit: "50 credits",
     },
     {
-      name: 'FX Pro',
-      mark: 'Fx',
-      tone: 'bg-red-500 text-white',
-      points: '1.1x',
-      credit: '50 credits',
+      name: "FX Pro",
+      mark: "Fx",
+      tone: "bg-red-500 text-white",
+      points: "1.1x",
+      credit: "50 credits",
     },
   ];
   return (
@@ -946,8 +1569,8 @@ function CampaignPromotion({ instrument }: { instrument: Instrument }) {
               Bonus points for {instrument.symbol}
             </h2>
             <p className="mt-1 text-[10px] text-slate-500">
-              Symbol-linked rewards for {instrument.name} · {instrument.market}{' '}
-              · {instrument.primaryMarket ?? 'Demo venue'}.
+              Symbol-linked rewards for {instrument.name} · {instrument.market}{" "}
+              · {instrument.primaryMarket ?? "Demo venue"}.
             </p>
           </div>
           <button className="secondary">
@@ -1018,14 +1641,14 @@ function InstrumentInsightRail({
   openChart: () => void;
   onClose: () => void;
 }) {
-  const [communityTab, setCommunityTab] = useState<'Top' | 'Latest'>('Top');
+  const [communityTab, setCommunityTab] = useState<"Top" | "Latest">("Top");
   const [followed, setFollowed] = useState(false);
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState("");
   const [newsExpanded, setNewsExpanded] = useState(true);
   const [votes, setVotes] = useState<
     Record<
       string,
-      { agreement?: 'agree' | 'disagree'; direction?: 'bull' | 'bear' }
+      { agreement?: "agree" | "disagree"; direction?: "bull" | "bear" }
     >
   >({});
   useEffect(() => {
@@ -1038,7 +1661,7 @@ function InstrumentInsightRail({
   const [newsWindowExpanded, setNewsWindowExpanded] = useState(false);
   const newsPanelRef = useRef<PanelImperativeHandle | null>(null);
   const [resizeStart, setResizeStart] = useState<{
-    axis: 'width' | 'height' | 'both';
+    axis: "width" | "height" | "both";
     x: number;
     y: number;
     width: number;
@@ -1049,7 +1672,7 @@ function InstrumentInsightRail({
     const move = (event: PointerEvent) =>
       setPanelSize((current) => ({
         width:
-          resizeStart.axis === 'height'
+          resizeStart.axis === "height"
             ? current.width
             : Math.max(
                 320,
@@ -1059,7 +1682,7 @@ function InstrumentInsightRail({
                 ),
               ),
         height:
-          resizeStart.axis === 'width'
+          resizeStart.axis === "width"
             ? current.height
             : Math.max(
                 Math.round(window.innerHeight * 0.5),
@@ -1070,11 +1693,11 @@ function InstrumentInsightRail({
               ),
       }));
     const up = () => setResizeStart(null);
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
     return () => {
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
     };
   }, [resizeStart]);
   const news = instrumentNews(instrument);
@@ -1082,54 +1705,54 @@ function InstrumentInsightRail({
   const toggleNewsWindow = () => {
     const expanded = !newsWindowExpanded;
     setNewsWindowExpanded(expanded);
-    newsPanelRef.current?.resize(expanded ? '95%' : '85%');
+    newsPanelRef.current?.resize(expanded ? "95%" : "85%");
   };
   const setBalancedLayout = () => {
     setNewsWindowExpanded(false);
-    newsPanelRef.current?.resize('50%');
+    newsPanelRef.current?.resize("50%");
   };
   const posts = communityReference
     ? [
         {
-          author: 'Topic thread',
-          role: 'Community share',
+          author: "Topic thread",
+          role: "Community share",
           text: `Discussing: ${communityReference.title}`,
-          sentiment: 'Watch',
+          sentiment: "Watch",
         },
       ]
-    : communityTab === 'Top'
+    : communityTab === "Top"
       ? [
           {
-            author: 'Daniel_Markson',
-            role: 'Momentum desk',
+            author: "Daniel_Markson",
+            role: "Momentum desk",
             text: `Watching ${instrument.symbol}: the move has better participation than the prior session.`,
-            sentiment: 'Bullish',
+            sentiment: "Bullish",
           },
           {
-            author: 'CLORA',
-            role: 'Community analyst',
+            author: "CLORA",
+            role: "Community analyst",
             text: `The ${instrument.symbol} setup looks constructive, but I want confirmation before adding risk.`,
-            sentiment: 'Watch',
+            sentiment: "Watch",
           },
         ]
       : [
           {
-            author: 'Maya Chen',
-            role: 'Marketsyde Pro',
+            author: "Maya Chen",
+            role: "Marketsyde Pro",
             text: `Fresh read on ${instrument.symbol}: volume and breadth are moving together.`,
-            sentiment: 'Bullish',
+            sentiment: "Bullish",
           },
           {
-            author: 'Jon Bell',
-            role: 'Risk monitor',
+            author: "Jon Bell",
+            role: "Risk monitor",
             text: `Keeping a tight invalidation level around this ${instrument.market.toLowerCase()} setup.`,
-            sentiment: 'Watch',
+            sentiment: "Watch",
           },
         ];
   const updateVote = (
     author: string,
-    kind: 'agreement' | 'direction',
-    value: 'agree' | 'disagree' | 'bull' | 'bear',
+    kind: "agreement" | "direction",
+    value: "agree" | "disagree" | "bull" | "bear",
   ) =>
     setVotes((current) => ({
       ...current,
@@ -1189,7 +1812,7 @@ function InstrumentInsightRail({
                   onClick={() => setNewsExpanded(!newsExpanded)}
                   className="text-[9px] font-semibold text-violet-600"
                 >
-                  {newsExpanded ? 'Show less' : 'Show more'}
+                  {newsExpanded ? "Show less" : "Show more"}
                 </button>
                 <button
                   onClick={setBalancedLayout}
@@ -1202,13 +1825,13 @@ function InstrumentInsightRail({
                   onClick={toggleNewsWindow}
                   title={
                     newsWindowExpanded
-                      ? 'Restore News window'
-                      : 'Expand News window'
+                      ? "Restore News window"
+                      : "Expand News window"
                   }
                   aria-label={
                     newsWindowExpanded
-                      ? 'Restore News window'
-                      : 'Expand News window'
+                      ? "Restore News window"
+                      : "Expand News window"
                   }
                   className="text-slate-400 hover:text-violet-600"
                 >
@@ -1284,14 +1907,14 @@ function InstrumentInsightRail({
             </div>
             <div className="mt-3 flex rounded-lg bg-slate-100 p-1">
               <button
-                onClick={() => setCommunityTab('Top')}
-                className={`flex-1 rounded-md py-1.5 text-[10px] font-semibold ${communityTab === 'Top' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'}`}
+                onClick={() => setCommunityTab("Top")}
+                className={`flex-1 rounded-md py-1.5 text-[10px] font-semibold ${communityTab === "Top" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500"}`}
               >
                 Top
               </button>
               <button
-                onClick={() => setCommunityTab('Latest')}
-                className={`flex-1 rounded-md py-1.5 text-[10px] font-semibold ${communityTab === 'Latest' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'}`}
+                onClick={() => setCommunityTab("Latest")}
+                className={`flex-1 rounded-md py-1.5 text-[10px] font-semibold ${communityTab === "Latest" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500"}`}
               >
                 Latest
               </button>
@@ -1312,21 +1935,21 @@ function InstrumentInsightRail({
                           {post.author}
                         </b>
                         <span className="text-[9px] text-slate-400">
-                          {post.role} - {index ? '21h' : '19h'}
+                          {post.role} - {index ? "21h" : "19h"}
                         </span>
                       </div>
                     </div>
                     <button
                       onClick={() => setFollowed(!followed)}
-                      className={`rounded-md px-2.5 py-1.5 text-[9px] font-semibold ${followed ? 'bg-slate-100 text-slate-600' : 'bg-violet-600 text-white'}`}
+                      className={`rounded-md px-2.5 py-1.5 text-[9px] font-semibold ${followed ? "bg-slate-100 text-slate-600" : "bg-violet-600 text-white"}`}
                     >
-                      {followed ? 'Following' : '+ Follow'}
+                      {followed ? "Following" : "+ Follow"}
                     </button>
                   </div>
                   <p className="mt-2 text-[11px] leading-relaxed text-slate-700">
-                    {post.text}{' '}
+                    {post.text}{" "}
                     <span className="font-medium text-violet-600">
-                      #{instrument.symbol.replace('/', '')}
+                      #{instrument.symbol.replace("/", "")}
                     </span>
                   </p>
                   <button
@@ -1368,9 +1991,9 @@ function InstrumentInsightRail({
                       title="Agree"
                       aria-label="Agree with this post"
                       onClick={() =>
-                        updateVote(post.author, 'agreement', 'agree')
+                        updateVote(post.author, "agreement", "agree")
                       }
-                      className={`flex items-center justify-center gap-1 rounded border px-2 py-1 text-[8px] font-semibold ${votes[post.author]?.agreement === 'agree' ? 'border-emerald-400 bg-emerald-50 text-emerald-700' : 'border-border text-slate-500'}`}
+                      className={`flex items-center justify-center gap-1 rounded border px-2 py-1 text-[8px] font-semibold ${votes[post.author]?.agreement === "agree" ? "border-emerald-400 bg-emerald-50 text-emerald-700" : "border-border text-slate-500"}`}
                     >
                       <ThumbsUp className="size-3.5" />
                     </button>
@@ -1378,9 +2001,9 @@ function InstrumentInsightRail({
                       title="Disagree"
                       aria-label="Disagree with this post"
                       onClick={() =>
-                        updateVote(post.author, 'agreement', 'disagree')
+                        updateVote(post.author, "agreement", "disagree")
                       }
-                      className={`flex items-center justify-center gap-1 rounded border px-2 py-1 text-[8px] font-semibold ${votes[post.author]?.agreement === 'disagree' ? 'border-rose-400 bg-rose-50 text-rose-700' : 'border-border text-slate-500'}`}
+                      className={`flex items-center justify-center gap-1 rounded border px-2 py-1 text-[8px] font-semibold ${votes[post.author]?.agreement === "disagree" ? "border-rose-400 bg-rose-50 text-rose-700" : "border-border text-slate-500"}`}
                     >
                       <ThumbsDown className="size-3.5" />
                     </button>
@@ -1388,9 +2011,9 @@ function InstrumentInsightRail({
                       title="Bull"
                       aria-label="Vote bullish on this post"
                       onClick={() =>
-                        updateVote(post.author, 'direction', 'bull')
+                        updateVote(post.author, "direction", "bull")
                       }
-                      className={`flex items-center justify-center gap-1 rounded border px-2 py-1 text-[8px] font-semibold ${votes[post.author]?.direction === 'bull' ? 'border-cyan-400 bg-cyan-50 text-cyan-700' : 'border-border text-slate-500'}`}
+                      className={`flex items-center justify-center gap-1 rounded border px-2 py-1 text-[8px] font-semibold ${votes[post.author]?.direction === "bull" ? "border-cyan-400 bg-cyan-50 text-cyan-700" : "border-border text-slate-500"}`}
                     >
                       <TrendingUp className="size-3.5" />
                     </button>
@@ -1398,9 +2021,9 @@ function InstrumentInsightRail({
                       title="Bear"
                       aria-label="Vote bearish on this post"
                       onClick={() =>
-                        updateVote(post.author, 'direction', 'bear')
+                        updateVote(post.author, "direction", "bear")
                       }
-                      className={`flex items-center justify-center gap-1 rounded border px-2 py-1 text-[8px] font-semibold ${votes[post.author]?.direction === 'bear' ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-border text-slate-500'}`}
+                      className={`flex items-center justify-center gap-1 rounded border px-2 py-1 text-[8px] font-semibold ${votes[post.author]?.direction === "bear" ? "border-amber-400 bg-amber-50 text-amber-700" : "border-border text-slate-500"}`}
                     >
                       <TrendingDown className="size-3.5" />
                     </button>
@@ -1420,7 +2043,7 @@ function InstrumentInsightRail({
                 className="min-w-0 flex-1 bg-transparent px-1 text-[10px] text-slate-700 outline-none"
               />
               <button
-                onClick={() => setDraft('')}
+                onClick={() => setDraft("")}
                 className="rounded-md bg-violet-600 px-3 py-1.5 text-[9px] font-semibold text-white"
               >
                 <Send className="size-3" />
@@ -1473,7 +2096,7 @@ function InstrumentInsightRail({
         aria-label="Resize insights width"
         onPointerDown={(event) =>
           setResizeStart({
-            axis: 'width',
+            axis: "width",
             x: event.clientX,
             y: event.clientY,
             width: panelSize.width,
@@ -1486,7 +2109,7 @@ function InstrumentInsightRail({
         aria-label="Resize insights height"
         onPointerDown={(event) =>
           setResizeStart({
-            axis: 'height',
+            axis: "height",
             x: event.clientX,
             y: event.clientY,
             width: panelSize.width,
@@ -1499,7 +2122,7 @@ function InstrumentInsightRail({
         aria-label="Resize insights width and height"
         onPointerDown={(event) =>
           setResizeStart({
-            axis: 'both',
+            axis: "both",
             x: event.clientX,
             y: event.clientY,
             width: panelSize.width,
@@ -1531,8 +2154,8 @@ function Overview({
   onShowLinkedTagsChange?: (show: boolean) => void;
   tabs?: ReactNode;
 }) {
-  const [period, setPeriod] = useState<PerformancePeriod>('1D');
-  const [compareRange, setCompareRange] = useState<CompareRange>('1d');
+  const [period, setPeriod] = useState<PerformancePeriod>("1D");
+  const [compareRange, setCompareRange] = useState<CompareRange>("1d");
   const [openLinkedTag, setOpenLinkedTag] = useState<string | null>(null);
   const selectedReturn = compareReturn(instrument, compareRange);
   const series = performanceSeries(instrument, period, selectedReturn);
@@ -1544,11 +2167,11 @@ function Overview({
       (value, index) =>
         `${(index / (series.length - 1)) * 100},${94 - ((value - low) / range) * 76}`,
     )
-    .join(' ');
-  const changeLabel = `${selectedReturn >= 0 ? '+' : ''}${selectedReturn.toFixed(2)}%`;
+    .join(" ");
+  const changeLabel = `${selectedReturn >= 0 ? "+" : ""}${selectedReturn.toFixed(2)}%`;
   const volatility = (
     Math.abs(selectedReturn) * 0.42 +
-    (period === '1D' ? 8 : period === '1W' ? 11 : period === '1M' ? 16 : 27)
+    (period === "1D" ? 8 : period === "1W" ? 11 : period === "1M" ? 16 : 27)
   ).toFixed(1);
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_320px] gap-4 max-xl:grid-cols-1">
@@ -1566,105 +2189,191 @@ function Overview({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="seg" aria-label="Chart display">
-              <button onClick={() => chartOpen && onChart()} className={!chartOpen ? 'active' : ''}>Performance</button>
-              <button onClick={() => !chartOpen && onChart()} className={chartOpen ? 'active' : ''}>Advanced chart</button>
+              <button
+                onClick={() => chartOpen && onChart()}
+                className={!chartOpen ? "active" : ""}
+              >
+                Performance
+              </button>
+              <button
+                onClick={() => !chartOpen && onChart()}
+                className={chartOpen ? "active" : ""}
+              >
+                Advanced chart
+              </button>
             </div>
-            {!chartOpen && <>
-            <select
-              aria-label="Chart range"
-              value={compareRange}
-              onChange={(event) => {
-                const nextRange = event.target.value as CompareRange;
-                setCompareRange(nextRange);
-                const nextPeriod = rangeToPeriod[nextRange];
-                if (nextPeriod) setPeriod(nextPeriod);
-              }}
-              className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-600"
-            >
-              {compareRanges.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
-            <div className="seg">
-              {(['1D', '1W', '1M', '1Y'] as PerformancePeriod[]).map((item) => (
-                <button
-                  key={item}
-                  onClick={() => {
-                    setPeriod(item);
-                    setCompareRange(periodToRange[item]);
+            {!chartOpen && (
+              <>
+                <select
+                  aria-label="Chart range"
+                  value={compareRange}
+                  onChange={(event) => {
+                    const nextRange = event.target.value as CompareRange;
+                    setCompareRange(nextRange);
+                    const nextPeriod = rangeToPeriod[nextRange];
+                    if (nextPeriod) setPeriod(nextPeriod);
                   }}
-                  className={period === item ? 'active' : ''}
+                  className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-600"
                 >
-                  {item}
-                </button>
-              ))}
+                  {compareRanges.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
+                <div className="seg">
+                  {(["1D", "1W", "1M", "1Y"] as PerformancePeriod[]).map(
+                    (item) => (
+                      <button
+                        key={item}
+                        onClick={() => {
+                          setPeriod(item);
+                          setCompareRange(periodToRange[item]);
+                        }}
+                        className={period === item ? "active" : ""}
+                      >
+                        {item}
+                      </button>
+                    ),
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+        {chartOpen ? (
+          <div className="mt-5 min-w-0 overflow-hidden rounded-xl">
+            {chartContent}
+          </div>
+        ) : (
+          <>
+            <div className="relative mt-5 h-52 overflow-hidden rounded-xl border border-border bg-white grid-surface">
+              <svg
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                className="absolute inset-0 size-full"
+              >
+                <defs>
+                  <linearGradient
+                    id="instrumentArea"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop offset="0%" stopColor="#7c3aed" stopOpacity=".24" />
+                    <stop offset="100%" stopColor="#7c3aed" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <polyline
+                  points={`0,94 ${points} 100,94`}
+                  fill="url(#instrumentArea)"
+                  stroke="none"
+                />
+                <polyline
+                  points={points}
+                  fill="none"
+                  stroke="#7c3aed"
+                  strokeWidth="1.8"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
+              <div className="absolute left-3 top-3 rounded-md bg-white/85 px-2 py-1 text-[10px] font-semibold text-slate-600">
+                {compareRange} - {changeLabel}
+              </div>
+              <div className="absolute right-3 top-3 rounded-md bg-white/85 px-2 py-1 text-[9px] text-slate-500">
+                Max ({compareRange}){" "}
+                {displayValue({ ...instrument, price: high })}
+              </div>
+              <div className="absolute right-3 bottom-7 rounded-md bg-white/85 px-2 py-1 text-[9px] text-slate-500">
+                Min ({compareRange}){" "}
+                {displayValue({ ...instrument, price: low })}
+              </div>
+              {showLinkedTags &&
+                marketTagTopics.map((topic, index) => (
+                  <span
+                    key={topic}
+                    id={`chart-${instrument.symbol.replaceAll("/", "-")}-${topic}`}
+                    className="market-tag-target absolute z-10"
+                    style={{
+                      left: `${22 + index * 14}%`,
+                      top: `${68 - index * 10}%`,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setOpenLinkedTag((current) =>
+                          current === topic ? null : topic,
+                        )
+                      }
+                      aria-expanded={openLinkedTag === topic}
+                      aria-label={`Choose destination for ${instrument.symbol} ${topic}`}
+                      className="grid size-5 place-items-center rounded-full border-2 border-white bg-violet-600 text-[7px] font-bold text-white shadow-md transition hover:scale-125"
+                    >
+                      {index + 1}
+                    </button>
+                    <span
+                      className={`absolute bottom-full left-1/2 mb-2 w-max -translate-x-1/2 rounded-lg bg-slate-900 p-2 text-[8px] font-medium text-white shadow-xl ${openLinkedTag === topic ? "block" : "hidden"}`}
+                    >
+                      <b className="mb-1 block text-violet-300">
+                        #{instrument.symbol}_{topic}
+                      </b>
+                      <span className="flex gap-2">
+                        <a
+                          onClick={() => setOpenLinkedTag(null)}
+                          className="rounded bg-white/10 px-2 py-1 hover:bg-white/20"
+                          href={`#news-${instrument.symbol.replaceAll("/", "-")}-${topic}`}
+                        >
+                          News
+                        </a>
+                        <a
+                          onClick={() => setOpenLinkedTag(null)}
+                          className="rounded bg-white/10 px-2 py-1 hover:bg-white/20"
+                          href={`#community-${instrument.symbol.replaceAll("/", "-")}-${topic}`}
+                        >
+                          Community
+                        </a>
+                      </span>
+                    </span>
+                  </span>
+                ))}
+              <div className="absolute bottom-2 left-3 right-3 flex justify-between text-[9px] text-slate-400">
+                <span>{compareRange} range</span>
+                <span>Now - {displayValue(instrument)}</span>
+              </div>
             </div>
-            </>}
-          </div>
-        </div>
-        {chartOpen ? <div className="mt-5 min-w-0 overflow-hidden rounded-xl">{chartContent}</div> : <>
-        <div className="relative mt-5 h-52 overflow-hidden rounded-xl border border-border bg-white grid-surface">
-          <svg
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-            className="absolute inset-0 size-full"
-          >
-            <defs>
-              <linearGradient id="instrumentArea" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#7c3aed" stopOpacity=".24" />
-                <stop offset="100%" stopColor="#7c3aed" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            <polyline
-              points={`0,94 ${points} 100,94`}
-              fill="url(#instrumentArea)"
-              stroke="none"
+            <div className="mt-4 grid grid-cols-6 gap-3 max-xl:grid-cols-3 max-md:grid-cols-2">
+              <Metric label={`${compareRange} return`} value={changeLabel} />
+              <Metric
+                label={`Min (${compareRange})`}
+                value={displayValue({ ...instrument, price: low })}
+              />
+              <Metric
+                label={`Max (${compareRange})`}
+                value={displayValue({ ...instrument, price: high })}
+              />
+              <Metric
+                label="Price range"
+                value={`${displayValue({ ...instrument, price: low })} - ${displayValue({ ...instrument, price: high })}`}
+              />
+              <Metric label="Last price" value={displayValue(instrument)} />
+              <Metric
+                label="Signal"
+                value={`${instrument.signal} ${instrument.confidence}%`}
+              />
+            </div>
+          </>
+        )}
+        <div className="mt-4 flex justify-end">
+          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-2 text-[9px] font-medium text-slate-600">
+            <input
+              type="checkbox"
+              checked={showLinkedTags}
+              onChange={(event) => onShowLinkedTagsChange(event.target.checked)}
+              className="accent-violet-600"
             />
-            <polyline
-              points={points}
-              fill="none"
-              stroke="#7c3aed"
-              strokeWidth="1.8"
-              vectorEffect="non-scaling-stroke"
-            />
-          </svg>
-          <div className="absolute left-3 top-3 rounded-md bg-white/85 px-2 py-1 text-[10px] font-semibold text-slate-600">
-            {compareRange} - {changeLabel}
-          </div>
-          <div className="absolute right-3 top-3 rounded-md bg-white/85 px-2 py-1 text-[9px] text-slate-500">
-            Max ({compareRange}) {displayValue({ ...instrument, price: high })}
-          </div>
-          <div className="absolute right-3 bottom-7 rounded-md bg-white/85 px-2 py-1 text-[9px] text-slate-500">
-            Min ({compareRange}) {displayValue({ ...instrument, price: low })}
-          </div>
-          {showLinkedTags && marketTagTopics.map((topic, index) => <span key={topic} id={`chart-${instrument.symbol.replaceAll('/', '-')}-${topic}`} className="market-tag-target absolute z-10" style={{left: `${22 + index * 14}%`, top: `${68 - index * 10}%`}}><button type="button" onClick={() => setOpenLinkedTag(current => current === topic ? null : topic)} aria-expanded={openLinkedTag === topic} aria-label={`Choose destination for ${instrument.symbol} ${topic}`} className="grid size-5 place-items-center rounded-full border-2 border-white bg-violet-600 text-[7px] font-bold text-white shadow-md transition hover:scale-125">{index + 1}</button><span className={`absolute bottom-full left-1/2 mb-2 w-max -translate-x-1/2 rounded-lg bg-slate-900 p-2 text-[8px] font-medium text-white shadow-xl ${openLinkedTag === topic ? 'block' : 'hidden'}`}><b className="mb-1 block text-violet-300">#{instrument.symbol}_{topic}</b><span className="flex gap-2"><a onClick={() => setOpenLinkedTag(null)} className="rounded bg-white/10 px-2 py-1 hover:bg-white/20" href={`#news-${instrument.symbol.replaceAll('/', '-')}-${topic}`}>News</a><a onClick={() => setOpenLinkedTag(null)} className="rounded bg-white/10 px-2 py-1 hover:bg-white/20" href={`#community-${instrument.symbol.replaceAll('/', '-')}-${topic}`}>Community</a></span></span></span>)}
-          <div className="absolute bottom-2 left-3 right-3 flex justify-between text-[9px] text-slate-400">
-            <span>{compareRange} range</span>
-            <span>Now - {displayValue(instrument)}</span>
-          </div>
+            Linked tags
+          </label>
         </div>
-        <div className="mt-4 grid grid-cols-6 gap-3 max-xl:grid-cols-3 max-md:grid-cols-2">
-          <Metric label={`${compareRange} return`} value={changeLabel} />
-          <Metric
-            label={`Min (${compareRange})`}
-            value={displayValue({ ...instrument, price: low })}
-          />
-          <Metric
-            label={`Max (${compareRange})`}
-            value={displayValue({ ...instrument, price: high })}
-          />
-          <Metric
-            label="Price range"
-            value={`${displayValue({ ...instrument, price: low })} - ${displayValue({ ...instrument, price: high })}`}
-          />
-          <Metric label="Last price" value={displayValue(instrument)} />
-          <Metric
-            label="Signal"
-            value={`${instrument.signal} ${instrument.confidence}%`}
-          />
-        </div>
-        </>}
-        <div className="mt-4 flex justify-end"><label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-2 text-[9px] font-medium text-slate-600"><input type="checkbox" checked={showLinkedTags} onChange={(event) => onShowLinkedTagsChange(event.target.checked)} className="accent-violet-600" />Linked tags</label></div>
       </section>
       <section className="panel p-5">
         <p className="label">Key information</p>
@@ -1677,11 +2386,11 @@ function Overview({
           <InfoRow label="Sector" value={instrument.sector} />
           <InfoRow
             label="Sub-sector"
-            value={instrument.subSector ?? 'Unclassified'}
+            value={instrument.subSector ?? "Unclassified"}
           />
           <InfoRow
             label="Market status"
-            value={kind === 'Crypto' ? 'Open 24/7' : 'Demo session'}
+            value={kind === "Crypto" ? "Open 24/7" : "Demo session"}
           />
           <InfoRow label="Data status" value="Delayed demo" />
         </div>
@@ -1721,7 +2430,7 @@ function TechnicalSummary({ instrument }: { instrument: Instrument }) {
         <CompassGauge
           label="Moving averages"
           score={movingAverageScore}
-          detail={`1M trend  -  ${instrument.return1m > 0 ? '+' : ''}${instrument.return1m}%`}
+          detail={`1M trend  -  ${instrument.return1m > 0 ? "+" : ""}${instrument.return1m}%`}
         />
         <CompassGauge
           label="Overall summary"
@@ -1748,14 +2457,14 @@ function CompassGauge({
 }) {
   const rating =
     score >= 78
-      ? 'Strong Buy'
+      ? "Strong Buy"
       : score >= 60
-        ? 'Buy'
+        ? "Buy"
         : score >= 42
-          ? 'Neutral'
+          ? "Neutral"
           : score >= 24
-            ? 'Sell'
-            : 'Strong Sell';
+            ? "Sell"
+            : "Strong Sell";
   const angle = -90 + score * 1.8;
   return (
     <div className="rounded-xl border border-border bg-white p-4 text-center">
@@ -1764,8 +2473,8 @@ function CompassGauge({
         className="compass-gauge mx-auto mt-3"
         style={
           {
-            '--gauge-angle': `${angle}deg`,
-            '--gauge-fill': `${score * 1.8}deg`,
+            "--gauge-angle": `${angle}deg`,
+            "--gauge-fill": `${score * 1.8}deg`,
           } as React.CSSProperties
         }
       >
@@ -1781,17 +2490,17 @@ function CompassGauge({
 }
 function fallbackDetailData(instrument: Instrument): InstrumentDetailData {
   return {
-    quoteCurrency: 'USD',
-    unit: 'points',
-    dataSource: 'Marketsyde Demo Provider',
-    marketStatus: 'Demo session',
+    quoteCurrency: "USD",
+    unit: "points",
+    dataSource: "Marketsyde Demo Provider",
+    marketStatus: "Demo session",
     open: instrument.price,
     previousClose: instrument.price - instrument.change,
     dayLow: instrument.price - Math.abs(instrument.change),
     dayHigh: instrument.price + Math.abs(instrument.change),
     historicalLow: instrument.price * 0.7,
     historicalHigh: instrument.price * 1.25,
-    volumeType: 'Index reference volume',
+    volumeType: "Index reference volume",
     performance1d: instrument.change,
     performance1w: instrument.change * 1.8,
     performance1m: instrument.return1m,
@@ -1799,11 +2508,11 @@ function fallbackDetailData(instrument: Instrument): InstrumentDetailData {
     performanceYtd: instrument.return1m * 4.6,
     performance1y: instrument.return1m * 7.4,
     factors: [
-      { label: 'Index family', value: instrument.name },
-      { label: 'Market breadth', value: 'Demo constituent basket' },
+      { label: "Index family", value: instrument.name },
+      { label: "Market breadth", value: "Demo constituent basket" },
       {
-        label: 'Sector contribution',
-        value: instrument.subSector ?? 'Broad market',
+        label: "Sector contribution",
+        value: instrument.subSector ?? "Broad market",
       },
     ],
   };
@@ -1825,21 +2534,21 @@ function MarketStats({
           <Metric label="Last price" value={displayValue(instrument)} />
           <Metric
             label="Absolute change"
-            value={`${instrument.change >= 0 ? '+' : ''}${(instrument.price - detail.previousClose).toFixed(2)}`}
+            value={`${instrument.change >= 0 ? "+" : ""}${(instrument.price - detail.previousClose).toFixed(2)}`}
           />
           <Metric label="Daily change" value={`${instrument.change}%`} />
           <Metric label="Quote currency" value={detail.quoteCurrency} />
           <Metric
             label="Open"
-            value={detail.open.toFixed(kind === 'Forex' ? 4 : 2)}
+            value={detail.open.toFixed(kind === "Forex" ? 4 : 2)}
           />
           <Metric
             label="Previous close"
-            value={detail.previousClose.toFixed(kind === 'Forex' ? 4 : 2)}
+            value={detail.previousClose.toFixed(kind === "Forex" ? 4 : 2)}
           />
           <Metric
             label="Day low / high"
-            value={`${detail.dayLow.toFixed(kind === 'Forex' ? 4 : 2)} / ${detail.dayHigh.toFixed(kind === 'Forex' ? 4 : 2)}`}
+            value={`${detail.dayLow.toFixed(kind === "Forex" ? 4 : 2)} / ${detail.dayHigh.toFixed(kind === "Forex" ? 4 : 2)}`}
           />
           <Metric
             label="Historical low / high"
@@ -1848,10 +2557,10 @@ function MarketStats({
           <Metric label="Volume" value={`${instrument.volume}M`} />
           <Metric label="Volume type" value={detail.volumeType} />
           <Metric
-            label={kind === 'Stock' ? 'P/E' : 'Market size'}
+            label={kind === "Stock" ? "P/E" : "Market size"}
             value={
-              kind === 'Stock'
-                ? `${instrument.pe ?? 'n/a'}x`
+              kind === "Stock"
+                ? `${instrument.pe ?? "n/a"}x`
                 : `$${instrument.marketCap}B`
             }
           />
@@ -1866,7 +2575,7 @@ function MarketStats({
 function FinancialFactors({
   factors,
 }: {
-  factors: InstrumentDetailData['factors'];
+  factors: InstrumentDetailData["factors"];
 }) {
   return (
     <section className="panel p-5">
@@ -1885,35 +2594,35 @@ function FinancialFactors({
 }
 
 function SeasonalPerformance({ instrument }: { instrument: Instrument }) {
-  const [year, setYear] = useState('All years');
-  const [dateRange, setDateRange] = useState<'1Y' | '3Y' | '5Y' | 'All'>('All');
-  const [scale, setScale] = useState<'Monthly' | 'Quarterly'>('Monthly');
-  const [mode, setMode] = useState<'Table' | 'Chart'>('Table');
+  const [year, setYear] = useState("All years");
+  const [dateRange, setDateRange] = useState<"1Y" | "3Y" | "5Y" | "All">("All");
+  const [scale, setScale] = useState<"Monthly" | "Quarterly">("Monthly");
+  const [mode, setMode] = useState<"Table" | "Chart">("Table");
   const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
-  const periods = scale === 'Monthly' ? months : ['Q1', 'Q2', 'Q3', 'Q4'];
+  const periods = scale === "Monthly" ? months : ["Q1", "Q2", "Q3", "Q4"];
   const rangeYears =
-    dateRange === '1Y'
+    dateRange === "1Y"
       ? 1
-      : dateRange === '3Y'
+      : dateRange === "3Y"
         ? 3
-        : dateRange === '5Y'
+        : dateRange === "5Y"
           ? 5
           : 6;
   const years =
-    year === 'All years'
+    year === "All years"
       ? Array.from({ length: rangeYears }, (_, index) => 2026 - index)
       : [Number(year)];
   const seasonal = years.map((currentYear, yearIndex) =>
@@ -1922,7 +2631,7 @@ function SeasonalPerformance({ instrument }: { instrument: Instrument }) {
         (
           Math.sin(currentYear * 0.31 + periodIndex * 1.7 + instrument.price) *
             1.4 +
-          instrument.return1m / (scale === 'Monthly' ? 13 : 4) +
+          instrument.return1m / (scale === "Monthly" ? 13 : 4) +
           instrument.change * 0.18
         ).toFixed(2),
       ),
@@ -1968,7 +2677,7 @@ function SeasonalPerformance({ instrument }: { instrument: Instrument }) {
             aria-label="Seasonal date range"
             value={dateRange}
             onChange={(event) =>
-              setDateRange(event.target.value as '1Y' | '3Y' | '5Y' | 'All')
+              setDateRange(event.target.value as "1Y" | "3Y" | "5Y" | "All")
             }
             className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-600"
           >
@@ -1981,7 +2690,7 @@ function SeasonalPerformance({ instrument }: { instrument: Instrument }) {
             aria-label="Seasonal scale"
             value={scale}
             onChange={(event) =>
-              setScale(event.target.value as 'Monthly' | 'Quarterly')
+              setScale(event.target.value as "Monthly" | "Quarterly")
             }
             className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-600"
           >
@@ -1990,21 +2699,21 @@ function SeasonalPerformance({ instrument }: { instrument: Instrument }) {
           </select>
           <div className="seg">
             <button
-              onClick={() => setMode('Table')}
-              className={mode === 'Table' ? 'active' : ''}
+              onClick={() => setMode("Table")}
+              className={mode === "Table" ? "active" : ""}
             >
               Table
             </button>
             <button
-              onClick={() => setMode('Chart')}
-              className={mode === 'Chart' ? 'active' : ''}
+              onClick={() => setMode("Chart")}
+              className={mode === "Chart" ? "active" : ""}
             >
               Chart
             </button>
           </div>
         </div>
       </div>
-      {mode === 'Table' ? (
+      {mode === "Table" ? (
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-180 text-left text-[10px]">
             <thead>
@@ -2026,17 +2735,17 @@ function SeasonalPerformance({ instrument }: { instrument: Instrument }) {
                   </td>
                   {row.map((value, index) => (
                     <td
-                      className={`px-2 py-2 text-right font-mono ${value >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}
+                      className={`px-2 py-2 text-right font-mono ${value >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}
                       key={`${years[rowIndex]}-${index}`}
                     >
-                      {value > 0 ? '+' : ''}
+                      {value > 0 ? "+" : ""}
                       {value.toFixed(2)}%
                     </td>
                   ))}
                   <td
-                    className={`px-2 py-2 text-right font-mono font-semibold ${annual[rowIndex] >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}
+                    className={`px-2 py-2 text-right font-mono font-semibold ${annual[rowIndex] >= 0 ? "text-emerald-700" : "text-rose-700"}`}
                   >
-                    {annual[rowIndex] > 0 ? '+' : ''}
+                    {annual[rowIndex] > 0 ? "+" : ""}
                     {annual[rowIndex].toFixed(2)}%
                   </td>
                 </tr>
@@ -2047,10 +2756,10 @@ function SeasonalPerformance({ instrument }: { instrument: Instrument }) {
                 </td>
                 {average.map((value, index) => (
                   <td
-                    className={`px-2 py-2 text-right font-mono font-semibold ${value >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}
+                    className={`px-2 py-2 text-right font-mono font-semibold ${value >= 0 ? "text-emerald-700" : "text-rose-700"}`}
                     key={`average-${index}`}
                   >
-                    {value > 0 ? '+' : ''}
+                    {value > 0 ? "+" : ""}
                     {value.toFixed(2)}%
                   </td>
                 ))}
@@ -2083,7 +2792,7 @@ function SeasonalChart({
       (value, index) =>
         `${(index / Math.max(values.length - 1, 1)) * 94 + 3},${92 - ((value - min) / span) * 72}`,
     )
-    .join(' ');
+    .join(" ");
   return (
     <div className="mt-5">
       <div className="relative h-56 overflow-hidden rounded-xl border border-border grid-surface">
@@ -2107,7 +2816,7 @@ function SeasonalChart({
                 cx={(index / Math.max(values.length - 1, 1)) * 94 + 3}
                 cy={92 - ((value - min) / span) * 72}
                 r="1.6"
-                fill={value >= 0 ? '#10b981' : '#ef4444'}
+                fill={value >= 0 ? "#10b981" : "#ef4444"}
               />
             ))}
           </g>
@@ -2206,9 +2915,9 @@ function Analysis({
         {instrument.name} decision context
       </h2>
       <p className="mt-3 max-w-2xl text-xs leading-relaxed text-slate-500">
-        {kind} instrument with{' '}
-        {instrument.change >= 0 ? 'positive' : 'negative'} daily momentum,{' '}
-        {instrument.rvol.toFixed(2)}x relative volume, and a{' '}
+        {kind} instrument with{" "}
+        {instrument.change >= 0 ? "positive" : "negative"} daily momentum,{" "}
+        {instrument.rvol.toFixed(2)}x relative volume, and a{" "}
         {instrument.signal.toLowerCase()} demo signal. Validate market data,
         product terms, and broker eligibility before acting.
       </p>
@@ -2226,108 +2935,360 @@ function Forecast({
 }) {
   const forecast = instrument.return1m * 1.35;
   const communityScenarios = [
-    { author: 'Daniel Markson', initials: 'DM', bias: 'Bullish pullback', target: `+${Math.max(6, instrument.return1m * 0.9).toFixed(1)}%`, confidence: 76, summary: 'Participation remains constructive; confirmation is expected around the next controlled pullback.' },
-    { author: 'CLORA', initials: 'CL', bias: 'Constructive trend', target: `+${Math.max(4, instrument.return1m * 0.65).toFixed(1)}%`, confidence: 69, summary: `Volume and broader ${instrument.sector.toLowerCase()} breadth support a continuation scenario.` },
-    { author: 'Aisha Rahman', initials: 'AR', bias: 'Measured upside', target: '+6.4%', confidence: 72, summary: 'Steady demand and improving market breadth support upside, with event volatility kept in view.' },
-    { author: 'Leo Park', initials: 'LP', bias: 'Range breakout', target: '+3.1%', confidence: 61, summary: 'Consolidation remains the base case until participation confirms a clean break from the current range.' },
-    { author: 'Sofia Mendes', initials: 'SM', bias: 'Risk retest', target: '-5.8%', confidence: 58, summary: 'Valuation sensitivity creates a downside retest scenario before a potential longer-term trend recovery.' },
+    {
+      author: "Daniel Markson",
+      initials: "DM",
+      bias: "Bullish pullback",
+      target: `+${Math.max(6, instrument.return1m * 0.9).toFixed(1)}%`,
+      confidence: 76,
+      summary:
+        "Participation remains constructive; confirmation is expected around the next controlled pullback.",
+    },
+    {
+      author: "CLORA",
+      initials: "CL",
+      bias: "Constructive trend",
+      target: `+${Math.max(4, instrument.return1m * 0.65).toFixed(1)}%`,
+      confidence: 69,
+      summary: `Volume and broader ${instrument.sector.toLowerCase()} breadth support a continuation scenario.`,
+    },
+    {
+      author: "Aisha Rahman",
+      initials: "AR",
+      bias: "Measured upside",
+      target: "+6.4%",
+      confidence: 72,
+      summary:
+        "Steady demand and improving market breadth support upside, with event volatility kept in view.",
+    },
+    {
+      author: "Leo Park",
+      initials: "LP",
+      bias: "Range breakout",
+      target: "+3.1%",
+      confidence: 61,
+      summary:
+        "Consolidation remains the base case until participation confirms a clean break from the current range.",
+    },
+    {
+      author: "Sofia Mendes",
+      initials: "SM",
+      bias: "Risk retest",
+      target: "-5.8%",
+      confidence: 58,
+      summary:
+        "Valuation sensitivity creates a downside retest scenario before a potential longer-term trend recovery.",
+    },
   ];
   return (
     <div className="space-y-4">
-    <section className="panel p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="label">Forecast</p>
-          <h2 className="mt-1 text-sm font-semibold text-slate-900">
-            Demo forward outlook
-          </h2>
-          <p className="mt-1 text-[10px] text-slate-400">
-            Scenario model for {instrument.symbol}; not a recommendation.
-          </p>
+      <section className="panel p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="label">Forecast</p>
+            <h2 className="mt-1 text-sm font-semibold text-slate-900">
+              Demo forward outlook
+            </h2>
+            <p className="mt-1 text-[10px] text-slate-400">
+              Scenario model for {instrument.symbol}; not a recommendation.
+            </p>
+          </div>
+          <span className="badge">DEMO MODEL</span>
         </div>
-        <span className="badge">DEMO MODEL</span>
-      </div>
-      <div className="mt-5 overflow-hidden rounded-xl border border-border bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3"><div><p className="text-[10px] font-semibold text-slate-900">Price scenario summary</p><p className="mt-1 text-[9px] text-slate-400">Select a community path to open its prediction post</p></div><div className="flex gap-3 text-[9px] text-slate-500"><span><i className="mr-1 inline-block size-2 rounded-full bg-violet-500" />History</span><span><i className="mr-1 inline-block size-2 rounded-full bg-emerald-400" />5 community scenarios</span></div></div>
-        <div className="relative h-64 bg-gradient-to-b from-white to-slate-50">
-          <svg viewBox="0 0 800 240" preserveAspectRatio="none" className="absolute inset-0 size-full" aria-label={`${instrument.symbol} community forecast scenarios`}>
-            <defs><linearGradient id="forecastFan" x1="0" x2="1"><stop offset="0%" stopColor="#34d399" stopOpacity=".05" /><stop offset="100%" stopColor="#34d399" stopOpacity=".2" /></linearGradient></defs>
-            {[48,96,144,192].map((y) => <line key={y} x1="28" x2="770" y1={y} y2={y} stroke="#e8edf4" strokeWidth="1" />)}
-            <line x1="472" x2="472" y1="18" y2="218" stroke="#cbd5e1" strokeDasharray="5 5" />
-            <path d="M28 180 C80 169 116 184 162 160 S250 151 305 135 S398 144 472 118" fill="none" stroke="#7657ff" strokeWidth="4" strokeLinecap="round" />
-            <path d="M472 118 C560 106 642 65 770 38 L770 130 C652 132 560 123 472 118 Z" fill="url(#forecastFan)" />
-            <path d="M472 118 C560 100 650 62 770 38" fill="none" stroke="#34d399" strokeWidth="3" strokeDasharray="7 5" />
-            <path d="M472 118 C565 116 654 102 770 82" fill="none" stroke="#22d3ee" strokeWidth="3" strokeDasharray="7 5" />
-            <path d="M472 118 C570 120 660 112 770 126" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeDasharray="6 5" />
-            <path d="M472 118 C570 132 660 146 770 160" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeDasharray="6 5" />
-            <path d="M472 118 C570 145 660 178 770 196" fill="none" stroke="#f43f5e" strokeWidth="2.5" strokeDasharray="6 5" />
-            <circle cx="472" cy="118" r="6" fill="#7657ff" stroke="white" strokeWidth="3" />
-            <circle cx="770" cy="38" r="6" fill="#34d399" stroke="white" strokeWidth="3" />
-            <circle cx="770" cy="82" r="6" fill="#22d3ee" stroke="white" strokeWidth="3" />
-            <circle cx="770" cy="126" r="5" fill="#f59e0b" stroke="white" strokeWidth="3" />
-            <circle cx="770" cy="160" r="5" fill="#3b82f6" stroke="white" strokeWidth="3" />
-            <circle cx="770" cy="196" r="5" fill="#f43f5e" stroke="white" strokeWidth="3" />
-          </svg>
-          <span className="absolute bottom-3 left-4 text-[9px] text-slate-400">Historical demo path</span><span className="absolute bottom-3 left-[59%] text-[9px] text-slate-400">Community forecast</span>
-          {[['Daniel Markson','DM','+11.5%','top-2','text-emerald-600'],['CLORA','CL','+8.2%','top-[49px]','text-cyan-600'],['Aisha Rahman','AR','+6.4%','top-[96px]','text-amber-600'],['Leo Park','LP','+3.1%','top-[143px]','text-blue-600'],['Sofia Mendes','SM','-5.8%','top-[190px]','text-rose-600']].map(([name,initials,target,position,color]) => <button key={name} onClick={() => onCommunityScenario?.(name)} className={`absolute right-3 ${position} rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left text-[9px] shadow-sm transition hover:-translate-x-1 hover:border-violet-300`}><b className={`block ${color}`}>{initials} · {target}</b></button>)}
-          <div className="absolute left-[54%] top-[104px] rounded bg-violet-600 px-2 py-1 text-[9px] font-semibold text-white">Now · {displayValue(instrument)}</div>
+        <div className="mt-5 overflow-hidden rounded-xl border border-border bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+            <div>
+              <p className="text-[10px] font-semibold text-slate-900">
+                Price scenario summary
+              </p>
+              <p className="mt-1 text-[9px] text-slate-400">
+                Select a community path to open its prediction post
+              </p>
+            </div>
+            <div className="flex gap-3 text-[9px] text-slate-500">
+              <span>
+                <i className="mr-1 inline-block size-2 rounded-full bg-violet-500" />
+                History
+              </span>
+              <span>
+                <i className="mr-1 inline-block size-2 rounded-full bg-emerald-400" />
+                5 community scenarios
+              </span>
+            </div>
+          </div>
+          <div className="relative h-64 bg-gradient-to-b from-white to-slate-50">
+            <svg
+              viewBox="0 0 800 240"
+              preserveAspectRatio="none"
+              className="absolute inset-0 size-full"
+              aria-label={`${instrument.symbol} community forecast scenarios`}
+            >
+              <defs>
+                <linearGradient id="forecastFan" x1="0" x2="1">
+                  <stop offset="0%" stopColor="#34d399" stopOpacity=".05" />
+                  <stop offset="100%" stopColor="#34d399" stopOpacity=".2" />
+                </linearGradient>
+              </defs>
+              {[48, 96, 144, 192].map((y) => (
+                <line
+                  key={y}
+                  x1="28"
+                  x2="770"
+                  y1={y}
+                  y2={y}
+                  stroke="#e8edf4"
+                  strokeWidth="1"
+                />
+              ))}
+              <line
+                x1="472"
+                x2="472"
+                y1="18"
+                y2="218"
+                stroke="#cbd5e1"
+                strokeDasharray="5 5"
+              />
+              <path
+                d="M28 180 C80 169 116 184 162 160 S250 151 305 135 S398 144 472 118"
+                fill="none"
+                stroke="#7657ff"
+                strokeWidth="4"
+                strokeLinecap="round"
+              />
+              <path
+                d="M472 118 C560 106 642 65 770 38 L770 130 C652 132 560 123 472 118 Z"
+                fill="url(#forecastFan)"
+              />
+              <path
+                d="M472 118 C560 100 650 62 770 38"
+                fill="none"
+                stroke="#34d399"
+                strokeWidth="3"
+                strokeDasharray="7 5"
+              />
+              <path
+                d="M472 118 C565 116 654 102 770 82"
+                fill="none"
+                stroke="#22d3ee"
+                strokeWidth="3"
+                strokeDasharray="7 5"
+              />
+              <path
+                d="M472 118 C570 120 660 112 770 126"
+                fill="none"
+                stroke="#f59e0b"
+                strokeWidth="2.5"
+                strokeDasharray="6 5"
+              />
+              <path
+                d="M472 118 C570 132 660 146 770 160"
+                fill="none"
+                stroke="#3b82f6"
+                strokeWidth="2.5"
+                strokeDasharray="6 5"
+              />
+              <path
+                d="M472 118 C570 145 660 178 770 196"
+                fill="none"
+                stroke="#f43f5e"
+                strokeWidth="2.5"
+                strokeDasharray="6 5"
+              />
+              <circle
+                cx="472"
+                cy="118"
+                r="6"
+                fill="#7657ff"
+                stroke="white"
+                strokeWidth="3"
+              />
+              <circle
+                cx="770"
+                cy="38"
+                r="6"
+                fill="#34d399"
+                stroke="white"
+                strokeWidth="3"
+              />
+              <circle
+                cx="770"
+                cy="82"
+                r="6"
+                fill="#22d3ee"
+                stroke="white"
+                strokeWidth="3"
+              />
+              <circle
+                cx="770"
+                cy="126"
+                r="5"
+                fill="#f59e0b"
+                stroke="white"
+                strokeWidth="3"
+              />
+              <circle
+                cx="770"
+                cy="160"
+                r="5"
+                fill="#3b82f6"
+                stroke="white"
+                strokeWidth="3"
+              />
+              <circle
+                cx="770"
+                cy="196"
+                r="5"
+                fill="#f43f5e"
+                stroke="white"
+                strokeWidth="3"
+              />
+            </svg>
+            <span className="absolute bottom-3 left-4 text-[9px] text-slate-400">
+              Historical demo path
+            </span>
+            <span className="absolute bottom-3 left-[59%] text-[9px] text-slate-400">
+              Community forecast
+            </span>
+            {[
+              ["Daniel Markson", "DM", "+11.5%", "top-2", "text-emerald-600"],
+              ["CLORA", "CL", "+8.2%", "top-[49px]", "text-cyan-600"],
+              ["Aisha Rahman", "AR", "+6.4%", "top-[96px]", "text-amber-600"],
+              ["Leo Park", "LP", "+3.1%", "top-[143px]", "text-blue-600"],
+              ["Sofia Mendes", "SM", "-5.8%", "top-[190px]", "text-rose-600"],
+            ].map(([name, initials, target, position, color]) => (
+              <button
+                key={name}
+                onClick={() => onCommunityScenario?.(name)}
+                className={`absolute right-3 ${position} rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left text-[9px] shadow-sm transition hover:-translate-x-1 hover:border-violet-300`}
+              >
+                <b className={`block ${color}`}>
+                  {initials} · {target}
+                </b>
+              </button>
+            ))}
+            <div className="absolute left-[54%] top-[104px] rounded bg-violet-600 px-2 py-1 text-[9px] font-semibold text-white">
+              Now · {displayValue(instrument)}
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="mt-5 grid grid-cols-4 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
-        <Metric
-          label="30D scenario"
-          value={`${forecast >= 0 ? '+' : ''}${forecast.toFixed(1)}%`}
-        />
-        <Metric
-          label="Direction"
-          value={forecast >= 0 ? 'Positive bias' : 'Negative bias'}
-        />
-        <Metric
-          label="Confidence"
-          value={`${Math.max(35, Math.min(88, instrument.confidence - 4))}%`}
-        />
-        <Metric
-          label="Driver"
-          value={
-            kind === 'Forex'
-              ? 'Rates / macro'
-              : kind === 'Crypto'
-                ? 'Momentum / liquidity'
-                : kind === 'Commodity'
-                  ? 'Supply / USD'
-                  : 'Trend / breadth'
-          }
-        />
-      </div>
-      <div className="mt-5 rounded-xl bg-slate-50 p-4 text-xs text-slate-600">
-        Forecast inputs are synthetic and combine recent return, relative
-        volume, sentiment, and technical context. Production forecasts require a
-        validated data provider and model provenance.
-      </div>
-    </section>
-    <section className="panel overflow-hidden">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-5"><div><p className="label">Community scenarios</p><h2 className="mt-1 text-sm font-semibold text-slate-900">What contributors expect next</h2><p className="mt-1 text-[10px] text-slate-400">Community-authored demo scenarios linked to their original discussion posts.</p></div><span className="badge">5 VIEWS</span></div>
-      <div className="grid grid-cols-2 gap-4 p-5 max-lg:grid-cols-1">{communityScenarios.map((scenario) => <button key={scenario.author} onClick={() => onCommunityScenario?.(scenario.author)} className="group rounded-xl border border-border bg-white p-4 text-left transition hover:border-violet-300 hover:bg-violet-50/40 hover:shadow-md"><div className="flex items-start justify-between gap-3"><div className="flex items-center gap-3"><span className="concept-avatar">{scenario.initials}</span><div><b className="text-xs text-slate-900">{scenario.author}</b><span className="mt-1 block text-[9px] text-slate-400">Community contributor</span></div></div><span className="text-[10px] font-semibold text-emerald-600">{scenario.bias}</span></div><p className="mt-4 text-[11px] leading-relaxed text-slate-600">{scenario.summary}</p><div className="mt-4 grid grid-cols-2 gap-3"><div className="rounded-lg bg-slate-50 p-3"><span className="text-[8px] uppercase tracking-wide text-slate-400">Scenario target</span><b className="mt-1 block text-sm text-emerald-600">{scenario.target}</b></div><div className="rounded-lg bg-slate-50 p-3"><span className="text-[8px] uppercase tracking-wide text-slate-400">Confidence</span><b className="mt-1 block text-sm text-slate-900">{scenario.confidence}%</b></div></div><div className="mt-4 flex items-center justify-between text-[9px] font-medium text-violet-600"><span>View original community post</span><ArrowRight className="size-3 transition-transform group-hover:translate-x-1" /></div></button>)}</div>
-      <div className="border-t border-border bg-amber-50/60 px-5 py-3 text-[9px] text-amber-700">Community scenarios are opinions and synthetic demo content, not analyst research or investment advice.</div>
-    </section>
+        <div className="mt-5 grid grid-cols-4 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
+          <Metric
+            label="30D scenario"
+            value={`${forecast >= 0 ? "+" : ""}${forecast.toFixed(1)}%`}
+          />
+          <Metric
+            label="Direction"
+            value={forecast >= 0 ? "Positive bias" : "Negative bias"}
+          />
+          <Metric
+            label="Confidence"
+            value={`${Math.max(35, Math.min(88, instrument.confidence - 4))}%`}
+          />
+          <Metric
+            label="Driver"
+            value={
+              kind === "Forex"
+                ? "Rates / macro"
+                : kind === "Crypto"
+                  ? "Momentum / liquidity"
+                  : kind === "Commodity"
+                    ? "Supply / USD"
+                    : "Trend / breadth"
+            }
+          />
+        </div>
+        <div className="mt-5 rounded-xl bg-slate-50 p-4 text-xs text-slate-600">
+          Forecast inputs are synthetic and combine recent return, relative
+          volume, sentiment, and technical context. Production forecasts require
+          a validated data provider and model provenance.
+        </div>
+      </section>
+      <section className="panel overflow-hidden">
+        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-5">
+          <div>
+            <p className="label">Community scenarios</p>
+            <h2 className="mt-1 text-sm font-semibold text-slate-900">
+              What contributors expect next
+            </h2>
+            <p className="mt-1 text-[10px] text-slate-400">
+              Community-authored demo scenarios linked to their original
+              discussion posts.
+            </p>
+          </div>
+          <span className="badge">5 VIEWS</span>
+        </div>
+        <div className="grid grid-cols-2 gap-4 p-5 max-lg:grid-cols-1">
+          {communityScenarios.map((scenario) => (
+            <button
+              key={scenario.author}
+              onClick={() => onCommunityScenario?.(scenario.author)}
+              className="group rounded-xl border border-border bg-white p-4 text-left transition hover:border-violet-300 hover:bg-violet-50/40 hover:shadow-md"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="concept-avatar">{scenario.initials}</span>
+                  <div>
+                    <b className="text-xs text-slate-900">{scenario.author}</b>
+                    <span className="mt-1 block text-[9px] text-slate-400">
+                      Community contributor
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-semibold text-emerald-600">
+                  {scenario.bias}
+                </span>
+              </div>
+              <p className="mt-4 text-[11px] leading-relaxed text-slate-600">
+                {scenario.summary}
+              </p>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <span className="text-[8px] uppercase tracking-wide text-slate-400">
+                    Scenario target
+                  </span>
+                  <b className="mt-1 block text-sm text-emerald-600">
+                    {scenario.target}
+                  </b>
+                </div>
+                <div className="rounded-lg bg-slate-50 p-3">
+                  <span className="text-[8px] uppercase tracking-wide text-slate-400">
+                    Confidence
+                  </span>
+                  <b className="mt-1 block text-sm text-slate-900">
+                    {scenario.confidence}%
+                  </b>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center justify-between text-[9px] font-medium text-violet-600">
+                <span>View original community post</span>
+                <ArrowRight className="size-3 transition-transform group-hover:translate-x-1" />
+              </div>
+            </button>
+          ))}
+        </div>
+        <div className="border-t border-border bg-amber-50/60 px-5 py-3 text-[9px] text-amber-700">
+          Community scenarios are opinions and synthetic demo content, not
+          analyst research or investment advice.
+        </div>
+      </section>
     </div>
   );
 }
 function FinancialReport({ instrument }: { instrument: Instrument }) {
-  const [period, setPeriod] = useState<'Annual' | 'Quarterly'>('Annual');
+  const [period, setPeriod] = useState<"Annual" | "Quarterly">("Annual");
   const annual = [
-    { label: 'FY22', revenue: 27.0, income: 9.8, margin: 36.2 },
-    { label: 'FY23', revenue: 27.0, income: 4.4, margin: 16.2 },
-    { label: 'FY24', revenue: 60.9, income: 29.8, margin: 48.9 },
-    { label: 'FY25', revenue: 130.5, income: 72.9, margin: 55.8 },
+    { label: "FY22", revenue: 27.0, income: 9.8, margin: 36.2 },
+    { label: "FY23", revenue: 27.0, income: 4.4, margin: 16.2 },
+    { label: "FY24", revenue: 60.9, income: 29.8, margin: 48.9 },
+    { label: "FY25", revenue: 130.5, income: 72.9, margin: 55.8 },
   ];
   const quarterly = [
-    { label: 'Q2 25', revenue: 30.0, income: 16.6, margin: 55.3 },
-    { label: 'Q3 25', revenue: 35.1, income: 19.3, margin: 55.0 },
-    { label: 'Q4 25', revenue: 39.3, income: 22.1, margin: 56.2 },
-    { label: 'Q1 26', revenue: 44.1, income: 24.8, margin: 56.3 },
+    { label: "Q2 25", revenue: 30.0, income: 16.6, margin: 55.3 },
+    { label: "Q3 25", revenue: 35.1, income: 19.3, margin: 55.0 },
+    { label: "Q4 25", revenue: 39.3, income: 22.1, margin: 56.2 },
+    { label: "Q1 26", revenue: 44.1, income: 24.8, margin: 56.3 },
   ];
-  const series = period === 'Annual' ? annual : quarterly;
+  const series = period === "Annual" ? annual : quarterly;
   const maxRevenue = Math.max(...series.map((item) => item.revenue));
   return (
     <div className="space-y-4">
@@ -2339,36 +3300,179 @@ function FinancialReport({ instrument }: { instrument: Instrument }) {
               {instrument.symbol} financial overview
             </h2>
             <p className="mt-1 text-[10px] text-slate-400">
-              Interactive demo statements, profitability, valuation, and financial health.
+              Interactive demo statements, profitability, valuation, and
+              financial health.
             </p>
           </div>
-          <div className="flex items-center gap-2"><div className="seg">{(['Annual', 'Quarterly'] as const).map((item) => <button key={item} onClick={() => setPeriod(item)} className={period === item ? 'active' : ''}>{item}</button>)}</div><span className="badge positive">DEMO DATA</span></div>
+          <div className="flex items-center gap-2">
+            <div className="seg">
+              {(["Annual", "Quarterly"] as const).map((item) => (
+                <button
+                  key={item}
+                  onClick={() => setPeriod(item)}
+                  className={period === item ? "active" : ""}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+            <span className="badge positive">DEMO DATA</span>
+          </div>
         </div>
         <div className="mt-5 grid grid-cols-4 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
-          <Metric label="Market capitalization" value={`$${instrument.marketCap?.toLocaleString() ?? '—'}B`} />
-          <Metric label="P/E ratio (TTM)" value={instrument.pe ? `${instrument.pe.toFixed(1)}×` : '—'} />
-          <Metric label="Basic EPS (TTM)" value={`$${(instrument.price / (instrument.pe ?? 25)).toFixed(2)}`} />
+          <Metric
+            label="Market capitalization"
+            value={`$${instrument.marketCap?.toLocaleString() ?? "—"}B`}
+          />
+          <Metric
+            label="P/E ratio (TTM)"
+            value={instrument.pe ? `${instrument.pe.toFixed(1)}×` : "—"}
+          />
+          <Metric
+            label="Basic EPS (TTM)"
+            value={`$${(instrument.price / (instrument.pe ?? 25)).toFixed(2)}`}
+          />
           <Metric label="Revenue growth" value="+114.2%" />
         </div>
       </section>
       <div className="grid grid-cols-2 gap-4 max-xl:grid-cols-1">
         <section className="panel p-5">
-          <div className="flex items-start justify-between"><div><p className="label">Growth</p><h3 className="mt-1 text-sm font-semibold text-slate-900">Revenue & net income</h3></div><div className="flex gap-3 text-[9px] text-slate-500"><span><i className="mr-1 inline-block size-2 rounded-sm bg-violet-500" />Revenue</span><span><i className="mr-1 inline-block size-2 rounded-sm bg-emerald-400" />Net income</span></div></div>
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="label">Growth</p>
+              <h3 className="mt-1 text-sm font-semibold text-slate-900">
+                Revenue & net income
+              </h3>
+            </div>
+            <div className="flex gap-3 text-[9px] text-slate-500">
+              <span>
+                <i className="mr-1 inline-block size-2 rounded-sm bg-violet-500" />
+                Revenue
+              </span>
+              <span>
+                <i className="mr-1 inline-block size-2 rounded-sm bg-emerald-400" />
+                Net income
+              </span>
+            </div>
+          </div>
           <div className="mt-5 flex h-64 items-end gap-4 border-b border-slate-200 px-2">
-            {series.map((item) => <div key={item.label} className="group flex h-full flex-1 flex-col justify-end"><div className="relative flex flex-1 items-end justify-center gap-1"><div className="w-2/5 rounded-t bg-violet-500 transition-opacity group-hover:opacity-80" style={{height: `${(item.revenue / maxRevenue) * 88}%`}} title={`${item.label} revenue: $${item.revenue}B`} /><div className="w-2/5 rounded-t bg-emerald-400 transition-opacity group-hover:opacity-80" style={{height: `${(item.income / maxRevenue) * 88}%`}} title={`${item.label} net income: $${item.income}B`} /><div className="pointer-events-none absolute bottom-2 left-1/2 z-20 hidden w-36 -translate-x-1/2 rounded-lg bg-slate-900 p-2 text-[9px] text-white shadow-xl group-hover:block"><b>{item.label}</b><span className="mt-1 block">Revenue ${item.revenue}B</span><span className="block">Net income ${item.income}B</span></div></div><span className="py-2 text-center text-[9px] text-slate-500">{item.label}</span></div>)}
+            {series.map((item) => (
+              <div
+                key={item.label}
+                className="group flex h-full flex-1 flex-col justify-end"
+              >
+                <div className="relative flex flex-1 items-end justify-center gap-1">
+                  <div
+                    className="w-2/5 rounded-t bg-violet-500 transition-opacity group-hover:opacity-80"
+                    style={{ height: `${(item.revenue / maxRevenue) * 88}%` }}
+                    title={`${item.label} revenue: $${item.revenue}B`}
+                  />
+                  <div
+                    className="w-2/5 rounded-t bg-emerald-400 transition-opacity group-hover:opacity-80"
+                    style={{ height: `${(item.income / maxRevenue) * 88}%` }}
+                    title={`${item.label} net income: $${item.income}B`}
+                  />
+                  <div className="pointer-events-none absolute bottom-2 left-1/2 z-20 hidden w-36 -translate-x-1/2 rounded-lg bg-slate-900 p-2 text-[9px] text-white shadow-xl group-hover:block">
+                    <b>{item.label}</b>
+                    <span className="mt-1 block">Revenue ${item.revenue}B</span>
+                    <span className="block">Net income ${item.income}B</span>
+                  </div>
+                </div>
+                <span className="py-2 text-center text-[9px] text-slate-500">
+                  {item.label}
+                </span>
+              </div>
+            ))}
           </div>
         </section>
         <section className="panel p-5">
-          <p className="label">Profitability</p><h3 className="mt-1 text-sm font-semibold text-slate-900">Net margin trend</h3>
-          <div className="mt-5 space-y-5">{series.map((item) => <div key={item.label}><div className="mb-2 flex justify-between text-[10px]"><span className="text-slate-500">{item.label}</span><b className="text-slate-900">{item.margin}%</b></div><div className="h-3 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-emerald-400" style={{width: `${item.margin}%`}} title={`${item.label} net margin: ${item.margin}%`} /></div></div>)}</div>
-          <div className="mt-6 grid grid-cols-2 gap-3"><Metric label="Gross margin" value="75.0%" /><Metric label="Operating margin" value="62.1%" /><Metric label="ROE" value="91.4%" /><Metric label="Free cash flow" value="$60.9B" /></div>
+          <p className="label">Profitability</p>
+          <h3 className="mt-1 text-sm font-semibold text-slate-900">
+            Net margin trend
+          </h3>
+          <div className="mt-5 space-y-5">
+            {series.map((item) => (
+              <div key={item.label}>
+                <div className="mb-2 flex justify-between text-[10px]">
+                  <span className="text-slate-500">{item.label}</span>
+                  <b className="text-slate-900">{item.margin}%</b>
+                </div>
+                <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-violet-500 to-emerald-400"
+                    style={{ width: `${item.margin}%` }}
+                    title={`${item.label} net margin: ${item.margin}%`}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <Metric label="Gross margin" value="75.0%" />
+            <Metric label="Operating margin" value="62.1%" />
+            <Metric label="ROE" value="91.4%" />
+            <Metric label="Free cash flow" value="$60.9B" />
+          </div>
         </section>
       </div>
       <section className="panel overflow-hidden">
-        <div className="border-b border-border p-5"><p className="label">Financial health</p><h3 className="mt-1 text-sm font-semibold text-slate-900">Balance sheet & valuation</h3></div>
-        <div className="grid grid-cols-2 max-lg:grid-cols-1"><div className="p-5"><div className="space-y-4">{[['Cash & equivalents','$43.2B',72],['Total debt','$10.3B',24],['Current assets','$80.1B',88],['Total liabilities','$32.3B',42]].map(([label,value,width]) => <div key={label as string}><div className="mb-2 flex justify-between text-[10px]"><span className="text-slate-500">{label}</span><b>{value}</b></div><div className="h-2 rounded-full bg-slate-100"><div className="h-full rounded-full bg-violet-500" style={{width: `${width}%`}} /></div></div>)}</div></div><div className="border-l border-border p-5 max-lg:border-l-0 max-lg:border-t"><table className="w-full text-[10px]"><tbody className="divide-y divide-border">{[['Price / sales','26.1×'],['Price / book','51.8×'],['EV / EBITDA','42.7×'],['Debt / equity','11.5%'],['Current ratio','4.1×'],['Dividend yield','0.03%']].map(([label,value]) => <tr key={label}><td className="py-3 text-slate-500">{label}</td><td className="py-3 text-right font-semibold text-slate-900">{value}</td></tr>)}</tbody></table></div></div>
+        <div className="border-b border-border p-5">
+          <p className="label">Financial health</p>
+          <h3 className="mt-1 text-sm font-semibold text-slate-900">
+            Balance sheet & valuation
+          </h3>
+        </div>
+        <div className="grid grid-cols-2 max-lg:grid-cols-1">
+          <div className="p-5">
+            <div className="space-y-4">
+              {[
+                ["Cash & equivalents", "$43.2B", 72],
+                ["Total debt", "$10.3B", 24],
+                ["Current assets", "$80.1B", 88],
+                ["Total liabilities", "$32.3B", 42],
+              ].map(([label, value, width]) => (
+                <div key={label as string}>
+                  <div className="mb-2 flex justify-between text-[10px]">
+                    <span className="text-slate-500">{label}</span>
+                    <b>{value}</b>
+                  </div>
+                  <div className="h-2 rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-violet-500"
+                      style={{ width: `${width}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="border-l border-border p-5 max-lg:border-l-0 max-lg:border-t">
+            <table className="w-full text-[10px]">
+              <tbody className="divide-y divide-border">
+                {[
+                  ["Price / sales", "26.1×"],
+                  ["Price / book", "51.8×"],
+                  ["EV / EBITDA", "42.7×"],
+                  ["Debt / equity", "11.5%"],
+                  ["Current ratio", "4.1×"],
+                  ["Dividend yield", "0.03%"],
+                ].map(([label, value]) => (
+                  <tr key={label}>
+                    <td className="py-3 text-slate-500">{label}</td>
+                    <td className="py-3 text-right font-semibold text-slate-900">
+                      {value}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
-      <p className="px-1 text-[9px] leading-relaxed text-slate-400">All figures are synthetic demo data for interface evaluation and are not investment information.</p>
+      <p className="px-1 text-[9px] leading-relaxed text-slate-400">
+        All figures are synthetic demo data for interface evaluation and are not
+        investment information.
+      </p>
     </div>
   );
 }
@@ -2385,35 +3489,133 @@ function ProductsAndBrokersTable({
   setProduct: (product: ProductType) => void;
   brokers: Broker[];
 }) {
-  const matchedBrokers = brokers.filter((broker) => broker.products.includes(product));
+  const matchedBrokers = brokers.filter((broker) =>
+    broker.products.includes(product),
+  );
   const productDetails: Record<ProductType, string> = {
-    Spot: 'Buy or sell the underlying asset for direct settlement.',
-    Share: 'Whole-share ownership with standard equity market access.',
-    'Fractional share': 'Trade part of one share with a smaller minimum amount.',
-    'FX spot': 'Exchange currency pairs at the current market rate.',
-    CFD: 'Track price movement without owning the underlying asset; leverage may apply.',
-    Future: 'Standardized contract with a defined expiry and contract size.',
-    Perpetual: 'Derivative contract without expiry; funding charges may apply.',
+    Spot: "Buy or sell the underlying asset for direct settlement.",
+    Share: "Whole-share ownership with standard equity market access.",
+    "Fractional share":
+      "Trade part of one share with a smaller minimum amount.",
+    "FX spot": "Exchange currency pairs at the current market rate.",
+    CFD: "Track price movement without owning the underlying asset; leverage may apply.",
+    Future: "Standardized contract with a defined expiry and contract size.",
+    Perpetual: "Derivative contract without expiry; funding charges may apply.",
   };
   return (
     <section className="panel overflow-hidden">
       <div className="border-b border-border p-5">
         <p className="label">Products & broker access</p>
-        <h2 className="mt-1 text-sm font-semibold text-slate-900">Trade {instrument.symbol} by product</h2>
-        <p className="mt-1 text-[10px] text-slate-400">Choose a product to compare matching providers, costs, minimums, and access.</p>
+        <h2 className="mt-1 text-sm font-semibold text-slate-900">
+          Trade {instrument.symbol} by product
+        </h2>
+        <p className="mt-1 text-[10px] text-slate-400">
+          Choose a product to compare matching providers, costs, minimums, and
+          access.
+        </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          {products.map((item) => <span key={item} className="group relative"><button onClick={() => setProduct(item)} aria-describedby={`product-tip-${item.replaceAll(' ', '-')}`} className={`rounded-lg border px-3 py-2 text-[10px] font-medium ${product === item ? 'border-violet-300 bg-violet-50 text-violet-700' : 'border-border bg-white text-slate-600'}`}>{item}</button><span id={`product-tip-${item.replaceAll(' ', '-')}`} role="tooltip" className="pointer-events-none absolute left-0 top-full z-30 mt-2 hidden w-56 rounded-lg border border-slate-200 bg-slate-900 p-3 text-left text-[10px] font-normal leading-relaxed text-white shadow-xl group-hover:block group-focus-within:block"><b className="mb-1 block text-violet-300">{item}</b>{productDetails[item]}</span></span>)}
+          {products.map((item) => (
+            <span key={item} className="group relative">
+              <button
+                onClick={() => setProduct(item)}
+                aria-describedby={`product-tip-${item.replaceAll(" ", "-")}`}
+                className={`rounded-lg border px-3 py-2 text-[10px] font-medium ${product === item ? "border-violet-300 bg-violet-50 text-violet-700" : "border-border bg-white text-slate-600"}`}
+              >
+                {item}
+              </button>
+              <span
+                id={`product-tip-${item.replaceAll(" ", "-")}`}
+                role="tooltip"
+                className="pointer-events-none absolute left-0 top-full z-30 mt-2 hidden w-56 rounded-lg border border-slate-200 bg-slate-900 p-3 text-left text-[10px] font-normal leading-relaxed text-white shadow-xl group-hover:block group-focus-within:block"
+              >
+                <b className="mb-1 block text-violet-300">{item}</b>
+                {productDetails[item]}
+              </span>
+            </span>
+          ))}
         </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-left text-[10px]">
-          <thead className="bg-slate-50 text-slate-500"><tr><th className="px-5 py-3">Product</th><th className="px-4 py-3">Broker</th><th className="px-4 py-3">Venue</th><th className="px-4 py-3">Spread</th><th className="px-4 py-3">Minimum</th><th className="px-4 py-3">Platform</th><th className="px-4 py-3">Access</th><th className="px-5 py-3 text-right">Action</th></tr></thead>
+          <thead className="bg-slate-50 text-slate-500">
+            <tr>
+              <th className="px-5 py-3">Product</th>
+              <th className="px-4 py-3">Broker</th>
+              <th className="px-4 py-3">Venue</th>
+              <th className="px-4 py-3">Spread</th>
+              <th className="px-4 py-3">Minimum</th>
+              <th className="px-4 py-3">Platform</th>
+              <th className="px-4 py-3">Access</th>
+              <th className="px-5 py-3 text-right">Action</th>
+            </tr>
+          </thead>
           <tbody className="divide-y divide-border">
-            {matchedBrokers.map((broker) => <tr key={`${product}-${broker.name}`} className="group bg-white hover:bg-violet-50/40"><td className="px-5 py-4 font-semibold text-violet-700">{product}</td><td className="relative px-4 py-4 font-semibold text-slate-900" tabIndex={0}>{broker.name}<div role="tooltip" className="pointer-events-none absolute left-2 top-[calc(100%-4px)] z-40 hidden w-72 rounded-lg border border-violet-200 bg-white p-4 text-left font-normal shadow-2xl group-hover:block group-focus:block"><b className="text-xs text-slate-900">{broker.name}</b><p className="mt-1 leading-relaxed text-slate-500">{broker.details}</p><dl className="mt-3 grid grid-cols-2 gap-2"><div><dt className="text-[8px] uppercase text-slate-400">Commission</dt><dd className="mt-1 text-slate-700">{broker.commission}</dd></div><div><dt className="text-[8px] uppercase text-slate-400">Execution</dt><dd className="mt-1 text-slate-700">{broker.execution}</dd></div></dl></div></td><td className="px-4 py-4 text-slate-500">{broker.venue}</td><td className="px-4 py-4 text-slate-600">{broker.spread}</td><td className="px-4 py-4 text-slate-600">{broker.minimum}</td><td className="px-4 py-4 text-slate-600">{broker.platform}</td><td className="px-4 py-4"><span className={`badge ${broker.status === 'Available' ? 'positive' : ''}`}>{broker.status}</span></td><td className="px-5 py-4 text-right"><button className="primary justify-center">Connect</button></td></tr>)}
+            {matchedBrokers.map((broker) => (
+              <tr
+                key={`${product}-${broker.name}`}
+                className="group bg-white hover:bg-violet-50/40"
+              >
+                <td className="px-5 py-4 font-semibold text-violet-700">
+                  {product}
+                </td>
+                <td
+                  className="relative px-4 py-4 font-semibold text-slate-900"
+                  tabIndex={0}
+                >
+                  {broker.name}
+                  <div
+                    role="tooltip"
+                    className="pointer-events-none absolute left-2 top-[calc(100%-4px)] z-40 hidden w-72 rounded-lg border border-violet-200 bg-white p-4 text-left font-normal shadow-2xl group-hover:block group-focus:block"
+                  >
+                    <b className="text-xs text-slate-900">{broker.name}</b>
+                    <p className="mt-1 leading-relaxed text-slate-500">
+                      {broker.details}
+                    </p>
+                    <dl className="mt-3 grid grid-cols-2 gap-2">
+                      <div>
+                        <dt className="text-[8px] uppercase text-slate-400">
+                          Commission
+                        </dt>
+                        <dd className="mt-1 text-slate-700">
+                          {broker.commission}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-[8px] uppercase text-slate-400">
+                          Execution
+                        </dt>
+                        <dd className="mt-1 text-slate-700">
+                          {broker.execution}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </td>
+                <td className="px-4 py-4 text-slate-500">{broker.venue}</td>
+                <td className="px-4 py-4 text-slate-600">{broker.spread}</td>
+                <td className="px-4 py-4 text-slate-600">{broker.minimum}</td>
+                <td className="px-4 py-4 text-slate-600">{broker.platform}</td>
+                <td className="px-4 py-4">
+                  <span
+                    className={`badge ${broker.status === "Available" ? "positive" : ""}`}
+                  >
+                    {broker.status}
+                  </span>
+                </td>
+                <td className="px-5 py-4 text-right">
+                  <button className="primary justify-center">Connect</button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
-      {matchedBrokers.length === 0 && <div className="m-5 rounded-xl bg-amber-50 p-4 text-xs text-amber-700"><Lock className="mr-2 inline size-3" />No demo provider supports this exact product combination.</div>}
+      {matchedBrokers.length === 0 && (
+        <div className="m-5 rounded-xl bg-amber-50 p-4 text-xs text-amber-700">
+          <Lock className="mr-2 inline size-3" />
+          No demo provider supports this exact product combination.
+        </div>
+      )}
     </section>
   );
 }
@@ -2440,17 +3642,17 @@ function ProductPanel({
           <button
             key={item}
             onClick={() => setProduct(item)}
-            className={`rounded-xl border p-4 text-left ${product === item ? 'border-violet-300 bg-violet-50' : 'border-border bg-white'}`}
+            className={`rounded-xl border p-4 text-left ${product === item ? "border-violet-300 bg-violet-50" : "border-border bg-white"}`}
           >
             <b className="text-xs text-slate-900">{item}</b>
             <p className="mt-2 text-[10px] text-slate-500">
-              {item === 'Share'
-                ? 'Shares'
-                : item === 'Future'
-                  ? 'Contracts'
-                  : item === 'FX spot'
-                    ? 'Lots / units'
-                    : 'Product-specific units'}
+              {item === "Share"
+                ? "Shares"
+                : item === "Future"
+                  ? "Contracts"
+                  : item === "FX spot"
+                    ? "Lots / units"
+                    : "Product-specific units"}
             </p>
             {product === item && (
               <Check className="mt-3 size-4 text-violet-600" />
@@ -2513,7 +3715,7 @@ function BrokerPanel({
                 </p>
               </div>
               <span
-                className={`badge ${broker.status === 'Available' ? 'positive' : ''}`}
+                className={`badge ${broker.status === "Available" ? "positive" : ""}`}
               >
                 {broker.status}
               </span>
@@ -2550,18 +3752,18 @@ function AssetSpecific({
   instrument: Instrument;
 }) {
   const rows =
-    kind === 'Crypto'
+    kind === "Crypto"
       ? [
-          ['Network', 'Demo chain metadata'],
-          ['Consensus', 'Proof of Stake'],
-          ['Supply', 'Protocol-defined'],
-          ['24h volume', `${instrument.volume}M USD`],
+          ["Network", "Demo chain metadata"],
+          ["Consensus", "Proof of Stake"],
+          ["Supply", "Protocol-defined"],
+          ["24h volume", `${instrument.volume}M USD`],
         ]
       : [
-          ['Revenue', 'Demo financial statement'],
-          ['Earnings', 'Next event not connected'],
-          ['Balance sheet', 'Demo balance sheet'],
-          ['Cash flow', 'Demo cash flow'],
+          ["Revenue", "Demo financial statement"],
+          ["Earnings", "Next event not connected"],
+          ["Balance sheet", "Demo balance sheet"],
+          ["Cash flow", "Demo cash flow"],
         ];
   return (
     <section className="panel p-5">

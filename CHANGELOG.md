@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.70.0] - 2026-09-14
+
+### Added
+
+- Added publisher alert following on community posts with synchronized alert badges on matching Advanced Chart markers.
+
 ## [0.69.1] - 2026-09-14
 
 ### Added
