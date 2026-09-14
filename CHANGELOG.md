@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.63.1] - 2026-09-14
+### Added
+- Added a top-of-Forecast scenario chart whose contributor paths scroll to and highlight matching community prediction posts.
+
 ## [0.63.0] - 2026-09-14
 ### Added
 - Added contributor-authored scenario summaries to Forecast with smooth-scroll links and temporary highlighting for the original community posts.

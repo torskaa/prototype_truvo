@@ -2220,6 +2220,27 @@ function Forecast({
         </div>
         <span className="badge">DEMO MODEL</span>
       </div>
+      <div className="mt-5 overflow-hidden rounded-xl border border-border bg-white">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3"><div><p className="text-[10px] font-semibold text-slate-900">Price scenario summary</p><p className="mt-1 text-[9px] text-slate-400">Select a community path to open its prediction post</p></div><div className="flex gap-3 text-[9px] text-slate-500"><span><i className="mr-1 inline-block size-2 rounded-full bg-violet-500" />History</span><span><i className="mr-1 inline-block size-2 rounded-full bg-emerald-400" />Daniel</span><span><i className="mr-1 inline-block size-2 rounded-full bg-cyan-400" />CLORA</span></div></div>
+        <div className="relative h-64 bg-gradient-to-b from-white to-slate-50">
+          <svg viewBox="0 0 800 240" preserveAspectRatio="none" className="absolute inset-0 size-full" aria-label={`${instrument.symbol} community forecast scenarios`}>
+            <defs><linearGradient id="forecastFan" x1="0" x2="1"><stop offset="0%" stopColor="#34d399" stopOpacity=".05" /><stop offset="100%" stopColor="#34d399" stopOpacity=".2" /></linearGradient></defs>
+            {[48,96,144,192].map((y) => <line key={y} x1="28" x2="770" y1={y} y2={y} stroke="#e8edf4" strokeWidth="1" />)}
+            <line x1="472" x2="472" y1="18" y2="218" stroke="#cbd5e1" strokeDasharray="5 5" />
+            <path d="M28 180 C80 169 116 184 162 160 S250 151 305 135 S398 144 472 118" fill="none" stroke="#7657ff" strokeWidth="4" strokeLinecap="round" />
+            <path d="M472 118 C560 106 642 65 770 38 L770 130 C652 132 560 123 472 118 Z" fill="url(#forecastFan)" />
+            <path d="M472 118 C560 100 650 62 770 38" fill="none" stroke="#34d399" strokeWidth="3" strokeDasharray="7 5" />
+            <path d="M472 118 C565 116 654 102 770 82" fill="none" stroke="#22d3ee" strokeWidth="3" strokeDasharray="7 5" />
+            <circle cx="472" cy="118" r="6" fill="#7657ff" stroke="white" strokeWidth="3" />
+            <circle cx="770" cy="38" r="6" fill="#34d399" stroke="white" strokeWidth="3" />
+            <circle cx="770" cy="82" r="6" fill="#22d3ee" stroke="white" strokeWidth="3" />
+          </svg>
+          <span className="absolute bottom-3 left-4 text-[9px] text-slate-400">Historical demo path</span><span className="absolute bottom-3 left-[59%] text-[9px] text-slate-400">Community forecast</span>
+          <button onClick={() => onCommunityScenario?.('Daniel Markson')} className="absolute right-3 top-5 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-left text-[9px] shadow-md transition hover:-translate-y-0.5 hover:border-emerald-400"><b className="block text-emerald-600">DM · +11.5%</b><span className="text-slate-500">Daniel's scenario</span></button>
+          <button onClick={() => onCommunityScenario?.('CLORA')} className="absolute right-3 top-[88px] rounded-lg border border-cyan-200 bg-white px-3 py-2 text-left text-[9px] shadow-md transition hover:-translate-y-0.5 hover:border-cyan-400"><b className="block text-cyan-600">CL · +8.2%</b><span className="text-slate-500">CLORA's scenario</span></button>
+          <div className="absolute left-[54%] top-[104px] rounded bg-violet-600 px-2 py-1 text-[9px] font-semibold text-white">Now · {displayValue(instrument)}</div>
+        </div>
+      </div>
       <div className="mt-5 grid grid-cols-4 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
         <Metric
           label="30D scenario"
