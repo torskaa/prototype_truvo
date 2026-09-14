@@ -46,14 +46,15 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
 }) => {
   const [tokenFilterTab, setTokenFilterTab] = useState<'trending' | 'top' | 'watchlist'>('trending');
   const [selectedTokenSymbol, setSelectedTokenSymbol] = useState<string | null>(null);
-  const [feedTab, setFeedTab] = useState<'foryou' | 'mindshare'>('foryou');
+  const [feedTab, setFeedTab] = useState<'foryou' | 'trending' | 'following'>('foryou');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [newCommentText, setNewCommentText] = useState<Record<string, string>>({});
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>({});
 
   // Filter posts based on token selection, search, or feedTab
-  const filteredPosts = posts.filter((post) => {
+  const filteredPosts = [...posts].filter((post) => {
+    if (feedTab === 'following' && !post.isFollowingAuthor) return false;
     if (selectedTokenSymbol) {
       const mentionsToken = post.tokenMentions?.some(
         (t) => t.symbol.toLowerCase() === selectedTokenSymbol.toLowerCase()
@@ -75,7 +76,9 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
     }
 
     return true;
-  });
+  }).sort((a, b) => feedTab === 'trending'
+    ? ((b.likes + (b.commentsCount * 2)) - (a.likes + (a.commentsCount * 2)))
+    : 0);
 
   const handleToggleBookmark = (postId: string) => {
     setBookmarkedPosts((prev) => ({
@@ -236,15 +239,16 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                 For You
               </button>
               <button
-                onClick={() => setFeedTab('mindshare')}
+                onClick={() => setFeedTab('trending')}
                 className={`py-1 px-3 rounded-lg font-medium transition-all ${
-                  feedTab === 'mindshare'
+                  feedTab === 'trending'
                     ? 'bg-white text-[#5338ec] font-bold shadow-xs'
                     : 'text-[#474556] hover:text-[#0b1c30]'
                 }`}
               >
-                Mindshare
+                Trending
               </button>
+              <button onClick={() => setFeedTab('following')} className={`py-1 px-3 rounded-lg font-medium transition-all ${feedTab === 'following' ? 'bg-white text-[#5338ec] font-bold shadow-xs' : 'text-[#474556] hover:text-[#0b1c30]'}`}>Following</button>
             </div>
           </div>
 
@@ -361,6 +365,12 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
 
                   {/* Post Content */}
                   <div className="space-y-3 mb-3">
+                    {(post.contentType || post.timeframe) && (
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {post.contentType && <span className="px-1.5 py-0.5 rounded bg-[#ede9fe] border border-[#d8d0fe] text-[10px] font-semibold text-[#5338ec]">{post.contentType}</span>}
+                        {post.timeframe && <span className="px-1.5 py-0.5 rounded bg-slate-50 border border-slate-200 text-[10px] font-mono text-[#474556]">{post.timeframe}</span>}
+                      </div>
+                    )}
                     <p className="text-xs sm:text-sm text-[#0b1c30] leading-relaxed whitespace-pre-line">
                       {post.content}
                     </p>
@@ -380,8 +390,9 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                     {post.tokenMentions && post.tokenMentions.length > 0 && (
                       <div className="flex items-center gap-2 flex-wrap pt-1">
                         {post.tokenMentions.map((tok, i) => (
-                          <div
+                          <button
                             key={i}
+                            onClick={() => setSelectedTokenSymbol(tok.symbol)}
                             className="inline-flex items-center gap-1.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg px-2.5 py-1 text-xs font-medium"
                           >
                             <span className="text-[#0b1c30] font-bold">{tok.symbol}</span>
@@ -393,7 +404,13 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                                 {tok.sentiment}
                               </span>
                             )}
-                          </div>
+                            {post.updates && post.updates.length > 0 && (
+                              <div className="border-l-2 border-[#5338ec] pl-3 space-y-1">
+                                <span className="text-[10px] font-bold text-[#5338ec] uppercase">Updates</span>
+                                {post.updates.map((update) => <p key={update.id} className="text-[11px] text-[#474556]"><span className="font-mono mr-2">{update.timestamp}</span>{update.content}</p>)}
+                              </div>
+                            )}
+                          </button>
                         ))}
                       </div>
                     )}

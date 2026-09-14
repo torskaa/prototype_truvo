@@ -25,8 +25,10 @@ export const CreateCommunityPostModal: React.FC<CreateCommunityPostModalProps> =
 }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [ticker, setTicker] = useState('BTC');
-  const [sentiment, setSentiment] = useState<'Bullish' | 'Bearish'>('Bullish');
+  const [ticker, setTicker] = useState('BTC/USD');
+  const [sentiment, setSentiment] = useState<'Bullish' | 'Neutral' | 'Bearish'>('Bullish');
+  const [contentType, setContentType] = useState<'Quick Post' | 'Market Idea'>('Quick Post');
+  const [timeframe, setTimeframe] = useState<CommunityPost['timeframe']>('4H');
   const [imageUrl, setImageUrl] = useState('');
   const [tagsInput, setTagsInput] = useState('AlphaCall, ForexRebates');
 
@@ -44,6 +46,8 @@ export const CreateCommunityPostModal: React.FC<CreateCommunityPostModalProps> =
     onSubmit({
       title,
       content,
+      contentType,
+      timeframe,
       image: imageUrl.trim() || undefined,
       tokenMentions: [
         {
@@ -103,6 +107,12 @@ export const CreateCommunityPostModal: React.FC<CreateCommunityPostModalProps> =
 
           <div className="grid grid-cols-2 gap-3">
             <div>
+              <label className="text-xs text-[#474556] font-medium block mb-1">Post Type</label>
+              <select value={contentType} onChange={(e) => setContentType(e.target.value as 'Quick Post' | 'Market Idea')} className="w-full bg-[#f8fafc] border border-[#e2e8f0] rounded-xl px-3 py-2 text-xs text-[#0b1c30]">
+                <option>Quick Post</option><option>Market Idea</option>
+              </select>
+            </div>
+            <div>
               <label className="text-xs text-[#474556] font-medium block mb-1">
                 Primary Ticker / Symbol
               </label>
@@ -110,7 +120,7 @@ export const CreateCommunityPostModal: React.FC<CreateCommunityPostModalProps> =
                 type="text"
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value.toUpperCase())}
-                placeholder="BTC, ETH, XAU/USD"
+                placeholder="BTC/USD, AAPL, XAU/USD"
                 className="w-full bg-[#f8fafc] border border-[#e2e8f0] rounded-xl px-3 py-2 text-xs text-[#0b1c30] placeholder-slate-400 focus:outline-none focus:border-[#5338ec] focus:bg-white font-mono"
               />
             </div>
@@ -132,6 +142,7 @@ export const CreateCommunityPostModal: React.FC<CreateCommunityPostModalProps> =
                   <TrendingUp className="w-3.5 h-3.5" />
                   <span>Bullish</span>
                 </button>
+                <button type="button" onClick={() => setSentiment('Neutral')} className={`flex-1 py-2 px-2 rounded-xl text-xs font-semibold border transition-all ${sentiment === 'Neutral' ? 'bg-slate-100 border-slate-500 text-slate-700' : 'bg-[#f8fafc] border-[#e2e8f0] text-[#474556]'}`}>Neutral</button>
                 <button
                   type="button"
                   onClick={() => setSentiment('Bearish')}
@@ -146,6 +157,12 @@ export const CreateCommunityPostModal: React.FC<CreateCommunityPostModalProps> =
                 </button>
               </div>
             </div>
+          </div>
+          <div>
+            <label className="text-xs text-[#474556] font-medium block mb-1">Timeframe</label>
+            <select value={timeframe} onChange={(e) => setTimeframe(e.target.value as CommunityPost['timeframe'])} className="w-full bg-[#f8fafc] border border-[#e2e8f0] rounded-xl px-3 py-2 text-xs text-[#0b1c30]">
+              {['1m','5m','15m','1H','4H','1D','1W','1M'].map((value) => <option key={value}>{value}</option>)}
+            </select>
           </div>
 
           <div>

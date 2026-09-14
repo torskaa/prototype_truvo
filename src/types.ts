@@ -171,6 +171,8 @@ export interface CommunityPost {
   timestamp: string;
   category?: 'Alpha' | 'Discussion' | 'Review' | 'Educational';
   ticker?: string;
+  contentType?: 'Quick Post' | 'Market Idea' | 'Chart' | 'Question' | 'Article';
+  timeframe?: '1m' | '5m' | '15m' | '1H' | '4H' | '1D' | '1W' | '1M';
   side?: 'BUY' | 'SELL';
   entryPrice?: number;
   targetPrice?: number;
@@ -183,8 +185,9 @@ export interface CommunityPost {
   tokenMentions?: {
     symbol: string;
     change: number;
-    sentiment?: 'Bullish' | 'Bearish';
+    sentiment?: 'Bullish' | 'Neutral' | 'Bearish';
   }[];
+  updates?: { id: string; timestamp: string; content: string }[];
   tags: string[];
   likes: number;
   hasLiked?: boolean;
@@ -282,5 +285,4 @@ export interface CommunityInfluencer {
   followersCount?: number;
   postsCount?: number;
 }
-
 

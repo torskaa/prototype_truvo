@@ -167,6 +167,8 @@ export const CommunityPage: React.FC<CommunityPageProps> = ({
         influenceScore: 100.0,
       },
       timestamp: 'Just now',
+      contentType: newPostData.contentType || 'Quick Post',
+      timeframe: newPostData.timeframe,
       title: newPostData.title || 'Market Analysis',
       content: newPostData.content || '',
       image: newPostData.image,
@@ -184,6 +186,7 @@ export const CommunityPage: React.FC<CommunityPageProps> = ({
       repostsCount: 0,
       bookmarksCount: 0,
       isCurrentUser: true,
+      isFollowingAuthor: true,
     };
 
     setPosts([newPost, ...posts]);

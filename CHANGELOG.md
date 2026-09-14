@@ -259,3 +259,8 @@ All notable changes to this project will be documented in this file.
 
 ## [0.1.0] - Initial Release
 - Bento Grid Dashboard, Trading Signals, Cashback Overview, Calculators, Missions & Points.
+## 0.11.0 - Community interaction enhancements
+
+- Added Quick Post and Market Idea metadata, sentiment neutrality, timeframes, and idea updates.
+- Made feed tabs rank/filter posts and made symbol badges filter the feed.
+- Added shared post context fields for future instrument deep links.
