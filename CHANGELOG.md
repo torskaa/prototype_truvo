@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.69.1] - 2026-09-14
+
+### Added
+
+- Added expandable community comment threads with existing replies and immediate display of newly posted comments.
+
 ## [0.69.0] - 2026-09-14
 
 ### Added
