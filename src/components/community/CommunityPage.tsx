@@ -134,29 +134,6 @@ export const CommunityPage: React.FC<CommunityPageProps> = ({
     showToast('Comment posted locally. Credit rewards require moderation, which is not connected in this demo.');
   };
 
-  // Reaction Emoji click
-  const handleReactionClick = (postId: string, emoji: string) => {
-    setPosts((prev) =>
-      prev.map((p) => {
-        if (p.id === postId && p.reactions) {
-          const updatedReactions = p.reactions.map((r) => {
-            if (r.emoji === emoji) {
-              const active = !r.active;
-              return {
-                ...r,
-                active,
-                count: active ? r.count + 1 : Math.max(0, r.count - 1),
-              };
-            }
-            return r;
-          });
-          return { ...p, reactions: updatedReactions };
-        }
-        return p;
-      })
-    );
-  };
-
   // Create new post
   const handleCreatePost = (newPostData: Partial<CommunityPost>) => {
     const newPost: CommunityPost = {
@@ -420,7 +397,6 @@ export const CommunityPage: React.FC<CommunityPageProps> = ({
                 onAddComment={handleAddComment}
                 onOpenCreatePost={() => setIsCreateModalOpen(true)}
                 onSelectInfluencerByHandle={handleSelectInfluencerByHandle}
-                onReactionClick={handleReactionClick}
                 onOpenAdvancedChart={(symbol) => onOpenAdvancedChart?.(symbol)}
                 user={user}
               />

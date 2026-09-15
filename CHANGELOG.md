@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.82] - 2026-09-15
+
+### Changed
+
+- Consolidated post reactions into a single heart-as-like control in the engagement footer and removed the other emoji reaction buttons.
+
 ## [1.4.81] - 2026-09-15
 
 ### Fixed

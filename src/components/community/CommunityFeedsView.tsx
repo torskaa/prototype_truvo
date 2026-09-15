@@ -10,6 +10,7 @@ import {
   Check,
   Bell,
   Gift,
+  Heart,
   UserPlus,
   Send,
   Sparkles,
@@ -34,7 +35,6 @@ interface CommunityFeedsViewProps {
   onAddComment: (postId: string, text: string) => void;
   onOpenCreatePost: () => void;
   onSelectInfluencerByHandle: (handle: string) => void;
-  onReactionClick: (postId: string, emoji: string) => void;
   onOpenAdvancedChart: (symbol: string) => void;
   user: UserProfile;
 }
@@ -46,7 +46,6 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
   onAddComment,
   onOpenCreatePost,
   onSelectInfluencerByHandle,
-  onReactionClick,
   onOpenAdvancedChart,
   user,
 }) => {
@@ -672,29 +671,21 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                     <span className="text-[10px] text-slate-400">{post.likes + post.commentsCount} votes</span>
                   </div>
 
-                  {/* Reaction Emoji Row */}
-                  {post.reactions && post.reactions.length > 0 && (
-                    <div className="flex items-center gap-3 flex-wrap py-1 my-2 text-[11px] text-[#64748b]">
-                      {post.reactions.map((r, i) => (
-                        <button
-                          key={i}
-                          onClick={() => onReactionClick(post.id, r.emoji)}
-                          className={`inline-flex items-center gap-1 transition-colors ${
-                            r.active
-                              ? 'text-[#5338ec] font-semibold'
-                              : 'text-[#64748b] hover:text-[#5338ec]'
-                          }`}
-                        >
-                          <span>{r.emoji}</span>
-                          <span className="font-mono text-[11px] font-medium">{r.count}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
                   {/* Post Engagement Footer */}
                   <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-[11px] text-[#64748b] pt-1">
                     <div className="flex items-center gap-4 sm:gap-5">
+                      {/* Like */}
+                      <button
+                        type="button"
+                        onClick={() => onToggleLike(post.id)}
+                        className={`flex items-center gap-1 transition-colors ${
+                          post.hasLiked ? 'text-rose-500' : 'hover:text-rose-500'
+                        }`}
+                      >
+                        <Heart className={`w-3 h-3 ${post.hasLiked ? 'fill-current' : ''}`} />
+                        <span className="font-mono text-[11px]">{post.likes}</span>
+                      </button>
+
                       {/* Views */}
                       <span className="flex items-center gap-1 hover:text-[#0b1c30]">
                         <Eye className="w-3 h-3 text-slate-400" />
