@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.69] - 2026-09-15
+
+### Changed
+
+- Replaced the inline Community feed filter pills with compact click-to-open menus for Market, Post type, and Sort by.
+
 ## [1.4.68] - 2026-09-15
 
 ### Changed

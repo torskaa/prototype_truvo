@@ -15,6 +15,7 @@ import {
   TrendingDown,
   Filter,
   LineChart,
+  ChevronDown,
 } from 'lucide-react';
 import {
   TokenMarketItem,
@@ -107,6 +108,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
   const [feedTab, setFeedTab] = useState<'popular' | 'ai' | 'foryou' | 'following'>('popular');
   const [feedPostType, setFeedPostType] = useState('All');
   const [feedSort, setFeedSort] = useState<'popular' | 'date'>('popular');
+  const [openFeedFilter, setOpenFeedFilter] = useState<'market' | 'type' | 'sort' | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [newCommentText, setNewCommentText] = useState<Record<string, string>>({});
@@ -231,11 +233,6 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
               <button key={duration} onClick={() => setTokenDuration(duration)} className={`rounded-md px-2 py-1 font-semibold ${tokenDuration === duration ? 'bg-violet-600 text-white' : 'text-slate-500 hover:bg-violet-50'}`}>{duration}</button>
             ))}
           </div>
-          <div className="mb-3 flex flex-wrap gap-1">
-            {assetCategories.map((category) => (
-              <button key={category} onClick={() => setAssetFilter(category)} className={`rounded-full border px-2 py-1 text-[9px] font-semibold ${assetFilter === category ? 'border-violet-300 bg-violet-50 text-violet-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>{category}</button>
-            ))}
-          </div>
           {/* Table Header */}
           <div className="grid grid-cols-12 text-[10px] text-[#474556] font-semibold uppercase tracking-wider pb-2 border-b border-[#e2e8f0] px-1">
             <div className="col-span-2">#</div>
@@ -320,29 +317,57 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
               <span>Trending Posts</span>
             </h3>
 
-            <div className="flex flex-wrap items-center gap-0.5 bg-[#f1f5f9] border border-slate-200 p-1 rounded-xl text-xs">
-              {(['popular', 'ai', 'foryou', 'following'] as const).map((tab) => (
-                <button
-                key={tab}
-                onClick={() => setFeedTab(tab)}
-                className={`py-1 px-2 rounded-lg text-[11px] font-medium transition-all ${
-                  feedTab === tab
-                    ? 'bg-white text-[#5338ec] font-bold shadow-xs'
-                    : 'text-[#474556] hover:text-[#0b1c30]'
-                }`}
-              >
-                {tab === 'ai' ? 'AI' : tab === 'foryou' ? 'For You' : tab[0].toUpperCase() + tab.slice(1)}
-              </button>
-              ))}
-            </div>
-            <div className="flex flex-wrap items-center gap-0.5 bg-[#f1f5f9] border border-slate-200 p-1 rounded-xl text-xs">
-              {['All', 'Blog', 'Technical', 'Fundamental', 'Poll'].map((type) => (
-                <button key={type} onClick={() => setFeedPostType(type)} className={`py-1 px-1.5 rounded-lg text-[10px] font-medium transition-all ${feedPostType === type ? 'bg-white text-[#5338ec] font-bold shadow-xs' : 'text-[#474556] hover:text-[#0b1c30]'}`}>{type}</button>
-              ))}
-            </div>
-            <div className="flex items-center gap-0.5 bg-[#f1f5f9] border border-slate-200 p-1 rounded-xl text-xs">
-              {(['popular', 'date'] as const).map((sort) => (
-                <button key={sort} onClick={() => setFeedSort(sort)} className={`py-1 px-1.5 rounded-lg text-[10px] font-medium transition-all ${feedSort === sort ? 'bg-white text-[#5338ec] font-bold shadow-xs' : 'text-[#474556] hover:text-[#0b1c30]'}`}>{sort === 'popular' ? 'Popular' : 'By date'}</button>
+            <div className="flex flex-wrap items-center gap-1">
+              {[
+                { key: 'market' as const, label: assetFilter === 'All' ? 'Market' : assetFilter },
+                { key: 'type' as const, label: feedPostType === 'All' ? 'Post type' : feedPostType },
+                { key: 'sort' as const, label: feedSort === 'popular' ? 'Sort: Popular' : 'Sort: By date' },
+              ].map((filter) => (
+                <div key={filter.key} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setOpenFeedFilter((current) => current === filter.key ? null : filter.key)}
+                    className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1.5 text-[11px] font-medium transition-colors ${
+                      openFeedFilter === filter.key
+                        ? 'border-[#5338ec] bg-[#ede9fe] text-[#5338ec]'
+                        : 'border-[#e2e8f0] bg-white text-[#474556] hover:border-[#cbd5e1]'
+                    }`}
+                  >
+                    {filter.label}
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                  {openFeedFilter === filter.key && (
+                    <div className="absolute right-0 top-full z-30 mt-1 min-w-36 rounded-xl border border-[#e2e8f0] bg-white p-1.5 shadow-lg">
+                      {(filter.key === 'market' ? assetCategories : filter.key === 'type' ? ['All', 'Blog', 'Technical', 'Fundamental', 'Poll'] : ['popular', 'date']).map((option) => {
+                        const label = filter.key === 'sort'
+                          ? option === 'popular' ? 'Popular' : 'By date'
+                          : option;
+                        const selected = filter.key === 'market'
+                          ? assetFilter === option
+                          : filter.key === 'type'
+                            ? feedPostType === option
+                            : feedSort === option;
+                        return (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => {
+                              if (filter.key === 'market') setAssetFilter(option);
+                              if (filter.key === 'type') setFeedPostType(option);
+                              if (filter.key === 'sort') setFeedSort(option as 'popular' | 'date');
+                              setOpenFeedFilter(null);
+                            }}
+                            className={`block w-full rounded-lg px-2.5 py-2 text-left text-[11px] ${
+                              selected ? 'bg-[#ede9fe] font-semibold text-[#5338ec]' : 'text-[#474556] hover:bg-[#f8fafc]'
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
