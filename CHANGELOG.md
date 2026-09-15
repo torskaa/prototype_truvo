@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.66] - 2026-09-15
+
+### Changed
+
+- Merged Post type and Sort by controls into the core Trending Posts toolbar and removed the duplicate sidebar controls.
+
 ## [1.4.65] - 2026-09-15
 
 ### Changed

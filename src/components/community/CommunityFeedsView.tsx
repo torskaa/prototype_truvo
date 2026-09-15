@@ -231,26 +231,20 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
               <button key={duration} onClick={() => setTokenDuration(duration)} className={`rounded-md px-2 py-1 font-semibold ${tokenDuration === duration ? 'bg-violet-600 text-white' : 'text-slate-500 hover:bg-violet-50'}`}>{duration}</button>
             ))}
           </div>
+          <div className="flex items-center gap-1 bg-[#f1f5f9] border border-slate-200 p-1 rounded-xl text-xs">
+            {['All', 'Blog', 'Technical', 'Fundamental', 'Poll'].map((type) => (
+              <button key={type} onClick={() => setFeedPostType(type)} className={`py-1 px-2 rounded-lg text-[11px] font-medium transition-all ${feedPostType === type ? 'bg-white text-[#5338ec] font-bold shadow-xs' : 'text-[#474556] hover:text-[#0b1c30]'}`}>{type}</button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1 bg-[#f1f5f9] border border-slate-200 p-1 rounded-xl text-xs">
+            {(['popular', 'date'] as const).map((sort) => (
+              <button key={sort} onClick={() => setFeedSort(sort)} className={`py-1 px-2 rounded-lg text-[11px] font-medium transition-all ${feedSort === sort ? 'bg-white text-[#5338ec] font-bold shadow-xs' : 'text-[#474556] hover:text-[#0b1c30]'}`}>{sort === 'popular' ? 'Popular' : 'By date'}</button>
+            ))}
+          </div>
           <div className="mb-3 flex flex-wrap gap-1">
             {assetCategories.map((category) => (
               <button key={category} onClick={() => setAssetFilter(category)} className={`rounded-full border px-2 py-1 text-[9px] font-semibold ${assetFilter === category ? 'border-violet-300 bg-violet-50 text-violet-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>{category}</button>
             ))}
-          </div>
-          <div className="mb-3">
-            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Post type</p>
-            <div className="flex flex-wrap gap-1">
-              {['All', 'Blog', 'Technical', 'Fundamental', 'Poll'].map((type) => (
-                <button key={type} onClick={() => setFeedPostType(type)} className={`rounded-full border px-2 py-1 text-[9px] font-semibold ${feedPostType === type ? 'border-violet-300 bg-violet-50 text-violet-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>{type}</button>
-              ))}
-            </div>
-          </div>
-          <div className="mb-3">
-            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Sort by</p>
-            <div className="flex gap-1">
-              {(['popular', 'date'] as const).map((sort) => (
-                <button key={sort} onClick={() => setFeedSort(sort)} className={`rounded-full border px-2 py-1 text-[9px] font-semibold ${feedSort === sort ? 'border-violet-300 bg-violet-50 text-violet-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>{sort === 'popular' ? 'Popular' : 'By date'}</button>
-              ))}
-            </div>
           </div>
 
           {/* Table Header */}
