@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.62] - 2026-09-15
+
+### Reverted
+
+- Reverted the latest Community positioning change at the user's request.
+
 ## [1.4.61] - 2026-09-15
 
 ### Fixed
