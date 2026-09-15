@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.77] - 2026-09-15
+
+### Fixed
+
+- Classified unlisted token mentions as Crypto when no more specific market category is available.
+
 ## [1.4.76] - 2026-09-15
 
 ### Fixed

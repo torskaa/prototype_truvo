@@ -143,7 +143,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
     if (/\bcommodity\b|\bgold\b|\bsilver\b|\boil\b|\bbrent\b|\bwti\b|\bnatgas\b/.test(searchablePost)) return 'Commodities';
     if (/\bindex\b|\bnasdaq\b|\bs&p\b|\bdow\b|\bdax\b|\bnikkei\b/.test(searchablePost)) return 'Indices';
     if (/\bstock\b|\bequity\b|\bearnings\b|\bshares\b|\bcompany\b/.test(searchablePost)) return 'Stocks';
-    return 'Markets';
+    return mentionedSymbols.size > 0 ? 'Crypto' : 'Markets';
   };
 
   // Filter posts based on token selection, search, or feedTab
