@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.64] - 2026-09-15
+
+### Added
+
+- Added Market, Post type, and Popular/By date controls to the Community Trending Posts feed.
+
 ## [1.4.63] - 2026-09-15
 
 ### Changed

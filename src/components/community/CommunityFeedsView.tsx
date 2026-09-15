@@ -105,6 +105,9 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
   ];
   const [selectedTokenSymbol, setSelectedTokenSymbol] = useState<string | null>(null);
   const [feedTab, setFeedTab] = useState<'popular' | 'ai' | 'foryou' | 'following'>('popular');
+  const [feedMarket, setFeedMarket] = useState('All');
+  const [feedPostType, setFeedPostType] = useState('All');
+  const [feedSort, setFeedSort] = useState<'popular' | 'date'>('popular');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [newCommentText, setNewCommentText] = useState<Record<string, string>>({});
@@ -132,8 +135,30 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
       if (!matchesText) return false;
     }
 
+    if (feedMarket !== 'All') {
+      const marketSymbols = new Set(
+        syncedTokens.filter((token) => token.category === feedMarket).map((token) => token.symbol.toLowerCase()),
+      );
+      const matchesMarket = post.tokenMentions?.some((token) => marketSymbols.has(token.symbol.toLowerCase()));
+      if (!matchesMarket) return false;
+    }
+
+    if (feedPostType !== 'All') {
+      const searchablePost = `${post.title} ${post.content} ${post.tags.join(' ')}`.toLowerCase();
+      const typeTerms: Record<string, string[]> = {
+        Blog: ['blog', 'analysis', 'update'],
+        Technical: ['technical', 'chart', 'breakout', 'support', 'resistance'],
+        Fundamental: ['fundamental', 'earnings', 'revenue', 'valuation', 'company'],
+        Poll: ['poll', 'vote', 'question'],
+      };
+      if (!(typeTerms[feedPostType] ?? []).some((term) => searchablePost.includes(term))) return false;
+    }
+
     return true;
   });
+  const sortedPosts = [...filteredPosts].sort((a, b) =>
+    feedSort === 'popular' ? b.likes - a.likes : b.timestamp.localeCompare(a.timestamp),
+  );
 
   const handleToggleBookmark = (postId: string) => {
     setBookmarkedPosts((prev) => ({
@@ -312,6 +337,35 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
               </button>
               ))}
             </div>
+            <select
+              value={feedMarket}
+              onChange={(event) => setFeedMarket(event.target.value)}
+              className="bg-white border border-[#e2e8f0] rounded-lg px-2 py-1.5 text-[11px] text-[#474556]"
+              aria-label="Market filter"
+            >
+              {['All', 'Stocks', 'Crypto', 'Forex', 'Commodities', 'Indices'].map((market) => (
+                <option key={market} value={market}>{market}</option>
+              ))}
+            </select>
+            <select
+              value={feedPostType}
+              onChange={(event) => setFeedPostType(event.target.value)}
+              className="bg-white border border-[#e2e8f0] rounded-lg px-2 py-1.5 text-[11px] text-[#474556]"
+              aria-label="Post type filter"
+            >
+              {['All', 'Blog', 'Technical', 'Fundamental', 'Poll'].map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+            <select
+              value={feedSort}
+              onChange={(event) => setFeedSort(event.target.value as 'popular' | 'date')}
+              className="bg-white border border-[#e2e8f0] rounded-lg px-2 py-1.5 text-[11px] text-[#474556]"
+              aria-label="Sort posts"
+            >
+              <option value="popular">Popular</option>
+              <option value="date">By date</option>
+            </select>
           </div>
 
           <div className="flex items-center gap-2">
@@ -338,7 +392,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
 
         {/* Posts List */}
         <div className="community-feed-list space-y-4 xl:grid xl:grid-cols-2 xl:gap-4 xl:space-y-0">
-          {filteredPosts.length === 0 ? (
+          {sortedPosts.length === 0 ? (
             <div className="bg-white border border-[#e2e8f0] rounded-2xl p-12 text-center text-[#474556] shadow-xs">
               <Sparkles className="w-8 h-8 text-slate-400 mx-auto mb-2 opacity-50" />
               <p className="text-sm font-semibold text-[#0b1c30]">No posts found</p>
@@ -347,7 +401,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
               </p>
             </div>
           ) : (
-            filteredPosts.map((post) => {
+            sortedPosts.map((post) => {
               const isBookmarked = bookmarkedPosts[post.id];
               const isCommentsOpen = expandedComments[post.id];
 
