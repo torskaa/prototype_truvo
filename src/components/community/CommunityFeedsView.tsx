@@ -8,6 +8,7 @@ import {
   Repeat2,
   Eye,
   Check,
+  Bell,
   UserPlus,
   Send,
   Sparkles,
@@ -113,6 +114,8 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [newCommentText, setNewCommentText] = useState<Record<string, string>>({});
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>({});
+  const [predictionVotes, setPredictionVotes] = useState<Record<string, 'agree' | 'disagree'>>({});
+  const [alertSubscriptions, setAlertSubscriptions] = useState<Record<string, boolean>>({});
   const getPostType = (post: CommunityPost) => {
     const searchablePost = `${post.title} ${post.content} ${post.tags.join(' ')}`.toLowerCase();
     if (/\bpoll\b|\bvote\b|\bquestion\b/.test(searchablePost)) return 'Poll';
@@ -414,6 +417,12 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
               const isCommentsOpen = expandedComments[post.id];
               const postType = getPostType(post);
               const typeCover = postTypeCover[postType];
+              const agreePercent = 55 + (post.likes % 26);
+              const disagreePercent = 100 - agreePercent;
+              const predictionPrecision = post.author.winRate
+                || `${Math.round(65 + ((post.author.influenceScore || 0) % 25))}%`;
+              const predictionVote = predictionVotes[post.id];
+              const alertsEnabled = alertSubscriptions[post.author.handle] || false;
 
               return (
                 <article
@@ -460,37 +469,59 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                           </span>
                         </div>
 
-                        {post.author.influenceScore && (
+                        {(post.author.influenceScore !== undefined || post.author.winRate) && (
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#f1f5f9] border border-slate-200 text-[9px] text-[#474556] font-mono">
-                              <span className="text-amber-500">★</span>
-                              <span>{post.author.influenceScore.toFixed(2)} Influence Score</span>
+                            {post.author.influenceScore !== undefined && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#f1f5f9] border border-slate-200 text-[9px] text-[#474556] font-mono">
+                                <span className="text-amber-500">★</span>
+                                <span>{post.author.influenceScore.toFixed(2)} Influence Score</span>
+                              </span>
+                            )}
+                            <span className="text-[10px] text-emerald-600 font-semibold">
+                              Predict precision {predictionPrecision}
                             </span>
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => onToggleFollowAuthor(post.author.handle)}
-                      className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 shrink-0 ${
-                        post.isFollowingAuthor
-                          ? 'bg-[#f1f5f9] text-[#474556] hover:bg-slate-200 border border-slate-200'
-                          : 'bg-[#ede9fe] text-[#5338ec] hover:bg-[#5338ec] hover:text-white border border-[#d8d0fe]'
-                      }`}
-                    >
-                      {post.isFollowingAuthor ? (
-                        <>
-                          <Check className="w-3 h-3" />
-                          <span>Following</span>
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="w-3 h-3" />
-                          <span>Follow</span>
-                        </>
-                      )}
-                    </button>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => onToggleFollowAuthor(post.author.handle)}
+                        className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                          post.isFollowingAuthor
+                            ? 'bg-[#f1f5f9] text-[#474556] hover:bg-slate-200 border border-slate-200'
+                            : 'bg-[#ede9fe] text-[#5338ec] hover:bg-[#5338ec] hover:text-white border border-[#d8d0fe]'
+                        }`}
+                      >
+                        {post.isFollowingAuthor ? (
+                          <>
+                            <Check className="w-3 h-3" />
+                            <span>Following</span>
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="w-3 h-3" />
+                            <span>Follow</span>
+                          </>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAlertSubscriptions((current) => ({
+                          ...current,
+                          [post.author.handle]: !alertsEnabled,
+                        }))}
+                        className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold transition-colors ${
+                          alertsEnabled
+                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                            : 'border-[#e2e8f0] bg-white text-[#64748b] hover:border-[#cbd5e1] hover:text-[#5338ec]'
+                        }`}
+                      >
+                        <Bell className="h-3 w-3" />
+                        <span>{alertsEnabled ? 'Alerts on' : 'Follow alerts'}</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Post Content */}
@@ -545,6 +576,40 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                         ))}
                       </div>
                     )}
+
+                    {post.tags.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                        {post.tags.slice(0, 4).map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => setSearchQuery(tag)}
+                            className="text-[10px] font-semibold text-[#159b78] hover:text-[#5338ec] transition-colors"
+                          >
+                            #{tag}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Prediction vote row */}
+                  <div className="flex items-center gap-3 flex-wrap py-1 text-[11px] text-[#64748b]">
+                    <button
+                      type="button"
+                      onClick={() => setPredictionVotes((current) => ({ ...current, [post.id]: 'agree' }))}
+                      className={`transition-colors ${predictionVote === 'agree' ? 'font-semibold text-emerald-600' : 'hover:text-emerald-600'}`}
+                    >
+                      Agree {agreePercent}%
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPredictionVotes((current) => ({ ...current, [post.id]: 'disagree' }))}
+                      className={`transition-colors ${predictionVote === 'disagree' ? 'font-semibold text-rose-500' : 'hover:text-rose-500'}`}
+                    >
+                      Disagree {disagreePercent}%
+                    </button>
+                    <span className="text-[10px] text-slate-400">{post.likes + post.commentsCount} votes</span>
                   </div>
 
                   {/* Reaction Emoji Row */}

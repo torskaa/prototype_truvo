@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.73] - 2026-09-15
+
+### Added
+
+- Added post hashtags, Agree/Disagree prediction voting, Follow alerts toggles, and influencer prediction precision indicators to Community feed cards.
+
 ## [1.4.72] - 2026-09-15
 
 ### Changed
