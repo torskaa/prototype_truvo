@@ -132,6 +132,10 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
     Fundamental: { label: 'Fundamental view', className: 'border-emerald-100 bg-emerald-50 text-emerald-700' },
     Poll: { label: 'Community poll', className: 'border-amber-100 bg-amber-50 text-amber-700' },
   };
+  const getPostMarket = (post: CommunityPost) => {
+    const mentionedSymbols = new Set((post.tokenMentions || []).map((token) => token.symbol.toLowerCase()));
+    return syncedTokens.find((token) => mentionedSymbols.has(token.symbol.toLowerCase()))?.category || 'Markets';
+  };
 
   // Filter posts based on token selection, search, or feedTab
   const filteredPosts = posts.filter((post) => {
@@ -420,6 +424,8 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
               const isCommentsOpen = expandedComments[post.id];
               const postType = getPostType(post);
               const typeCover = postTypeCover[postType];
+              const coverMarket = assetFilter === 'All' ? getPostMarket(post) : assetFilter;
+              const coverSort = feedSort === 'popular' ? 'Popular first' : 'Latest first';
               const agreePercent = 55 + (post.likes % 26);
               const disagreePercent = 100 - agreePercent;
               const predictionPrecision = post.author.winRate
@@ -435,8 +441,12 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                   className="community-feed-post bg-white border border-[#e2e8f0] rounded-xl p-3.5 text-[#0b1c30] shadow-none hover:border-[#cbd5e1] transition-colors"
                 >
                   <div className={`mb-2 flex items-center justify-between rounded-lg border px-2.5 py-1.5 ${typeCover.className}`}>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.1em]">{typeCover.label}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.1em]">{coverMarket} · {typeCover.label}</span>
                     <span className="rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-semibold">{postType}</span>
+                  </div>
+                  <div className="mb-2 border-b border-[#f1f5f9] pb-2">
+                    <p className="line-clamp-1 text-xs font-bold text-[#0b1c30]">{post.title}</p>
+                    <span className="text-[10px] text-[#94a3b8]">{coverSort} · generated cover</span>
                   </div>
                   {/* Post Header */}
                   <div className="flex items-start justify-between gap-2.5 mb-2.5">

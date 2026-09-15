@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.75] - 2026-09-15
+
+### Added
+
+- Generated filter-aware post covers with market, post type, post title, and active sort context.
+
 ## [1.4.74] - 2026-09-15
 
 ### Added
