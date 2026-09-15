@@ -113,6 +113,19 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [newCommentText, setNewCommentText] = useState<Record<string, string>>({});
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>({});
+  const getPostType = (post: CommunityPost) => {
+    const searchablePost = `${post.title} ${post.content} ${post.tags.join(' ')}`.toLowerCase();
+    if (/\bpoll\b|\bvote\b|\bquestion\b/.test(searchablePost)) return 'Poll';
+    if (/\btechnical\b|\bchart\b|\bbreakout\b|\bsupport\b|\bresistance\b/.test(searchablePost)) return 'Technical';
+    if (/\bfundamental\b|\bearnings\b|\brevenue\b|\bvaluation\b|\bcompany\b/.test(searchablePost)) return 'Fundamental';
+    return 'Blog';
+  };
+  const postTypeCover: Record<string, { label: string; className: string }> = {
+    Blog: { label: 'Market brief', className: 'from-sky-500 to-cyan-600' },
+    Technical: { label: 'Technical setup', className: 'from-violet-500 to-indigo-600' },
+    Fundamental: { label: 'Fundamental view', className: 'from-emerald-500 to-teal-600' },
+    Poll: { label: 'Community poll', className: 'from-amber-500 to-orange-600' },
+  };
 
   // Filter posts based on token selection, search, or feedTab
   const filteredPosts = posts.filter((post) => {
@@ -144,16 +157,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
       if (!matchesMarket) return false;
     }
 
-    if (feedPostType !== 'All') {
-      const searchablePost = `${post.title} ${post.content} ${post.tags.join(' ')}`.toLowerCase();
-      const typeTerms: Record<string, string[]> = {
-        Blog: ['blog', 'analysis', 'update'],
-        Technical: ['technical', 'chart', 'breakout', 'support', 'resistance'],
-        Fundamental: ['fundamental', 'earnings', 'revenue', 'valuation', 'company'],
-        Poll: ['poll', 'vote', 'question'],
-      };
-      if (!(typeTerms[feedPostType] ?? []).some((term) => searchablePost.includes(term))) return false;
-    }
+    if (feedPostType !== 'All' && getPostType(post) !== feedPostType) return false;
 
     return true;
   });
@@ -414,6 +418,10 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                   key={post.id}
                   className="community-feed-post bg-white border border-[#e2e8f0] rounded-2xl p-5 text-[#0b1c30] shadow-xs hover:border-[#cbd5e1] hover:shadow-sm transition-all"
                 >
+                  <div className={`mb-3 flex items-center justify-between rounded-xl bg-gradient-to-r px-3 py-2 text-white ${postTypeCover[getPostType(post)].className}`}>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.12em]">{postTypeCover[getPostType(post)].label}</span>
+                    <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px]">{getPostType(post)}</span>
+                  </div>
                   {/* Post Header */}
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-2.5">

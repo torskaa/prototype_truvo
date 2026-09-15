@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.70] - 2026-09-15
+
+### Changed
+
+- Added deterministic post-type covers and exact type filtering for Blog, Technical, Fundamental, and Poll feed views.
+
 ## [1.4.69] - 2026-09-15
 
 ### Changed
