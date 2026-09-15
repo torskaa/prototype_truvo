@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.76] - 2026-09-15
+
+### Fixed
+
+- Unified Community market filtering and generated covers with fallback classification for posts whose tokens are not in the synced market list.
+
 ## [1.4.75] - 2026-09-15
 
 ### Added

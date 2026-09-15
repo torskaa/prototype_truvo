@@ -134,7 +134,16 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
   };
   const getPostMarket = (post: CommunityPost) => {
     const mentionedSymbols = new Set((post.tokenMentions || []).map((token) => token.symbol.toLowerCase()));
-    return syncedTokens.find((token) => mentionedSymbols.has(token.symbol.toLowerCase()))?.category || 'Markets';
+    const syncedCategory = syncedTokens.find((token) => mentionedSymbols.has(token.symbol.toLowerCase()))?.category;
+    if (syncedCategory) return syncedCategory;
+
+    const searchablePost = `${post.title} ${post.content} ${post.tags.join(' ')}`.toLowerCase();
+    if (/\bcrypto\b|\bdefi\b|\bblockchain\b|\bweb3\b|\bcoin\b|\btoken\b|\bpolymarket\b|\bhyperliquid\b/.test(searchablePost)) return 'Crypto';
+    if (/\bforex\b|\beur\/usd\b|\bgbp\/usd\b|\busd\/jpy\b|\bdxy\b|\becb\b/.test(searchablePost)) return 'Forex';
+    if (/\bcommodity\b|\bgold\b|\bsilver\b|\boil\b|\bbrent\b|\bwti\b|\bnatgas\b/.test(searchablePost)) return 'Commodities';
+    if (/\bindex\b|\bnasdaq\b|\bs&p\b|\bdow\b|\bdax\b|\bnikkei\b/.test(searchablePost)) return 'Indices';
+    if (/\bstock\b|\bequity\b|\bearnings\b|\bshares\b|\bcompany\b/.test(searchablePost)) return 'Stocks';
+    return 'Markets';
   };
 
   // Filter posts based on token selection, search, or feedTab
@@ -160,11 +169,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
     }
 
     if (assetFilter !== 'All') {
-      const marketSymbols = new Set(
-        syncedTokens.filter((token) => token.category === assetFilter).map((token) => token.symbol.toLowerCase()),
-      );
-      const matchesMarket = post.tokenMentions?.some((token) => marketSymbols.has(token.symbol.toLowerCase()));
-      if (!matchesMarket) return false;
+      if (getPostMarket(post) !== assetFilter) return false;
     }
 
     if (feedPostType !== 'All' && getPostType(post) !== feedPostType) return false;
