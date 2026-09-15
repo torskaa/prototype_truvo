@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.71] - 2026-09-15
+
+### Changed
+
+- Adapted Community post cards to a compact, flat reference layout with smaller headers, type chips, media, and action controls.
+
 ## [1.4.70] - 2026-09-15
 
 ### Changed

@@ -121,10 +121,10 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
     return 'Blog';
   };
   const postTypeCover: Record<string, { label: string; className: string }> = {
-    Blog: { label: 'Market brief', className: 'from-sky-500 to-cyan-600' },
-    Technical: { label: 'Technical setup', className: 'from-violet-500 to-indigo-600' },
-    Fundamental: { label: 'Fundamental view', className: 'from-emerald-500 to-teal-600' },
-    Poll: { label: 'Community poll', className: 'from-amber-500 to-orange-600' },
+    Blog: { label: 'Market brief', className: 'border-sky-100 bg-sky-50 text-sky-700' },
+    Technical: { label: 'Technical setup', className: 'border-violet-100 bg-violet-50 text-violet-700' },
+    Fundamental: { label: 'Fundamental view', className: 'border-emerald-100 bg-emerald-50 text-emerald-700' },
+    Poll: { label: 'Community poll', className: 'border-amber-100 bg-amber-50 text-amber-700' },
   };
 
   // Filter posts based on token selection, search, or feedTab
@@ -412,19 +412,21 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
             sortedPosts.map((post) => {
               const isBookmarked = bookmarkedPosts[post.id];
               const isCommentsOpen = expandedComments[post.id];
+              const postType = getPostType(post);
+              const typeCover = postTypeCover[postType];
 
               return (
                 <article
                   key={post.id}
-                  className="community-feed-post bg-white border border-[#e2e8f0] rounded-2xl p-5 text-[#0b1c30] shadow-xs hover:border-[#cbd5e1] hover:shadow-sm transition-all"
+                  className="community-feed-post bg-white border border-[#e2e8f0] rounded-xl p-3.5 text-[#0b1c30] shadow-none hover:border-[#cbd5e1] transition-colors"
                 >
-                  <div className={`mb-3 flex items-center justify-between rounded-xl bg-gradient-to-r px-3 py-2 text-white ${postTypeCover[getPostType(post)].className}`}>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.12em]">{postTypeCover[getPostType(post)].label}</span>
-                    <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px]">{getPostType(post)}</span>
+                  <div className={`mb-2 flex items-center justify-between rounded-lg border px-2.5 py-1.5 ${typeCover.className}`}>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.1em]">{typeCover.label}</span>
+                    <span className="rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-semibold">{postType}</span>
                   </div>
                   {/* Post Header */}
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-2.5">
+                  <div className="flex items-start justify-between gap-2.5 mb-2.5">
+                    <div className="flex items-center gap-2">
                       <div
                         onClick={() => onSelectInfluencerByHandle(post.author.handle)}
                         className="cursor-pointer relative"
@@ -432,10 +434,10 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                         <img
                           src={post.author.avatar}
                           alt={post.author.name}
-                          className="w-10 h-10 rounded-full object-cover border border-slate-200 hover:border-[#5338ec] transition-colors"
+                          className="w-8 h-8 rounded-full object-cover border border-slate-200 hover:border-[#5338ec] transition-colors"
                         />
                         {post.author.verified && (
-                          <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center text-[8px] text-white font-bold">
+                          <span                           className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center text-[7px] text-white font-bold">
                             ✓
                           </span>
                         )}
@@ -445,22 +447,22 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                         <div className="flex items-center gap-2 flex-wrap">
                           <span
                             onClick={() => onSelectInfluencerByHandle(post.author.handle)}
-                            className="font-bold text-sm text-[#0b1c30] hover:text-[#5338ec] cursor-pointer transition-colors"
+                            className="font-bold text-xs text-[#0b1c30] hover:text-[#5338ec] cursor-pointer transition-colors"
                           >
                             {post.author.name}
                           </span>
-                          <span className="text-xs text-[#474556] font-mono">
+                          <span className="text-[11px] text-[#474556] font-mono">
                             {post.author.handle}
                           </span>
                           <span className="text-slate-300 text-xs">•</span>
-                          <span className="text-xs text-[#474556] font-mono">
+                          <span className="text-[11px] text-[#474556] font-mono">
                             {post.timestamp}
                           </span>
                         </div>
 
                         {post.author.influenceScore && (
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#f1f5f9] border border-slate-200 text-[10px] text-[#474556] font-mono">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#f1f5f9] border border-slate-200 text-[9px] text-[#474556] font-mono">
                               <span className="text-amber-500">★</span>
                               <span>{post.author.influenceScore.toFixed(2)} Influence Score</span>
                             </span>
@@ -471,7 +473,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
 
                     <button
                       onClick={() => onToggleFollowAuthor(post.author.handle)}
-                      className={`text-xs font-semibold px-3 py-1 rounded-xl transition-colors flex items-center gap-1 shrink-0 ${
+                      className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 shrink-0 ${
                         post.isFollowingAuthor
                           ? 'bg-[#f1f5f9] text-[#474556] hover:bg-slate-200 border border-slate-200'
                           : 'bg-[#ede9fe] text-[#5338ec] hover:bg-[#5338ec] hover:text-white border border-[#d8d0fe]'
@@ -492,15 +494,15 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                   </div>
 
                   {/* Post Content */}
-                  <div className="space-y-3 mb-3">
-                    <p className="text-xs sm:text-sm text-[#0b1c30] leading-relaxed whitespace-pre-line">
+                  <div className="space-y-2 mb-2.5">
+                    <p className="text-xs text-[#0b1c30] leading-relaxed whitespace-pre-line">
                       {post.content}
                     </p>
 
                     {/* Embedded Image Graphic */}
                     {post.image && (
                       <div
-                        className="relative rounded-xl overflow-hidden border border-[#e2e8f0] max-h-80 bg-slate-50 group cursor-pointer"
+                        className="relative rounded-lg overflow-hidden border border-[#e2e8f0] max-h-36 bg-slate-50 group cursor-pointer"
                         onClick={() => {
                           const symbol = post.tokenMentions?.[0]?.symbol;
                           if (symbol) onOpenAdvancedChart(symbol);
@@ -517,7 +519,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                         <img
                           src={post.image}
                           alt="Post visual"
-                          className="w-full h-auto object-cover max-h-80 hover:scale-[1.01] transition-transform duration-300"
+                          className="w-full h-auto object-cover max-h-36 hover:scale-[1.01] transition-transform duration-300"
                         />
                       </div>
                     )}
@@ -528,7 +530,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                         {post.tokenMentions.map((tok, i) => (
                           <div
                             key={i}
-                            className="inline-flex items-center gap-1.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-lg px-2.5 py-1 text-xs font-medium"
+                            className="inline-flex items-center gap-1 bg-[#f8fafc] border border-[#e2e8f0] rounded-md px-2 py-1 text-[11px] font-medium"
                           >
                             <span className="text-[#0b1c30] font-bold">{tok.symbol}</span>
                             <span className="text-emerald-600 font-mono text-[11px] font-semibold">
