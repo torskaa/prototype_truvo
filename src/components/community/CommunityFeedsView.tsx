@@ -549,15 +549,15 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
 
                   {/* Reaction Emoji Row */}
                   {post.reactions && post.reactions.length > 0 && (
-                    <div className="flex items-center gap-1.5 flex-wrap py-2 border-t border-b border-[#f1f5f9] my-2.5">
+                    <div className="flex items-center gap-3 flex-wrap py-1 my-2 text-[11px] text-[#64748b]">
                       {post.reactions.map((r, i) => (
                         <button
                           key={i}
                           onClick={() => onReactionClick(post.id, r.emoji)}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs transition-colors ${
+                          className={`inline-flex items-center gap-1 transition-colors ${
                             r.active
-                              ? 'bg-[#ede9fe] border border-[#5338ec] text-[#5338ec] font-semibold'
-                              : 'bg-[#f8fafc] border border-[#e2e8f0] text-[#474556] hover:bg-[#f1f5f9]'
+                              ? 'text-[#5338ec] font-semibold'
+                              : 'text-[#64748b] hover:text-[#5338ec]'
                           }`}
                         >
                           <span>{r.emoji}</span>
@@ -568,11 +568,11 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                   )}
 
                   {/* Post Engagement Footer */}
-                  <div className="flex items-center justify-between text-xs text-[#474556] pt-1">
-                    <div className="flex items-center gap-4 sm:gap-6">
+                  <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-[11px] text-[#64748b] pt-1">
+                    <div className="flex items-center gap-4 sm:gap-5">
                       {/* Views */}
                       <span className="flex items-center gap-1 hover:text-[#0b1c30]">
-                        <Eye className="w-3.5 h-3.5 text-slate-400" />
+                        <Eye className="w-3 h-3 text-slate-400" />
                         <span className="font-mono text-[11px]">{post.viewsCount || '1.2K'}</span>
                       </span>
 
@@ -586,7 +586,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                         }
                         className="flex items-center gap-1 hover:text-[#5338ec] transition-colors"
                       >
-                        <MessageSquare className="w-3.5 h-3.5" />
+                        <MessageSquare className="w-3 h-3" />
                         <span className="font-mono text-[11px]">{post.commentsCount || 0}</span>
                       </button>
 
@@ -595,7 +595,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                         onClick={() => onToggleLike(post.id)}
                         className="flex items-center gap-1 hover:text-emerald-600 transition-colors"
                       >
-                        <Repeat2 className="w-3.5 h-3.5" />
+                        <Repeat2 className="w-3 h-3" />
                         <span className="font-mono text-[11px]">{post.repostsCount || 0}</span>
                       </button>
 
@@ -608,7 +608,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                             : 'hover:text-amber-500'
                         }`}
                       >
-                        <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? 'fill-current' : ''}`} />
+                        <Bookmark className={`w-3 h-3 ${isBookmarked ? 'fill-current' : ''}`} />
                         <span className="font-mono text-[11px]">
                           {(post.bookmarksCount || 0) + (isBookmarked ? 1 : 0)}
                         </span>
@@ -621,7 +621,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                           onClick={() => onOpenAdvancedChart(post.tokenMentions![0].symbol)}
                           className="inline-flex items-center gap-1 hover:text-[#5338ec] transition-colors"
                         >
-                          <LineChart className="w-3.5 h-3.5" />
+                          <LineChart className="w-3 h-3" />
                           <span className="text-[11px]">View chart</span>
                         </button>
                       )}
@@ -629,10 +629,10 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                         onClick={() => {
                           navigator.clipboard?.writeText(window.location.href);
                         }}
-                        className="p-1 hover:text-[#0b1c30] rounded transition-colors"
+                        className="inline-flex items-center hover:text-[#0b1c30] transition-colors"
                         title="Share link"
                       >
-                        <Share2 className="w-3.5 h-3.5" />
+                        <Share2 className="w-3 h-3" />
                       </button>
                     </div>
                   </div>

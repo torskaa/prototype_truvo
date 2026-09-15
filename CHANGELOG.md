@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.72] - 2026-09-15
+
+### Changed
+
+- Matched reaction and engagement controls to the compact inline reference style.
+
 ## [1.4.71] - 2026-09-15
 
 ### Changed
