@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.80] - 2026-09-15
+
+### Added
+
+- Added topic-matched visual examples to the expanded Community posts, including market charts, crypto, forex, equities, indices, metals, and energy imagery.
+
 ## [1.4.79] - 2026-09-15
 
 ### Fixed
