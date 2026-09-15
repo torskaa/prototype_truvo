@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.63] - 2026-09-15
+
+### Changed
+
+- Updated the Community feed to use a two-column card layout on large screens while retaining the stacked mobile layout.
+
 ## [1.4.62] - 2026-09-15
 
 ### Reverted

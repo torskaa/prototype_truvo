@@ -337,7 +337,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
         </div>
 
         {/* Posts List */}
-        <div className="space-y-4">
+        <div className="community-feed-list space-y-4 xl:grid xl:grid-cols-2 xl:gap-4 xl:space-y-0">
           {filteredPosts.length === 0 ? (
             <div className="bg-white border border-[#e2e8f0] rounded-2xl p-12 text-center text-[#474556] shadow-xs">
               <Sparkles className="w-8 h-8 text-slate-400 mx-auto mb-2 opacity-50" />
@@ -354,7 +354,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
               return (
                 <article
                   key={post.id}
-                  className="bg-white border border-[#e2e8f0] rounded-2xl p-5 text-[#0b1c30] shadow-xs hover:border-[#cbd5e1] hover:shadow-sm transition-all"
+                  className="community-feed-post bg-white border border-[#e2e8f0] rounded-2xl p-5 text-[#0b1c30] shadow-xs hover:border-[#cbd5e1] hover:shadow-sm transition-all"
                 >
                   {/* Post Header */}
                   <div className="flex items-start justify-between gap-3 mb-3">
