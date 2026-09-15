@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.74] - 2026-09-15
+
+### Added
+
+- Added highlighted Agree/Disagree vote buttons with selected states.
+- Added separate Donate and Subscribe controls to Community post cards.
+
 ## [1.4.73] - 2026-09-15
 
 ### Added

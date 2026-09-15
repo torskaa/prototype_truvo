@@ -9,6 +9,7 @@ import {
   Eye,
   Check,
   Bell,
+  Gift,
   UserPlus,
   Send,
   Sparkles,
@@ -116,6 +117,8 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>({});
   const [predictionVotes, setPredictionVotes] = useState<Record<string, 'agree' | 'disagree'>>({});
   const [alertSubscriptions, setAlertSubscriptions] = useState<Record<string, boolean>>({});
+  const [authorSubscriptions, setAuthorSubscriptions] = useState<Record<string, boolean>>({});
+  const [donatedPosts, setDonatedPosts] = useState<Record<string, boolean>>({});
   const getPostType = (post: CommunityPost) => {
     const searchablePost = `${post.title} ${post.content} ${post.tags.join(' ')}`.toLowerCase();
     if (/\bpoll\b|\bvote\b|\bquestion\b/.test(searchablePost)) return 'Poll';
@@ -423,6 +426,8 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                 || `${Math.round(65 + ((post.author.influenceScore || 0) % 25))}%`;
               const predictionVote = predictionVotes[post.id];
               const alertsEnabled = alertSubscriptions[post.author.handle] || false;
+              const isSubscribed = authorSubscriptions[post.author.handle] || false;
+              const hasDonated = donatedPosts[post.id] || false;
 
               return (
                 <article
@@ -521,6 +526,36 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                         <Bell className="h-3 w-3" />
                         <span>{alertsEnabled ? 'Alerts on' : 'Follow alerts'}</span>
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => setAuthorSubscriptions((current) => ({
+                          ...current,
+                          [post.author.handle]: !isSubscribed,
+                        }))}
+                        className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold transition-colors ${
+                          isSubscribed
+                            ? 'border-violet-200 bg-violet-50 text-violet-700'
+                            : 'border-[#e2e8f0] bg-white text-[#64748b] hover:border-violet-200 hover:text-violet-700'
+                        }`}
+                      >
+                        <Bell className="h-3 w-3" />
+                        <span>{isSubscribed ? 'Subscribed' : 'Subscribe'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDonatedPosts((current) => ({
+                          ...current,
+                          [post.id]: !hasDonated,
+                        }))}
+                        className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold transition-colors ${
+                          hasDonated
+                            ? 'border-amber-200 bg-amber-50 text-amber-700'
+                            : 'border-[#e2e8f0] bg-white text-[#64748b] hover:border-amber-200 hover:text-amber-700'
+                        }`}
+                      >
+                        <Gift className="h-3 w-3" />
+                        <span>{hasDonated ? 'Donated' : 'Donate'}</span>
+                      </button>
                     </div>
                   </div>
 
@@ -594,20 +629,30 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                   </div>
 
                   {/* Prediction vote row */}
-                  <div className="flex items-center gap-3 flex-wrap py-1 text-[11px] text-[#64748b]">
+                  <div className="flex items-center gap-2.5 flex-wrap py-1 text-[11px] text-[#64748b]">
                     <button
                       type="button"
                       onClick={() => setPredictionVotes((current) => ({ ...current, [post.id]: 'agree' }))}
-                      className={`transition-colors ${predictionVote === 'agree' ? 'font-semibold text-emerald-600' : 'hover:text-emerald-600'}`}
+                      aria-pressed={predictionVote === 'agree'}
+                      className={`rounded-md border px-2 py-1 font-semibold transition-colors ${
+                        predictionVote === 'agree'
+                          ? 'border-emerald-400 bg-emerald-100 text-emerald-700 shadow-sm'
+                          : 'border-emerald-100 bg-emerald-50/70 text-emerald-600 hover:border-emerald-300 hover:bg-emerald-100'
+                      }`}
                     >
-                      Agree {agreePercent}%
+                      Agree <span className="font-mono">{agreePercent}%</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setPredictionVotes((current) => ({ ...current, [post.id]: 'disagree' }))}
-                      className={`transition-colors ${predictionVote === 'disagree' ? 'font-semibold text-rose-500' : 'hover:text-rose-500'}`}
+                      aria-pressed={predictionVote === 'disagree'}
+                      className={`rounded-md border px-2 py-1 font-semibold transition-colors ${
+                        predictionVote === 'disagree'
+                          ? 'border-rose-400 bg-rose-100 text-rose-700 shadow-sm'
+                          : 'border-rose-100 bg-rose-50/70 text-rose-600 hover:border-rose-300 hover:bg-rose-100'
+                      }`}
                     >
-                      Disagree {disagreePercent}%
+                      Disagree <span className="font-mono">{disagreePercent}%</span>
                     </button>
                     <span className="text-[10px] text-slate-400">{post.likes + post.commentsCount} votes</span>
                   </div>
