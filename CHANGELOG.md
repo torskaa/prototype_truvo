@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.65] - 2026-09-15
+
+### Changed
+
+- Moved the Community feed filters into the main sidebar filter group and removed duplicate toolbar selects.
+
 ## [1.4.64] - 2026-09-15
 
 ### Added
