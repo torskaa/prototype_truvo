@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.67] - 2026-09-15
+
+### Fixed
+
+- Moved the Post type and Sort by filter groups into the Trending Posts toolbar and removed them from the sidebar.
+
 ## [1.4.66] - 2026-09-15
 
 ### Changed
