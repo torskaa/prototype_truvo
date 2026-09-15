@@ -22,6 +22,7 @@ import {
 } from '../../types';
 import {
   INITIAL_FEED_POSTS,
+  MORE_FEED_POSTS,
   COMMUNITY_TOPICS,
   COMMUNITY_ARTICLES,
   CRYPTO_ADVENTURE_PROFILE,
@@ -53,7 +54,10 @@ export const CommunityPage: React.FC<CommunityPageProps> = ({
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<CommunitySubTab>('feeds');
   const [selectedInfluencer, setSelectedInfluencer] = useState<CommunityInfluencer | null>(null);
-  const [posts, setPosts] = useState<CommunityPost[]>(INITIAL_FEED_POSTS);
+  const [posts, setPosts] = useState<CommunityPost[]>([
+    ...INITIAL_FEED_POSTS,
+    ...MORE_FEED_POSTS,
+  ]);
   const [userPosts, setUserPosts] = useState<CommunityPost[]>([]);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.78] - 2026-09-15
+
+### Added
+
+- Expanded the Community feed with 16 additional deterministic posts across crypto, stocks, forex, commodities, and indices, covering Blog, Technical, Fundamental, and Poll types.
+
 ## [1.4.77] - 2026-09-15
 
 ### Fixed
