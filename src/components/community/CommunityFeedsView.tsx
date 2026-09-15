@@ -320,12 +320,12 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
               <span>Trending Posts</span>
             </h3>
 
-            <div className="flex items-center gap-1 bg-[#f1f5f9] border border-slate-200 p-1 rounded-xl text-xs">
+            <div className="flex flex-wrap items-center gap-0.5 bg-[#f1f5f9] border border-slate-200 p-1 rounded-xl text-xs">
               {(['popular', 'ai', 'foryou', 'following'] as const).map((tab) => (
                 <button
                 key={tab}
                 onClick={() => setFeedTab(tab)}
-                className={`py-1 px-3 rounded-lg font-medium transition-all ${
+                className={`py-1 px-2 rounded-lg text-[11px] font-medium transition-all ${
                   feedTab === tab
                     ? 'bg-white text-[#5338ec] font-bold shadow-xs'
                     : 'text-[#474556] hover:text-[#0b1c30]'
@@ -335,14 +335,14 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
               </button>
               ))}
             </div>
-            <div className="flex items-center gap-1 bg-[#f1f5f9] border border-slate-200 p-1 rounded-xl text-xs">
+            <div className="flex flex-wrap items-center gap-0.5 bg-[#f1f5f9] border border-slate-200 p-1 rounded-xl text-xs">
               {['All', 'Blog', 'Technical', 'Fundamental', 'Poll'].map((type) => (
-                <button key={type} onClick={() => setFeedPostType(type)} className={`py-1 px-2 rounded-lg text-[11px] font-medium transition-all ${feedPostType === type ? 'bg-white text-[#5338ec] font-bold shadow-xs' : 'text-[#474556] hover:text-[#0b1c30]'}`}>{type}</button>
+                <button key={type} onClick={() => setFeedPostType(type)} className={`py-1 px-1.5 rounded-lg text-[10px] font-medium transition-all ${feedPostType === type ? 'bg-white text-[#5338ec] font-bold shadow-xs' : 'text-[#474556] hover:text-[#0b1c30]'}`}>{type}</button>
               ))}
             </div>
-            <div className="flex items-center gap-1 bg-[#f1f5f9] border border-slate-200 p-1 rounded-xl text-xs">
+            <div className="flex items-center gap-0.5 bg-[#f1f5f9] border border-slate-200 p-1 rounded-xl text-xs">
               {(['popular', 'date'] as const).map((sort) => (
-                <button key={sort} onClick={() => setFeedSort(sort)} className={`py-1 px-2 rounded-lg text-[11px] font-medium transition-all ${feedSort === sort ? 'bg-white text-[#5338ec] font-bold shadow-xs' : 'text-[#474556] hover:text-[#0b1c30]'}`}>{sort === 'popular' ? 'Popular' : 'By date'}</button>
+                <button key={sort} onClick={() => setFeedSort(sort)} className={`py-1 px-1.5 rounded-lg text-[10px] font-medium transition-all ${feedSort === sort ? 'bg-white text-[#5338ec] font-bold shadow-xs' : 'text-[#474556] hover:text-[#0b1c30]'}`}>{sort === 'popular' ? 'Popular' : 'By date'}</button>
               ))}
             </div>
           </div>

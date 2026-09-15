@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.68] - 2026-09-15
+
+### Changed
+
+- Compactified the Trending Posts filter controls to reduce toolbar width while preserving all filter options.
+
 ## [1.4.67] - 2026-09-15
 
 ### Fixed
