@@ -105,7 +105,6 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
   ];
   const [selectedTokenSymbol, setSelectedTokenSymbol] = useState<string | null>(null);
   const [feedTab, setFeedTab] = useState<'popular' | 'ai' | 'foryou' | 'following'>('popular');
-  const [feedMarket, setFeedMarket] = useState('All');
   const [feedPostType, setFeedPostType] = useState('All');
   const [feedSort, setFeedSort] = useState<'popular' | 'date'>('popular');
   const [searchQuery, setSearchQuery] = useState('');
@@ -135,9 +134,9 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
       if (!matchesText) return false;
     }
 
-    if (feedMarket !== 'All') {
+    if (assetFilter !== 'All') {
       const marketSymbols = new Set(
-        syncedTokens.filter((token) => token.category === feedMarket).map((token) => token.symbol.toLowerCase()),
+        syncedTokens.filter((token) => token.category === assetFilter).map((token) => token.symbol.toLowerCase()),
       );
       const matchesMarket = post.tokenMentions?.some((token) => marketSymbols.has(token.symbol.toLowerCase()));
       if (!matchesMarket) return false;
@@ -236,6 +235,22 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
             {assetCategories.map((category) => (
               <button key={category} onClick={() => setAssetFilter(category)} className={`rounded-full border px-2 py-1 text-[9px] font-semibold ${assetFilter === category ? 'border-violet-300 bg-violet-50 text-violet-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>{category}</button>
             ))}
+          </div>
+          <div className="mb-3">
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Post type</p>
+            <div className="flex flex-wrap gap-1">
+              {['All', 'Blog', 'Technical', 'Fundamental', 'Poll'].map((type) => (
+                <button key={type} onClick={() => setFeedPostType(type)} className={`rounded-full border px-2 py-1 text-[9px] font-semibold ${feedPostType === type ? 'border-violet-300 bg-violet-50 text-violet-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>{type}</button>
+              ))}
+            </div>
+          </div>
+          <div className="mb-3">
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Sort by</p>
+            <div className="flex gap-1">
+              {(['popular', 'date'] as const).map((sort) => (
+                <button key={sort} onClick={() => setFeedSort(sort)} className={`rounded-full border px-2 py-1 text-[9px] font-semibold ${feedSort === sort ? 'border-violet-300 bg-violet-50 text-violet-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>{sort === 'popular' ? 'Popular' : 'By date'}</button>
+              ))}
+            </div>
           </div>
 
           {/* Table Header */}
@@ -337,35 +352,6 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
               </button>
               ))}
             </div>
-            <select
-              value={feedMarket}
-              onChange={(event) => setFeedMarket(event.target.value)}
-              className="bg-white border border-[#e2e8f0] rounded-lg px-2 py-1.5 text-[11px] text-[#474556]"
-              aria-label="Market filter"
-            >
-              {['All', 'Stocks', 'Crypto', 'Forex', 'Commodities', 'Indices'].map((market) => (
-                <option key={market} value={market}>{market}</option>
-              ))}
-            </select>
-            <select
-              value={feedPostType}
-              onChange={(event) => setFeedPostType(event.target.value)}
-              className="bg-white border border-[#e2e8f0] rounded-lg px-2 py-1.5 text-[11px] text-[#474556]"
-              aria-label="Post type filter"
-            >
-              {['All', 'Blog', 'Technical', 'Fundamental', 'Poll'].map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-            <select
-              value={feedSort}
-              onChange={(event) => setFeedSort(event.target.value as 'popular' | 'date')}
-              className="bg-white border border-[#e2e8f0] rounded-lg px-2 py-1.5 text-[11px] text-[#474556]"
-              aria-label="Sort posts"
-            >
-              <option value="popular">Popular</option>
-              <option value="date">By date</option>
-            </select>
           </div>
 
           <div className="flex items-center gap-2">
