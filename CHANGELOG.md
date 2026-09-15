@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.61] - 2026-09-15
+
+### Fixed
+
+- Kept the desktop Community card in normal grid flow so the Broker Rewards banner cannot overlap it.
+
 ## [1.4.60] - 2026-09-15
 
 ### Reverted
