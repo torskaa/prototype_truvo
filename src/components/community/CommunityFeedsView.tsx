@@ -122,8 +122,8 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
   const getPostType = (post: CommunityPost) => {
     const searchablePost = `${post.title} ${post.content} ${post.tags.join(' ')}`.toLowerCase();
     if (/\bpoll\b|\bvote\b|\bquestion\b/.test(searchablePost)) return 'Poll';
-    if (/\btechnical\b|\bchart\b|\bbreakout\b|\bsupport\b|\bresistance\b/.test(searchablePost)) return 'Technical';
     if (/\bfundamental\b|\bearnings\b|\brevenue\b|\bvaluation\b|\bcompany\b/.test(searchablePost)) return 'Fundamental';
+    if (/\btechnical\b|\bchart\b|\bbreakout\b|\bsupport\b|\bresistance\b/.test(searchablePost)) return 'Technical';
     return 'Blog';
   };
   const postTypeCover: Record<string, { label: string; className: string }> = {

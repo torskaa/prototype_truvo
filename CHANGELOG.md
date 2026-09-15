@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.79] - 2026-09-15
+
+### Fixed
+
+- Prioritized explicit Fundamental markers over overlapping technical language when generating post types and covers.
+
 ## [1.4.78] - 2026-09-15
 
 ### Added
