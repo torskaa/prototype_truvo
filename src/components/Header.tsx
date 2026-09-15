@@ -31,6 +31,7 @@ import { InteractiveCommunityGraphic } from './submenu/InteractiveCommunityGraph
 import { InteractiveCompanyGraphic } from './submenu/InteractiveCompanyGraphic';
 import { CalculatorType } from './calculators/TradingCalculatorsModal';
 import { useTheme } from '../theme/ThemeContext';
+import { useRewards } from '../features/rewards/RewardProvider';
 
 interface HeaderProps {
   user: UserProfile;
@@ -73,6 +74,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [isQuestMenuOpen, setIsQuestMenuOpen] = useState(false);
   const [questPanelMode, setQuestPanelMode] = useState<'quests' | 'tools'>('quests');
   const { theme, setTheme, toggleTheme } = useTheme();
+  const { setDemoLevel } = useRewards();
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -569,6 +571,16 @@ export const Header: React.FC<HeaderProps> = ({
                 {/* Divider */}
                 <div className="w-full h-px bg-slate-100 my-3" />
 
+                <div className="flex w-full items-center justify-between gap-2 pb-2">
+                  <span className="text-[11px] font-semibold text-slate-500">Root level</span>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4].map(level => (
+                      <button type="button" key={level} aria-label={`Set demo level ${level}`} className={`rounded-lg border px-2 py-1 text-[11px] font-semibold transition-colors ${user.tierLevel === level ? 'border-[#5945F1] bg-indigo-50 text-[#5945F1]' : 'border-indigo-200 text-[#5945F1] hover:bg-indigo-50'}`} onClick={event => { event.stopPropagation(); setDemoLevel(level as 1 | 2 | 3 | 4); }}>
+                        {level}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 {/* Sign Out Button */}
                 <div className="flex justify-center pb-0.5">
                   <button

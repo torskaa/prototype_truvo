@@ -27,6 +27,16 @@ export function useMarketEngagement() {
 const terms = 'Illustrative campaign; no active offer/verification. Product and region eligibility must be checked.';
 const field = 'mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-100';
 const dateLabel = (value: string) => new Date(value).toLocaleString();
+const specialOffer = (broker: Broker, symbol: string) => {
+  if (!broker.featured) return null;
+  const score = [...`${broker.id}:${symbol}`].reduce((sum, character) => sum + character.charCodeAt(0), 0);
+  const offers = [
+    `Up to ${broker.maxCashback} cashback`,
+    `${100 + score % 401} bonus points per lot`,
+    `$${10 + score % 91} trading credit`,
+  ];
+  return offers[score % offers.length];
+};
 
 export function MarketEngagement({ children, view, instrument, symbols, brokers, onConnectBroker, onCompareBrokers, onOpenRewards, onOpenPlans, onNavigate }: {
   children: ReactNode; view: string; instrument: Instrument; symbols: string[]; brokers: Broker[];
@@ -53,11 +63,13 @@ export function BrokerDirectory() {
   const { brokers, symbol, connect, compare } = useMarketEngagement();
   const { snapshot } = useRewards();
   return <div className="space-y-3">
-    <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-slate-500">Host broker directory · not ranked by sponsorship</p><button className="secondary" onClick={compare}>Compare broker conditions</button></div>
-    <div className="grid gap-3 sm:grid-cols-2">{brokers.map(broker => {
+    <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs text-slate-500">Special offers first · other brokers below</p><button className="secondary" onClick={compare}>Compare broker conditions</button></div>
+    <div className="grid gap-3 sm:grid-cols-2">{[...brokers].sort((left, right) => Number(Boolean(specialOffer(right, symbol))) - Number(Boolean(specialOffer(left, symbol)))).map(broker => {
       const connected = snapshot.connections.some(connection => connection.brokerId === broker.id);
-      return <article key={broker.id} className="rounded-xl border border-slate-200 bg-white p-3">
+      const offer = specialOffer(broker, symbol);
+      return <article key={broker.id} className={`rounded-xl border bg-white p-3 ${offer ? 'border-violet-300 ring-1 ring-violet-100' : 'border-slate-200'}`}>
         <div className="flex items-center justify-between gap-2"><b className="text-sm text-slate-800">{broker.name}</b><span className={`rounded-full px-2 py-1 text-[10px] ${connected ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-600'}`}>{connected ? 'Connected' : 'Not connected'}</span></div>
+        {offer && <p className="mt-2 rounded-lg bg-violet-50 px-2 py-1.5 text-xs font-semibold text-violet-800">Special {symbol} offer · {offer}</p>}
         <dl className="mt-3 grid grid-cols-2 gap-2 text-[11px]"><div><dt className="text-slate-500">Illustrative spread</dt><dd className="text-slate-800">{broker.spreadFrom}</dd></div><div><dt className="text-slate-500">Illustrative minimum</dt><dd className="text-slate-800">{broker.minDeposit}</dd></div><div className="col-span-2"><dt className="text-slate-500">Listed platforms (unverified)</dt><dd className="text-slate-800">{broker.platforms.join(', ')}</dd></div></dl>
         <p className="mt-2 text-[10px] text-slate-500">{symbol} access and jurisdiction eligibility.</p>
         <button className="primary mt-3 w-full justify-center" onClick={() => connect(broker)}>{connected ? 'Manage account' : 'Connect account'}<ArrowRight size={13} /></button>

@@ -8,7 +8,7 @@ import type { Broker } from "../../types";
 import { useRewards } from "../rewards/RewardProvider";
 import { MarketEngagement } from "./MarketEngagement";
 
-export const marketViews = ["screener", "instrument"];
+export const marketViews = ["screener", "instrument", "chart"];
 export default function MarketWorkspace({
   view,
   locationSearch,
@@ -36,7 +36,25 @@ export default function MarketWorkspace({
   const index = marketIndices.find((item) => item.symbol === symbol);
   const selectedInstrument =
     instruments.find((item) => item.symbol === symbol) ??
-    (index ? indexAsInstrument(index) : undefined);
+    (index ? indexAsInstrument(index) : undefined) ??
+    (symbol
+      ? {
+          symbol,
+          name: `${symbol} generated market instrument`,
+          market: symbol.includes("/") ? "Market" : "Stocks",
+          sector: "Market",
+          price: 100,
+          change: 0,
+          volume: 1,
+          rvol: 1,
+          rsi: 50,
+          return1m: 0,
+          marketCap: 100,
+          sentiment: 50,
+          signal: "NEUTRAL" as const,
+          confidence: 50,
+        }
+      : undefined);
   const instrument = selectedInstrument ?? {
     symbol: "",
     name: "Select an instrument",
@@ -116,7 +134,7 @@ export default function MarketWorkspace({
             toast={onToast}
           />
         )}
-        {view === "instrument" && hasSelectedInstrument && (
+        {(view === "instrument" || view === "chart") && hasSelectedInstrument && (
           <InstrumentDetail
             key={instrument.symbol}
             instrument={instrument}
@@ -169,6 +187,7 @@ export default function MarketWorkspace({
                 marker?.querySelector<HTMLButtonElement>("button")?.click();
               }, 250);
             }}
+            onOpenCommunity={() => onNavigate("community", instrument.symbol)}
             onBack={() => onNavigate("screener")}
             onChart={() => {
               setSharedChartBy(null);

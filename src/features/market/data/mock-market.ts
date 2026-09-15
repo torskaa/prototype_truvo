@@ -34,6 +34,7 @@ const seedInstruments:Instrument[]=[
  {symbol:'BRENT/USD',name:'Brent Crude Oil',market:'Commodity',sector:'Energy',primaryMarket:'ICE',subSector:'Crude Oil',price:72.18,change:-.64,volume:21.6,rvol:1.43,rsi:46.7,return1m:-1.6,marketCap:1960,sentiment:45,signal:'NEUTRAL',confidence:51},
  {symbol:'NATGAS/USD',name:'Natural Gas',market:'Commodity',sector:'Energy',primaryMarket:'NYMEX',subSector:'Natural Gas',price:2.8811,change:-1.2,volume:14.2,rvol:1.67,rsi:39.4,return1m:-4.8,marketCap:740,sentiment:35,signal:'WATCH',confidence:55},
  {symbol:'CORN/USD',name:'Corn Futures',market:'Commodity',sector:'Agriculture',primaryMarket:'CBOT',subSector:'Grains',price:462.25,change:.38,volume:7.1,rvol:1.17,rsi:51.6,return1m:1.2,marketCap:620,sentiment:54,signal:'WATCH',confidence:48},
+ {symbol:'ADA/USD',name:'Cardano',market:'Crypto',sector:'Smart Contract Platforms',primaryMarket:'Crypto Spot',subSector:'Layer 1',price:.82,change:6.93,volume:8.4,rvol:1.94,rsi:61.3,return1m:18.2,marketCap:29,sentiment:73,signal:'LONG',confidence:71},
 ];
 
 const taxonomyDemoInstruments: Instrument[] = marketTaxonomy.map((entry, index) => ({

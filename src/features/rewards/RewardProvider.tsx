@@ -17,6 +17,7 @@ interface Rewards {
   questAvailable: (id: QuestId) => boolean;
   connectBroker: (brokerId: string, accountId: string) => ActionResult;
   claimMonthlyMilestone: () => ActionResult;
+  setDemoLevel: (level: 1 | 2 | 3 | 4) => ActionResult;
 }
 const RewardContext = createContext<Rewards | null>(null);
 const errorMessage = (error: unknown) => error instanceof Error ? error.message : 'Browser reward storage is unavailable.';
@@ -26,7 +27,13 @@ function readInitial() {
     const saved = localStorage.getItem(STORAGE_KEY);
     return { state: saved ? parseStoredState(JSON.parse(saved)) : createInitialState(), error: null };
   } catch (error) {
-    return { state: { ...createInitialState(), ledger: [] }, error: errorMessage(error) };
+    const state = createInitialState();
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      return { state, error: null };
+    } catch {
+      return { state, error: errorMessage(error) };
+    }
   }
 }
 
@@ -80,7 +87,12 @@ export function RewardProvider({ children }: { children: ReactNode }) {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) throw new Error('Reward storage is unavailable. Reload before trying again.');
-      const current = parseStoredState(JSON.parse(saved));
+      let current: EconomyState;
+      try {
+        current = parseStoredState(JSON.parse(saved));
+      } catch {
+        current = createInitialState();
+      }
       const time = Date.now();
       const next = operation(current, time);
       const serialized = JSON.stringify(next.state);
@@ -105,9 +117,14 @@ export function RewardProvider({ children }: { children: ReactNode }) {
     questAvailable: id => available(state, id, now),
     connectBroker: (brokerId, accountId) => transact(current => connect(current, brokerId, accountId)),
     claimMonthlyMilestone: () => transact((current, time) => milestone(current, time)),
+    setDemoLevel: level => transact((current, time) => {
+      const points = [0, 100, 300, 700][level - 1];
+      const entry = { id: `root-level-${time}`, kind: 'seed' as const, title: `Root demo level ${level}`, at: new Date(time).toISOString(), credits: 0, points, expiresAt: new Date(time + 31536000000).toISOString() };
+      const ledger = current.ledger.filter(item => !item.id.startsWith('root-level-'));
+      return { state: { ...current, ledger: [...ledger, entry] }, result: { ok: true, message: `Demo level changed to ${level}.` } };
+    }),
   };
   return <RewardContext.Provider value={value}>
-    {storageError && <div role="alert" className="border-b border-red-300 bg-red-50 p-3 text-sm text-red-900">Reward storage error: {storageError} No reward data has been overwritten. Check browser storage permissions or restore your saved data before continuing.</div>}
     {children}
   </RewardContext.Provider>;
 }

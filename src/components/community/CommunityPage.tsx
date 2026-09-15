@@ -41,6 +41,7 @@ interface CommunityPageProps {
   onUpdateUserProfile: (updatedUser: Partial<UserProfile>) => void;
   onRewardPoints: (points: number, reason: string) => void;
   onOpenConnectModal?: () => void;
+  onOpenAdvancedChart?: (symbol: string) => void;
 }
 
 export const CommunityPage: React.FC<CommunityPageProps> = ({
@@ -48,6 +49,7 @@ export const CommunityPage: React.FC<CommunityPageProps> = ({
   onUpdateUserProfile,
   onRewardPoints,
   onOpenConnectModal,
+  onOpenAdvancedChart,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<CommunitySubTab>('feeds');
   const [selectedInfluencer, setSelectedInfluencer] = useState<CommunityInfluencer | null>(null);
@@ -415,6 +417,7 @@ export const CommunityPage: React.FC<CommunityPageProps> = ({
                 onOpenCreatePost={() => setIsCreateModalOpen(true)}
                 onSelectInfluencerByHandle={handleSelectInfluencerByHandle}
                 onReactionClick={handleReactionClick}
+                onOpenAdvancedChart={(symbol) => onOpenAdvancedChart?.(symbol)}
                 user={user}
               />
             </div>

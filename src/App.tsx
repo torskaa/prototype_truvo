@@ -115,6 +115,12 @@ function Application() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
   useEffect(() => {
+    const chartOnly = new URLSearchParams(routeSearch).get("mode") === "chart";
+    document.body.classList.toggle("chart-only-mode", chartOnly);
+    return () => document.body.classList.remove("chart-only-mode");
+  }, [routeSearch]);
+
+  useEffect(() => {
     const onPopState = () => { updateActiveTab(new URLSearchParams(window.location.search).get('view') || 'dashboard'); setRouteSearch(window.location.search); };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
@@ -440,6 +446,14 @@ function Application() {
             onOpenConnectModal={() => {
               setSelectedBrokerForConnect(brokers[0]);
               setIsConnectModalOpen(true);
+            }}
+            onOpenAdvancedChart={(symbol) => {
+              const chartSymbol =
+                symbol === "BTC" || symbol === "ADA" ? `${symbol}/USD` : symbol;
+              window.open(
+                `/?view=instrument&symbol=${encodeURIComponent(chartSymbol)}&mode=chart`,
+                "_blank",
+              );
             }}
           />
         )}

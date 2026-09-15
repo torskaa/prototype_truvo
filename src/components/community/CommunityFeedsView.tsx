@@ -14,6 +14,7 @@ import {
   TrendingUp,
   TrendingDown,
   Filter,
+  LineChart,
 } from 'lucide-react';
 import {
   TokenMarketItem,
@@ -31,6 +32,7 @@ interface CommunityFeedsViewProps {
   onOpenCreatePost: () => void;
   onSelectInfluencerByHandle: (handle: string) => void;
   onReactionClick: (postId: string, emoji: string) => void;
+  onOpenAdvancedChart: (symbol: string) => void;
   user: UserProfile;
 }
 
@@ -42,15 +44,51 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
   onOpenCreatePost,
   onSelectInfluencerByHandle,
   onReactionClick,
+  onOpenAdvancedChart,
   user,
 }) => {
   const [tokenFilterTab, setTokenFilterTab] = useState<'trending' | 'gainers' | 'losers'>('trending');
   const [tokenDuration, setTokenDuration] = useState('1D');
   const [assetFilter, setAssetFilter] = useState('All');
   const assetCategories = ['All', 'Stocks', 'Crypto', 'Forex', 'Commodities', 'Indices'];
-  const syncedTokens = Array.from({ length: 15 }, (_, index) => {
+  const supplementalTokens = [
+    ['EUR/USD', 'Forex', 1.0864, 0.42, 1.18],
+    ['GBP/USD', 'Forex', 1.2931, -0.18, 1.64],
+    ['USD/JPY', 'Forex', 148.62, 0.27, 0.91],
+    ['AUD/USD', 'Forex', 0.6578, -0.36, 0.74],
+    ['USD/CAD', 'Forex', 1.3612, 0.12, 0.83],
+    ['XAU/USD', 'Commodities', 2328.4, 0.64, 15.2],
+    ['WTI', 'Commodities', 78.16, -1.12, 8.7],
+    ['BRENT', 'Commodities', 82.41, 0.38, 9.3],
+    ['XAG/USD', 'Commodities', 29.18, 1.46, 1.92],
+    ['NATGAS', 'Commodities', 2.74, -2.08, 3.1],
+    ['S&P 500', 'Indices', 5487.03, 0.82, 5120],
+    ['NASDAQ 100', 'Indices', 19342.41, 1.14, 2870],
+    ['DOW 30', 'Indices', 38778.1, 0.31, 1210],
+    ['DAX', 'Indices', 18386.7, -0.24, 980],
+    ['NIKKEI 225', 'Indices', 38683.93, 0.57, 1640],
+  ].map(([symbol, category, price, change24h, marketCap], index) => ({
+    id: `${symbol}-${category}`,
+    symbol: String(symbol),
+    icon: ['💱', '🛢️', '📊'][index % 3],
+    marketCap: `$${Number(marketCap).toFixed(2)}B`,
+    price: `$${Number(price).toLocaleString(undefined, { maximumFractionDigits: 4 })}`,
+    change24h: Number(change24h),
+    rank: 16 + index,
+    category: String(category),
+  }));
+  const syncedTokens = [
+    ...Array.from({ length: 15 }, (_, index) => {
     const instrument = instruments[index % instruments.length];
-    const category = assetCategories[(index % (assetCategories.length - 1)) + 1];
+    const category = instrument.market.includes('Crypto')
+      ? 'Crypto'
+      : instrument.market.includes('Index')
+        ? 'Indices'
+        : instrument.market.includes('Forex')
+          ? 'Forex'
+          : instrument.market.includes('Commodit')
+            ? 'Commodities'
+            : 'Stocks';
     const change = instrument.change + ((index % 5) - 2) * 0.8;
     return {
       id: `${instrument.symbol}-${category}-${index}`,
@@ -62,7 +100,9 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
       rank: index + 1,
       category,
     };
-  });
+    }),
+    ...supplementalTokens,
+  ];
   const [selectedTokenSymbol, setSelectedTokenSymbol] = useState<string | null>(null);
   const [feedTab, setFeedTab] = useState<'popular' | 'ai' | 'foryou' | 'following'>('popular');
   const [searchQuery, setSearchQuery] = useState('');
@@ -393,7 +433,21 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
 
                     {/* Embedded Image Graphic */}
                     {post.image && (
-                      <div className="rounded-xl overflow-hidden border border-[#e2e8f0] max-h-80 bg-slate-50">
+                      <div
+                        className="relative rounded-xl overflow-hidden border border-[#e2e8f0] max-h-80 bg-slate-50 group cursor-pointer"
+                        onClick={() => {
+                          const symbol = post.tokenMentions?.[0]?.symbol;
+                          if (symbol) onOpenAdvancedChart(symbol);
+                        }}
+                        role={post.tokenMentions?.[0] ? "button" : undefined}
+                        tabIndex={post.tokenMentions?.[0] ? 0 : undefined}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            const symbol = post.tokenMentions?.[0]?.symbol;
+                            if (symbol) onOpenAdvancedChart(symbol);
+                          }
+                        }}
+                      >
                         <img
                           src={post.image}
                           alt="Post visual"
@@ -493,15 +547,26 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                       </button>
                     </div>
 
-                    <button
-                      onClick={() => {
-                        navigator.clipboard?.writeText(window.location.href);
-                      }}
-                      className="p-1 hover:text-[#0b1c30] rounded transition-colors"
-                      title="Share link"
-                    >
-                      <Share2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-3">
+                      {post.tokenMentions?.[0] && (
+                        <button
+                          onClick={() => onOpenAdvancedChart(post.tokenMentions![0].symbol)}
+                          className="inline-flex items-center gap-1 hover:text-[#5338ec] transition-colors"
+                        >
+                          <LineChart className="w-3.5 h-3.5" />
+                          <span className="text-[11px]">View chart</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          navigator.clipboard?.writeText(window.location.href);
+                        }}
+                        className="p-1 hover:text-[#0b1c30] rounded transition-colors"
+                        title="Share link"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Expandable Comments Section */}

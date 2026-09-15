@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Download, Filter, Lock, Plus, Star, X } from 'lucide-react';
 import { CartesianGrid, Cell, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts';
 import { hierarchy, treemap, type HierarchyNode } from 'd3-hierarchy';
@@ -380,10 +380,10 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
  );
 }
 
-type InstrumentSortKey = 'symbol' | 'price' | 'change' | 'return1m' | 'rvol' | 'rsi' | 'marketCap' | 'signal';
+type InstrumentSortKey = 'symbol' | 'name' | 'price' | 'change' | 'return1m' | 'rvol' | 'rsi' | 'marketCap' | 'signal';
 
 const instrumentColumns: { key: InstrumentSortKey; label: string }[] = [
- { key: 'symbol', label: 'Instrument' }, { key: 'price', label: 'Price' }, { key: 'change', label: 'Change' }, { key: 'return1m', label: '1M return' }, { key: 'rvol', label: 'Rel. volume' }, { key: 'rsi', label: 'RSI' }, { key: 'marketCap', label: 'Market cap' }, { key: 'signal', label: 'Signal' },
+ { key: 'symbol', label: 'Symbol' }, { key: 'name', label: 'Name' }, { key: 'price', label: 'Price' }, { key: 'change', label: 'Change' }, { key: 'return1m', label: '1M return' }, { key: 'rvol', label: 'Rel. volume' }, { key: 'rsi', label: 'RSI' }, { key: 'marketCap', label: 'Market cap' }, { key: 'signal', label: 'Signal' },
 ];
 
 function SortHeader({ label, active, dir, onClick }: { label: string; active: boolean; dir: 1 | -1; onClick: () => void }) {
@@ -392,20 +392,24 @@ function SortHeader({ label, active, dir, onClick }: { label: string; active: bo
 
 function InstrumentTable({ data, open, watchlist, toggleWatch, precisionUnlocked, requestPrecisionUnlock, brokers, openBrokerAccess }: { data: Instrument[]; open: (i: Instrument) => void; watchlist?: string[]; toggleWatch?: (symbol: string) => void; precisionUnlocked?: boolean; requestPrecisionUnlock?: () => void; brokers: Broker[]; openBrokerAccess?: () => void }) {
  const [sort, setSort] = useState<{ key: InstrumentSortKey; dir: 1 | -1 } | null>(null);
+ const [tradeSide, setTradeSide] = useState<'Buy' | 'Sell' | null>(null);
  const sorted = useMemo(() => {
+  if (!sort && tradeSide) return [...data].sort((a, b) => Number(Boolean(symbolOffer(b.symbol, brokers))) - Number(Boolean(symbolOffer(a.symbol, brokers))));
   if (!sort) return data;
   const { key, dir } = sort;
   return [...data].sort((a, b) => (typeof a[key] === 'string' ? (a[key] as string).localeCompare(b[key] as string) * dir : ((a[key] as number) - (b[key] as number)) * dir));
- }, [data, sort]);
+ }, [data, sort, tradeSide, brokers]);
  function toggleSort(key: InstrumentSortKey) { setSort(s => (s?.key === key ? (s.dir === 1 ? { key, dir: -1 } : null) : { key, dir: 1 })); }
  return (
-  <div className="max-w-full overflow-x-auto" role="region" aria-label="Market instrument results" tabIndex={0}><table className="w-full text-left text-xs">
-  <thead><tr>{toggleWatch && <th>Watchlist</th>}{instrumentColumns.map(c => <th key={c.key}><SortHeader label={c.label} active={sort?.key === c.key} dir={sort?.dir ?? 1} onClick={() => toggleSort(c.key)} /></th>)}<th>Broker campaign · Connect</th><th>Price trend</th></tr></thead>
+  <div className="max-w-full overflow-x-auto" role="region" aria-label="Market instrument results" tabIndex={0}><table className="market-screener-table w-full text-left text-xs">
+  <thead><tr>{toggleWatch && <th>Watchlist</th>}<th>Logo</th>{instrumentColumns.map(c => <th key={c.key}><SortHeader label={c.label} active={sort?.key === c.key} dir={sort?.dir ?? 1} onClick={() => toggleSort(c.key)} /></th>)}<th>Price trend</th></tr></thead>
    <tbody>
     {sorted.map(i => (
-     <tr key={i.symbol} onClick={() => open(i)}>
+     <tr key={i.symbol} className="group" onClick={() => open(i)}>
       {toggleWatch && <td><button aria-label={`${watchlist?.includes(i.symbol) ? 'Remove' : 'Add'} ${i.symbol} ${watchlist?.includes(i.symbol) ? 'from' : 'to'} watchlist`} onClick={event => { event.stopPropagation(); toggleWatch(i.symbol); }} className={`grid size-7 place-items-center rounded-lg border ${watchlist?.includes(i.symbol) ? 'border-violet-200 bg-violet-50 text-violet-700' : 'border-border text-slate-400 hover:bg-slate-50'}`}><Star className={`size-3.5 ${watchlist?.includes(i.symbol) ? 'fill-violet-600' : ''}`} /></button></td>}
-      <td><b className="text-slate-900">{i.symbol}</b><small>{i.name}</small></td>
+      <td><span className="instrument-logo" aria-label={`${i.name} logo`}>{i.symbol.slice(0, 2).toUpperCase()}</span></td>
+      <td className="relative"><b className="text-slate-900">{i.symbol}</b>{(() => { const tags = campaignTags(i.symbol); return <div className="campaign-hover-card invisible opacity-0 transition group-hover:visible group-hover:opacity-100">{tags.length > 0 && <div className="mb-1 flex flex-wrap gap-1">{tags.map((tag, tagIndex) => <span key={tag} className={`rounded px-1.5 py-0.5 text-[8px] font-semibold ${tagIndex === 0 ? 'bg-violet-100 text-violet-700' : tagIndex === 1 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{tag}</span>)}</div>}<div className="flex gap-1"><button className="secondary px-2 py-1 text-[9px] text-emerald-700" onClick={event => { event.stopPropagation(); setTradeSide('Buy'); openBrokerAccess?.(); }}>Buy</button><button className="secondary px-2 py-1 text-[9px] text-rose-700" onClick={event => { event.stopPropagation(); setTradeSide('Sell'); openBrokerAccess?.(); }}>Sell</button></div></div>; })()}</td>
+      <td><small>{i.name}</small></td>
       <td className="mono">{i.price.toLocaleString()}</td>
       <td className={i.change >= 0 ? 'up' : 'down'}>{i.change > 0 ? '+' : ''}{i.change}%</td>
       <td className={i.return1m >= 0 ? 'up' : 'down'}>{i.return1m}%</td>
@@ -413,7 +417,6 @@ function InstrumentTable({ data, open, watchlist, toggleWatch, precisionUnlocked
       <td>{i.rsi}</td>
       <td>{fmt(i.marketCap)}</td>
       <td>{i.confidence > 50 && !precisionUnlocked ? <button className="secondary whitespace-nowrap px-2 py-1 text-[9px]" onClick={event => { event.stopPropagation(); requestPrecisionUnlock?.(); }}><Lock className="mr-1 inline size-2.5" />Unlock &gt;50%</button> : <span className={`badge ${i.signal === 'LONG' ? 'positive' : ''}`}>{i.signal} {i.confidence}%</span>}</td>
-      {(() => { const offer = symbolOffer(i.symbol, brokers); return <td>{offer && <div className="min-w-32"><span className="mb-1 block max-w-36 truncate text-[8px] font-semibold text-violet-700">{offer.broker.name} · {offer.campaign}</span><button className="secondary whitespace-nowrap px-2 py-1 text-[9px]" onClick={event => { event.stopPropagation(); openBrokerAccess?.(); }}>Connect broker</button></div>}</td>; })()}
       <td><PriceSparkline instrument={i} /></td>
      </tr>
     ))}
@@ -544,6 +547,11 @@ const symbolOffer = (symbol: string, brokers: Broker[]) => {
  const broker = brokers[score % brokers.length];
  const campaign = score % 2 ? `${broker.maxCashback} cashback campaign` : `${broker.spreadFrom} spread campaign`;
  return { broker, campaign };
+};
+const campaignTags = (symbol: string) => {
+ const tags = ['Special pricing', 'Extra cashback', 'Bonus credit'];
+ const score = [...symbol].reduce((sum, character) => sum + character.charCodeAt(0), 0);
+ return tags.slice(0, score % 4);
 };
 
 function Heatmap({ data, market, open, brokers }: { data: Instrument[]; market: MarketFilter; open: (i: Instrument) => void; brokers: Broker[] }) {

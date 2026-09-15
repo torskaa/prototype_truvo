@@ -1,5 +1,450 @@
 # Changelog
 
+## [1.4.60] - 2026-09-15
+
+### Reverted
+
+- Reverted the latest Trading Signals and Financial News positioning change at the user's request.
+
+## [1.4.59] - 2026-09-15
+
+### Fixed
+
+- Removed the Trading Signals and Financial News overlay by placing both cards in normal right-column grid flow with Financial News below and separated by 16px.
+
+## [1.4.58] - 2026-09-15
+
+### Reverted
+
+- Reverted the later large-monitor layout and positioning overrides to the pre-layout state while preserving the Trade via broker broker-directory feature.
+
+## [1.4.57] - 2026-09-15
+
+### Fixed
+
+- Gave Trading Signals and Financial News separate columns on very-large screens so their cards cannot overlap or shift into an unintended second row.
+
+## [1.4.56] - 2026-09-15
+
+### Fixed
+
+- Moved Financial News below Trading Signals from 1151px upward, preventing the two cards from occupying the same grid row.
+
+## [1.4.55] - 2026-09-15
+
+### Reverted
+
+- Restored the large-monitor layout from before the recent four-column and intermediate-width positioning edits.
+
+## [1.4.54] - 2026-09-15
+
+### Changed
+
+- Reworked very-large-monitor instrument layout into four explicit columns so Community, Analysis, Trading Signals, and Financial News share one aligned top row without overlap.
+
+## [1.4.53] - 2026-09-15
+
+### Fixed
+
+- Fixed overlap at large-but-under-1600px monitor widths by switching side cards into explicit grid flow from 1151px upward.
+
+## [1.4.52] - 2026-09-15
+
+### Reverted
+
+- Restored the previous large-monitor side-card layout rules before the latest explicit grid override.
+
+## [1.4.51] - 2026-09-15
+
+### Fixed
+
+- Added explicit large-monitor grid placement and static positioning for every instrument side panel to eliminate stale absolute offsets and overlap.
+
+## [1.4.50] - 2026-09-15
+
+### Fixed
+
+- Normalized all large-monitor side-card positioning by returning Community, Trading Signals, and Financial News to explicit grid flow.
+
+## [1.4.49] - 2026-09-15
+
+### Fixed
+
+- Removed large-desktop overlap by placing Trading Signals and Financial News in separate flow rows with a small 16px gap.
+
+## [1.4.48] - 2026-09-15
+
+### Fixed
+
+- Added extra large-desktop top spacing before Financial News to reduce overlap with the Trading Signal card.
+
+## [1.4.47] - 2026-09-15
+
+### Reverted
+
+- Restored the previous large-desktop Trading Signal and Financial News positioning.
+
+## [1.4.46] - 2026-09-15
+
+### Fixed
+
+- Prevented large-desktop Trading Signal and Financial News cards from overlapping by placing them in separate grid rows with a 16px gap.
+
+## [1.4.45] - 2026-09-15
+
+### Reverted
+
+- Restored the quote-card action group to its original normal-flow position.
+
+## [1.4.44] - 2026-09-15
+
+### Changed
+
+- Positioned quote-card actions in the lower-right corner on desktop.
+
+## [1.4.43] - 2026-09-15
+
+### Changed
+
+- Positioned instrument Watchlist, Alert, and Trade via broker actions in the quote card's upper-right corner on desktop, with normal flow on mobile.
+
+## [1.4.42] - 2026-09-15
+
+### Changed
+
+- Connected the instrument Trade via broker action to the sponsored-first broker directory with symbol-specific offer details.
+
+## [1.4.41] - 2026-09-15
+
+### Changed
+
+- Rebalanced screener column widths after removing the Broker Campaign column.
+
+## [1.4.40] - 2026-09-15
+
+### Changed
+
+- Removed the redundant Broker Campaign table header and empty column so screener columns rebalance naturally.
+
+## [1.4.39] - 2026-09-15
+
+### Changed
+
+- Enabled Buy/Sell actions for non-promotional symbols while keeping benefit tags limited to promoted campaigns.
+
+## [1.4.38] - 2026-09-15
+
+### Changed
+
+- Anchored broker campaign Buy/Sell offers beside the hovered symbol instead of leaving them in the campaign column.
+
+## [1.4.37] - 2026-09-15
+
+### Changed
+
+- Moved screener broker campaign offers into a hover reveal so Buy/Sell and benefit tags appear when inspecting a symbol row.
+
+## [1.4.36] - 2026-09-15
+
+### Changed
+
+- Level 4 access now removes signal-detail locks and exposes all trading-signal details.
+
+## [1.4.35] - 2026-09-15
+
+### Added
+
+- Added a detailed Community signal view for scenario cards, including target, confidence, horizon, source summary, original-post access, and Connect & trade actions.
+
+## [1.4.34] - 2026-09-15
+
+### Added
+
+- Added deterministic prototype signal-detail locks that open the existing Credit unlock dialog when selected.
+
+## [1.4.33] - 2026-09-15
+
+### Changed
+
+- Varied screener campaign offers deterministically so rows can show zero, one, two, or three benefit tags.
+
+## [1.4.32] - 2026-09-15
+
+### Changed
+
+- Replaced screener broker initials and broker-name labels with Special pricing, Extra cashback, and Bonus credit tags.
+
+## [1.4.31] - 2026-09-15
+
+### Added
+
+- Added sponsored broker hover offers to Trading Signal Buy/Sell actions.
+
+## [1.4.30] - 2026-09-15
+
+### Changed
+
+- Signal context tags now open the instrument Advanced Chart view directly.
+
+## [1.4.29] - 2026-09-15
+
+### Changed
+
+- Anchored the final linked chart tag to the recent right edge of the instrument timeline.
+
+## [1.4.28] - 2026-09-15
+
+### Added
+
+- Added chart-synced context tags to symbol-page Trading Signal cards.
+
+## [1.4.27] - 2026-09-15
+
+### Changed
+
+- Trading Signal Buy actions now open the Products & Brokers tab automatically.
+
+## [1.4.26] - 2026-09-15
+
+### Changed
+
+- Reduced symbol-page Trading Signals to two compact cards with asset logos and dashboard-style trade details.
+
+## [1.4.25] - 2026-09-15
+
+### Added
+
+- Added three scrollable, dashboard-style Trading Signal entries to symbol pages.
+
+## [1.4.24] - 2026-09-15
+
+### Fixed
+
+- Extended the very-large-desktop Community card to a 1200px height matching the main content panel.
+
+## [1.4.23] - 2026-09-15
+
+### Fixed
+
+- Constrained the very-large-desktop Community card height to prevent overlap with the Broker Rewards banner.
+
+## [1.4.22] - 2026-09-15
+
+### Fixed
+
+- Added large-monitor clearance above the Broker Rewards banner to prevent overlap.
+
+## [1.4.21] - 2026-09-15
+
+### Fixed
+
+- Increased the very-large-desktop separation between Trading Signal and Financial News to match the main panel spacing.
+
+## [1.4.20] - 2026-09-15
+
+### Fixed
+
+- Added wide-monitor spacing between the Trading Signal and Financial News cards.
+
+## [1.4.19] - 2026-09-15
+
+### Fixed
+
+- Matched the quote/symbol card width to the responsive center analysis column.
+
+## [1.4.18] - 2026-09-15
+
+### Fixed
+
+- Kept top-aligned side cards at the same fixed 300px width as the large-desktop instrument grid.
+
+## [1.4.17] - 2026-09-15
+
+### Changed
+
+- Moved the desktop Community card to the top-left beside the quote/symbol panel.
+
+## [1.4.16] - 2026-09-15
+
+### Changed
+
+- Swapped the desktop side-column positions so Community is on the left and Financial News is on the right.
+
+## [1.4.15] - 2026-09-15
+
+### Fixed
+
+- Kept Financial News explicitly on the left and Community explicitly on the right of the instrument analysis layout.
+
+## [1.4.14] - 2026-09-15
+
+### Changed
+
+- Moved the desktop Trading Signal card to the instrument quote panel's top-right level, with responsive flow retained on smaller screens.
+
+## [1.4.13] - 2026-09-15
+
+### Reverted
+
+- Restored the previous spacing below the instrument quote panel.
+
+## [1.4.12] - 2026-09-15
+
+### Changed
+
+- Removed the extra desktop gap below the quote panel so the instrument content fills the available top space.
+
+## [1.4.11] - 2026-09-15
+
+### Fixed
+
+- Explicitly aligned the News and Trading Signal cards to the same top grid row beside instrument analysis.
+
+## [1.4.10] - 2026-09-15
+
+### Fixed
+
+- Recovered invalid prototype reward storage automatically so root level selection and level-gated feature permissions remain usable.
+
+## [1.4.9] - 2026-09-15
+
+### Changed
+
+- Removed the prototype reward-storage warning banner from the interface.
+- Made root level selection replace the previous demo level and highlight the active level button.
+
+## [1.3.5] - 2026-09-15
+
+### Changed
+
+- Added broker initials, instrument-specific campaign details, and Buy/Sell actions that prioritize sponsored broker rows.
+
+## [1.3.4] - 2026-09-15
+
+### Changed
+
+- Tightened Screener table spacing and campaign-cell sizing so rows fit the campaign text without excessive horizontal gaps.
+
+## [1.3.3] - 2026-09-15
+
+### Fixed
+
+- Moved the Screener broker campaign cells, not only the header, beside each instrument row.
+
+## [1.3.2] - 2026-09-15
+
+### Changed
+
+- Moved the Screener broker campaign column beside the Instrument column.
+
+## [1.3.1] - 2026-09-14
+
+### Changed
+
+- Reduced chart-only mode to the `market-chart-workspace` feature and removed its surrounding instrument analysis container.
+
+## [1.3.0] - 2026-09-14
+
+### Changed
+
+- Added chart-only window styling for Advanced Chart links, hiding the surrounding application pages and features.
+
+## [1.2.9] - 2026-09-14
+
+### Fixed
+
+- Added generated instrument data for missing Community symbols so every chart link opens a usable Advanced Chart target.
+
+## [1.2.8] - 2026-09-14
+
+### Fixed
+
+- Connected Community post symbols such as ADA and BTC to their canonical instrument chart symbols so chart links no longer fall back to the wrong instrument.
+
+## [1.2.7] - 2026-09-14
+
+### Fixed
+
+- Corrected Community **View chart** links to the actual Advanced Chart route: instrument mode with chart state enabled.
+
+## [1.2.6] - 2026-09-14
+
+### Reverted
+
+- Restored the Community sentiment **View chart** action to open the linked chart workspace.
+
+## [1.2.5] - 2026-09-14
+
+### Changed
+
+- Connected instrument Community actions directly to the matching Community idea context.
+
+## [1.2.4] - 2026-09-14
+
+### Changed
+
+- Added a direct `view=chart` destination for Community post chart actions, avoiding the normal instrument-page route.
+
+## [1.2.3] - 2026-09-14
+
+### Added
+
+- Added the instrument Community panel's **View chart** action to Community posts with a symbol mention.
+
+## [1.2.2] - 2026-09-14
+
+### Reverted
+
+- Restored the instrument Community post action to its original **View chart** behavior.
+
+## [1.2.1] - 2026-09-14
+
+### Changed
+
+- Changed instrument community post actions to open the related Community idea instead of incorrectly opening the instrument chart.
+
+## [1.2.0] - 2026-09-14
+
+### Changed
+
+- Restricted Community post chart navigation to the image click itself; it now opens only a new Advanced Chart window.
+
+## [1.1.9] - 2026-09-14
+
+### Changed
+
+- Community post images now open Advanced Chart in a new browser window.
+
+## [1.1.8] - 2026-09-14
+
+### Changed
+
+- Made Community post images directly open the mentioned instrument's Advanced Chart workspace.
+
+## [1.1.7] - 2026-09-14
+
+### Changed
+
+- Updated Community post visuals with an interactive chart action overlay that links mentioned instruments to their instrument workspace.
+
+## [1.1.6] - 2026-09-14
+
+### Changed
+
+- Connected instrument Community sentiment actions to the full Community workspace instead of leaving discussion in demo-only mode.
+
+## [1.1.5] - 2026-09-14
+
+### Added
+
+- Added canonical Forex, Commodities, and Indices demo rows to the Community market table, with five instruments per category.
+
+## [1.1.4] - 2026-09-14
+
+### Fixed
+
+- Corrected community table asset categories to use each instrument's real market classification instead of cyclic placeholder categories.
+
 ## [1.1.3] - 2026-09-14
 
 ### Changed
@@ -907,3 +1352,29 @@ All notable changes to this project will be documented in this file.
 
 ## [0.1.0] - Initial Release
 - Bento Grid Dashboard, Trading Signals, Cashback Overview, Calculators, Missions & Points.
+## 1.3.6
+- Show instrument-specific special broker offers first in the Broker access dialog, with non-sponsored brokers listed afterward.
+## 1.3.7
+- Balanced Screener table row spacing and reduced excess vertical gaps while preserving campaign content readability.
+## 1.3.8
+- Fixed excessive header whitespace by assigning stable Screener column widths and preventing the Instrument column from expanding.
+## 1.3.9
+- Split Screener logo, symbol, and instrument name into dedicated columns for clearer scanning.
+## 1.4.0
+- Replaced the instrument broker-promotions banner with a focused market signal feature showing signal, confidence, daily change, and monthly return.
+## 1.4.1
+- Removed the standalone instrument signal feature box from the top of the instrument page.
+## 1.4.2
+- Added one compact Trading Signal card on the right side of the instrument quote box.
+## 1.4.3
+- Moved the single Trading Signal card into its own right-side instrument panel, alongside the Community panel.
+## 1.4.4
+- Added root demo controls to switch the active member level between 1 and 4 from the profile menu.
+## 1.4.5
+- Hid the visible Root demo controls panel from the profile dropdown.
+## 1.4.6
+- Added compact root-level selector buttons beside the profile menu sign-out action.
+## 1.4.7
+- Matched the instrument quote box width and centered position to the main instrument analysis panel.
+## 1.4.8
+- Fixed profile level buttons so selecting a level works without toggling the parent profile control.
