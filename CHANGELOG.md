@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.3] - 2026-09-16
+
+### Changed
+
+- Expanded Adaptive Pair-Trade into multiple positive- and negative-correlation pair candidates anchored to the user’s latest trade.
+- Added connected-broker draft transfer after pair review and confirmation; final broker execution approval remains required.
+
 ## [1.5.2] - 2026-09-16
 
 ### Added
