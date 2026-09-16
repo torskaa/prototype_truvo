@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.46] - 2026-09-16
+
+### Fixed
+
+- Preserved crypto market context in the Explorer radar table so crypto symbols display their base asset only.
+
 ## [1.5.45] - 2026-09-16
 
 ### Changed

@@ -149,7 +149,7 @@ function Explorer({ navigate, openInstrument }: { navigate: (v: View) => void; o
    <div className="mt-4 grid grid-cols-[minmax(0,1fr)_340px] gap-4 max-xl:grid-cols-1">
     <div className="panel">
     <div className="panel-head"><div><b className="text-sm text-slate-900">Opportunity radar</b><p>{visibleInstruments.length} matched · high volume + pullback strength</p></div><button onClick={() => navigate('screener')} className="primary"><Filter />Open screener</button></div>
-    <InstrumentTable data={visibleInstruments.slice(0, 6)} open={openInstrument} openBrokerAccess={openBrokerAccess} />
+    <InstrumentTable data={visibleInstruments.slice(0, 6)} market={market === 'Crypto' ? 'Crypto' : undefined} open={openInstrument} openBrokerAccess={openBrokerAccess} />
     </div>
     <VolumeFlowPanel currentMarket="All" currentResults={visibleInstruments} />
    </div>
