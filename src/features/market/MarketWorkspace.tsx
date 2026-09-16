@@ -83,10 +83,11 @@ export default function MarketWorkspace({
   const [timeframe, setTimeframe] = useState("1D");
   const [indicators, setIndicators] = useState(["Volume"]);
   const [watchlist, setWatchlist] = useState<string[]>(["MSFT", "BTC/USD"]);
+  const chartRequested =
+    new URLSearchParams(locationSearch).get("mode") === "chart" ||
+    view === "chart";
   const [chartOpen, setChartOpen] = useState(
-    () =>
-      new URLSearchParams(locationSearch).get("mode") === "chart" ||
-      view === "chart",
+    () => snapshot.level.level >= 2 && chartRequested,
   );
   const [sharedChartBy, setSharedChartBy] = useState<string | null>(null);
   const [showLinkedTags, setShowLinkedTags] = useState(true);

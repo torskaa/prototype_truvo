@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.37] - 2026-09-16
+
+### Changed
+
+- Locked Advanced chart and Research news access behind Level 2, and removed the standalone chart-range selector.
+
 ## [1.5.36] - 2026-09-16
 
 ### Changed

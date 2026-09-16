@@ -293,25 +293,7 @@ function displayValue(instrument: Instrument) {
 type PerformancePeriod = "1D" | "1W" | "1M" | "1Y";
 type CompareRange =
   "1d" | "3d" | "7d" | "14d" | "1m" | "3m" | "6m" | "1y" | "3y" | "5y";
-const periodDays: Record<PerformancePeriod, number> = {
-  "1D": 1,
-  "1W": 7,
-  "1M": 30,
-  "1Y": 365,
-};
 const thirtyTwo = 32;
-const compareRanges: CompareRange[] = [
-  "1d",
-  "3d",
-  "7d",
-  "14d",
-  "1m",
-  "3m",
-  "6m",
-  "1y",
-  "3y",
-  "5y",
-];
 const marketTagTopics = [
   "TECHNICAL",
   "BREADTH",
@@ -348,12 +330,6 @@ const periodToRange: Record<PerformancePeriod, CompareRange> = {
   "1W": "7d",
   "1M": "1m",
   "1Y": "1y",
-};
-const rangeToPeriod: Partial<Record<CompareRange, PerformancePeriod>> = {
-  "1d": "1D",
-  "7d": "1W",
-  "1m": "1M",
-  "1y": "1Y",
 };
 function performanceSeries(
   instrument: Instrument,
@@ -587,10 +563,19 @@ export function InstrumentDetail({
             {["All news", "Market", "Research"].map((item) => (
               <button
                 key={item}
-                className={newsFilter === item ? "selected" : ""}
-                onClick={() => setNewsFilter(item)}
+                className={`${newsFilter === item ? "selected" : ""} ${item === "Research" && snapshot.level.level < 2 ? "cursor-not-allowed opacity-50" : ""}`}
+                aria-disabled={item === "Research" && snapshot.level.level < 2}
+                title={item === "Research" && snapshot.level.level < 2 ? "Requires Level 2" : undefined}
+                onClick={() => {
+                  if (item === "Research" && snapshot.level.level < 2) {
+                    onToast("Research news requires Level 2.");
+                    return;
+                  }
+                  setNewsFilter(item);
+                }}
               >
                 {item}
+                {item === "Research" && snapshot.level.level < 2 && <Lock className="ml-1 inline size-2.5" />}
               </button>
             ))}
           </div>
@@ -1380,9 +1365,21 @@ function LegacyInstrumentDetail({
               <MessageCircle />
               {insightsOpen ? "Hide insights" : "Show insights"}
             </button>
-            <button onClick={onChart} className="primary">
+            <button
+              onClick={() => {
+                if (snapshot.level.level < 2) {
+                  onToast("Advanced chart requires Level 2.");
+                  return;
+                }
+                onChart();
+              }}
+              className={`primary ${snapshot.level.level < 2 ? "cursor-not-allowed opacity-60" : ""}`}
+              aria-disabled={snapshot.level.level < 2}
+              title={snapshot.level.level < 2 ? "Requires Level 2" : "Open advanced chart"}
+            >
               <LineChart />
               Advanced chart
+              {snapshot.level.level < 2 && <Lock className="size-3" />}
             </button>
           </div>
         </div>
@@ -2440,55 +2437,23 @@ function Overview({
                 Performance
               </button>
               <button
-                onClick={() => !chartOpen && onChart()}
-                className={chartOpen ? "active" : ""}
+                onClick={() => {
+                  if (tierLevel < 2) {
+                    onToast("Advanced chart requires Level 2.");
+                    return;
+                  }
+                  if (!chartOpen) onChart();
+                }}
+                className={`${chartOpen ? "active" : ""} ${tierLevel < 2 ? "cursor-not-allowed opacity-50" : ""}`}
+                aria-disabled={tierLevel < 2}
+                title={tierLevel < 2 ? "Requires Level 2" : "Open advanced chart"}
               >
                 Advanced chart
+                {tierLevel < 2 && <Lock className="ml-1 inline size-2.5" />}
               </button>
             </div>
             {!chartOpen && (
               <>
-                <select
-                  aria-label="Chart range"
-                  value={compareRange}
-                  onChange={(event) => {
-                    const nextRange = event.target.value as CompareRange;
-                    const requiredTier = historicalTierForTimeframe(
-                      nextRange === "1d"
-                        ? "1D"
-                        : ["3d", "7d", "14d"].includes(nextRange)
-                          ? "1W"
-                          : ["1m", "3m", "6m"].includes(nextRange)
-                            ? "1M"
-                            : "1Y",
-                    );
-                    if (requiredTier > tierLevel) {
-                      onToast(`Historical data for ${nextRange} starts at Level ${requiredTier}.`);
-                      return;
-                    }
-                    setCompareRange(nextRange);
-                    const nextPeriod = rangeToPeriod[nextRange];
-                    if (nextPeriod) setPeriod(nextPeriod);
-                  }}
-                  className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-600"
-                >
-                  {compareRanges.map((item) => {
-                    const requiredTier = historicalTierForTimeframe(
-                      item === "1d"
-                        ? "1D"
-                        : ["3d", "7d", "14d"].includes(item)
-                          ? "1W"
-                          : ["1m", "3m", "6m"].includes(item)
-                            ? "1M"
-                            : "1Y",
-                    );
-                    return (
-                      <option key={item} disabled={requiredTier > tierLevel}>
-                        {item}
-                      </option>
-                    );
-                  })}
-                </select>
                 <div className="seg">
                   {(["1D", "1W", "1M", "1Y"] as PerformancePeriod[]).map(
                     (item) => {
