@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.49] - 2026-09-16
+
+### Changed
+
+- Restored Buy and Sell actions beside screener symbols on row hover.
+
 ## [1.5.48] - 2026-09-16
 
 ### Changed
