@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.96] - 2026-09-16
+
+### Changed
+
+- Applied confidence-based Trading Signals access tiers: Level 1 (70–74%), Level 2 (75–79%), Level 3 (80–89%), and Level 4 (90%+).
+
 ## [1.4.95] - 2026-09-16
 
 ### Changed

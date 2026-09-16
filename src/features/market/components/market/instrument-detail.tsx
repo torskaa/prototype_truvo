@@ -318,6 +318,8 @@ const marketTagTopics = [
   "SECTOR",
   "RISK",
 ] as const;
+const signalTierForConfidence = (confidence: number) =>
+  confidence >= 90 ? 4 : confidence >= 80 ? 3 : confidence >= 75 ? 2 : 1;
 const rangeReturnMultiplier: Record<CompareRange, number> = {
   "1d": 1,
   "3d": 1.35,
@@ -402,10 +404,7 @@ export function InstrumentDetail({
 }) {
   const [tab, setTab] = useState("Overview");
   const { requestUnlock, openBrokerAccess } = useMarketEngagement();
-  const { hasAccess } = useRewards();
-  const signalDetailsLocked =
-    !hasAccess("signalPrecision") &&
-    [...instrument.symbol].reduce((sum, character) => sum + character.charCodeAt(0), 0) % 3 === 0;
+  const { hasAccess, snapshot } = useRewards();
   const [watching, setWatching] = useState(false);
   const [vote, setVote] = useState<string | null>(null);
   const [article, setArticle] = useState<InstrumentNews | null>(null);
@@ -700,13 +699,18 @@ export function InstrumentDetail({
             {[
               { label: "CURRENT SIGNAL", tag: "RISK", signal: instrument.signal, confidence: instrument.confidence, period: "30m", validity: "valid for 12m", action: instrument.signal === "LONG" ? "Buy" : "Sell" },
               { label: "MOMENTUM SETUP", tag: "TECHNICAL", signal: "LONG", confidence: Math.max(68, instrument.confidence - 6), period: "1h", validity: "valid for 28m", action: "Buy" },
-            ].map((entry) => (
+            ].map((entry) => {
+              const signalTier = signalTierForConfidence(entry.confidence);
+              const signalDetailsLocked =
+                !hasAccess("signalPrecision") &&
+                snapshot.level.level < signalTier;
+              return (
               <div className="concept-signal-item" key={entry.label}>
                 <div className="concept-signal-item-head"><span className="concept-signal-logo">{instrument.symbol.slice(0, 1)}</span><b>{instrument.symbol}</b><strong>{entry.confidence}%<small>Confidence</small></strong></div>
                 <a className="concept-signal-tag" href={`/?view=instrument&symbol=${encodeURIComponent(instrument.symbol)}&mode=chart#chart-${instrument.symbol}-${entry.tag}`}>#{instrument.symbol}_{entry.tag}</a>
                 <button type="button" className={`concept-signal-levels ${signalDetailsLocked ? "concept-locked-detail" : ""}`} onClick={() => signalDetailsLocked && requestUnlock("signalPrecision")} aria-label={signalDetailsLocked ? "Unlock signal details with Credits" : undefined}><div><span>Target</span><b>{displayValue(instrument)}</b></div><div><span>Entry</span><b>{displayValue(instrument)}</b></div><div><span>Stop</span><b>{displayValue(instrument)}</b></div>{signalDetailsLocked && <span className="concept-lock-label"><Lock size={11} /> Unlock with Credits</span>}</button>
                 <div className="concept-trading-signal-row"><span>Risk/Reward</span><b>1:1.5</b></div>
-                <div className="concept-signal-meta"><span>{entry.period} period</span><span>{entry.validity}</span></div>
+                <div className="concept-signal-meta"><span>{entry.period} period</span><span>{entry.validity}</span><span>Level {signalTier} access</span></div>
                 <div className="concept-signal-action">
                   <button className="concept-primary" onClick={() => setTab("Products & Brokers")}>{entry.action} <ArrowRight size={14} /></button>
                   <div className="concept-broker-popover" role="tooltip">
@@ -718,7 +722,8 @@ export function InstrumentDetail({
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </aside>
         <aside className="concept-community concept-card">
