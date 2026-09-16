@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.4] - 2026-09-16
+
+### Changed
+
+- Added hover/focus signal detail cards for each recommended pair, including both legs, products, directions, and editable lots/stop-loss/take-profit parameters.
+- Confirmed broker transfers now use the reviewed personal setup rather than an immutable default.
+
 ## [1.5.3] - 2026-09-16
 
 ### Changed
