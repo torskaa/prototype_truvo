@@ -55,6 +55,10 @@ export function MarketAISuggestion({
     (a, b) => b.confidence - a.confidence,
   )[0];
   const contextInstrument = instrument ?? topInstrument;
+  const matchesSelectedSymbol = (trade: CashbackTrade) =>
+    !!symbol &&
+    (trade.symbol === symbol ||
+      trade.symbol.replace("/USDT", "/USD") === symbol);
   const tradeContext = recentTrades.map((trade) => ({
     trade,
     instrument: instruments.find(
@@ -63,17 +67,26 @@ export function MarketAISuggestion({
         item.symbol === trade.symbol.replace("/USDT", "/USD"),
     ),
   }));
+  const selectedTradeContext = tradeContext.find((item) =>
+    matchesSelectedSymbol(item.trade),
+  );
   const focusTrade =
-    tradeContext.find((item) => item.instrument?.symbol === symbol)?.trade ??
-    tradeContext[0]?.trade;
+    selectedTradeContext?.trade ?? (symbol ? undefined : tradeContext[0]?.trade);
   const focusInstrument =
-    tradeContext.find((item) => item.trade.id === focusTrade?.id)?.instrument ??
-    contextInstrument;
+    selectedTradeContext?.instrument ??
+    (symbol
+      ? contextInstrument
+      : tradeContext.find((item) => item.trade.id === focusTrade?.id)
+          ?.instrument ?? contextInstrument);
+  const highestTradeInstrument = tradeContext
+    .map((item) => item.instrument)
+    .filter((item): item is NonNullable<typeof item> => !!item)
+    .sort((a, b) => b.confidence - a.confidence)[0];
   const precisionInstrument =
-    tradeContext
-      .map((item) => item.instrument)
-      .filter((item): item is NonNullable<typeof item> => !!item)
-      .sort((a, b) => b.confidence - a.confidence)[0] ?? contextInstrument;
+    (symbol ? focusInstrument : highestTradeInstrument) ?? contextInstrument;
+  const visibleTrades = symbol
+    ? recentTrades.filter(matchesSelectedSymbol).slice(0, 4)
+    : recentTrades.slice(0, 4);
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -227,13 +240,13 @@ export function MarketAISuggestion({
             against the underlying market data.
           </div>
         )}
-        {recentTrades.length > 0 && (
+        {(visibleTrades.length > 0 || symbol) && (
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
             <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
               Recent trade context
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {recentTrades.slice(0, 4).map((trade) => (
+              {visibleTrades.map((trade) => (
                 <span
                   key={trade.id}
                   className="rounded-full bg-white px-2 py-1 text-[9px] font-semibold text-slate-600"
@@ -241,6 +254,11 @@ export function MarketAISuggestion({
                   {trade.type} {trade.symbol}
                 </span>
               ))}
+              {visibleTrades.length === 0 && symbol && (
+                <span className="rounded-full bg-white px-2 py-1 text-[9px] font-semibold text-slate-600">
+                  Selected {symbol}
+                </span>
+              )}
             </div>
           </div>
         )}

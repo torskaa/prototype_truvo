@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.20] - 2026-09-16
+
+### Fixed
+
+- AI guidance now prioritizes the explicitly selected symbol instead of defaulting to the first recent trade, including selected-symbol context, precision matching, and basket instrument titles.
+
 ## [1.5.19] - 2026-09-16
 
 ### Changed
