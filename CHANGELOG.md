@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.23] - 2026-09-16
+
+### Removed
+
+- Removed the remaining adaptive pair-trade heading and explanatory copy from the correlation workspace.
+
 ## [1.5.22] - 2026-09-16
 
 ### Removed
