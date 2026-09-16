@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.28] - 2026-09-16
+
+### Changed
+
+- Added formula-based Credit guidance, validated quest metadata, temporary-unlock guidance, and navigation from each guidance item to its related feature.
+
 ## [1.5.27] - 2026-09-16
 
 ### Changed

@@ -37,6 +37,44 @@ export const QUESTS: Record<QuestId, { title: string; credits: number; limitLabe
   'chart-risk': { title: 'Complete a risk-planning scenario', credits: 40, limitLabel: 'Twice per UTC week', description: 'Calculate an educational risk scenario without placing an order.', period: 'week', limit: 2 },
 };
 
+export type GuidanceAction = 'broker-comparison' | 'risk-calculator';
+export type CreditGuidance = {
+  id: QuestId;
+  code: string;
+  title: string;
+  reward: string;
+  cadence: string;
+  description: string;
+  route: string;
+  action?: GuidanceAction;
+  section?: string;
+};
+export const CREDIT_GUIDANCE: readonly CreditGuidance[] = [
+  { id: 'daily-checkin', code: 'D1', title: 'Daily market check-in', reward: '+20 C', cadence: '1/day', description: 'Review the market overview and record a meaningful observation.', route: 'screener' },
+  { id: 'explorer-research', code: 'D2', title: 'Explain a market observation', reward: '+30 C', cadence: '1/day', description: 'Explore an instrument and separate evidence from prediction.', route: 'screener' },
+  { id: 'screener-research', code: 'D3', title: 'Build a research shortlist', reward: '+50 C', cadence: '1/day', description: 'Compare two instruments and save a reason for further research.', route: 'screener' },
+  { id: 'instrument-research', code: 'D3', title: 'Compare partner spreads', reward: '+30 C', cadence: '2/week', description: 'Compare broker costs, products, and eligibility before choosing a venue.', route: 'brokers', action: 'broker-comparison' },
+  { id: 'chart-risk', code: 'D3', title: 'Configure risk control', reward: '+40 C', cadence: '2/week', description: 'Complete an educational risk scenario without placing an order.', route: 'calculators', action: 'risk-calculator' },
+] as const;
+
+export type TemporaryUnlockGuidance = {
+  title: string;
+  cost: string;
+  route: string;
+  action?: GuidanceAction;
+  section?: string;
+};
+export const TEMPORARY_UNLOCK_GUIDANCE: readonly TemporaryUnlockGuidance[] = [
+  { title: 'Premium signal preview', cost: '20 C one use · 30 C 1h', route: 'signals' },
+  { title: 'Advanced signal details', cost: '30 C one use · 50 C 1h', route: 'signals' },
+  { title: 'Signal Alerts+', cost: '35 C one use · 55 C 1h', route: 'signals' },
+  { title: 'Advanced broker comparison', cost: '25 C one use · 40 C 1h', route: 'brokers', action: 'broker-comparison' },
+  { title: 'Advanced risk analytics', cost: '45 C one use · 70 C 1h', route: 'calculators', action: 'risk-calculator' },
+  { title: 'Premium community analytics', cost: '30 C one use · 50 C 1h', route: 'community' },
+  { title: 'Premium analysis', cost: '25 C one use · 40 C 1h', route: 'instrument', section: 'Analysis' },
+  { title: 'Live / voice community access', cost: '30 C one use · 50 C 1h', route: 'community' },
+] as const;
+
 export interface RewardEntry {
   id: string;
   kind: 'seed' | 'quest' | 'conversion' | 'unlock' | 'milestone';

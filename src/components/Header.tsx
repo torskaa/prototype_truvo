@@ -32,12 +32,13 @@ import { InteractiveCompanyGraphic } from './submenu/InteractiveCompanyGraphic';
 import { CalculatorType } from './calculators/TradingCalculatorsModal';
 import { useTheme } from '../theme/ThemeContext';
 import { useRewards } from '../features/rewards/RewardProvider';
+import { CREDIT_GUIDANCE, TEMPORARY_UNLOCK_GUIDANCE } from '../features/rewards/economy';
 
 interface HeaderProps {
   user: UserProfile;
   signals: MarketSignal[];
   activeTab: string;
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: string, symbol?: string, section?: string, focus?: string) => void;
   onOpenConnectModal: () => void;
   onOpenViewPlan: () => void;
   onOpenLedger: () => void;
@@ -49,6 +50,7 @@ interface HeaderProps {
   onSearchChange?: (query: string) => void;
   onOpenSearchModal?: () => void;
   onShowToast?: (msg: string) => void;
+  currentSymbol?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -67,6 +69,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSearchChange,
   onOpenSearchModal,
   onShowToast,
+  currentSymbol,
 }) => {
   const [activeHoverMenu, setActiveHoverMenu] = useState<'trade' | 'brokers' | 'community' | 'company' | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -117,6 +120,32 @@ export const Header: React.FC<HeaderProps> = ({
       closeTimeoutRef.current = null;
     }
     setActiveHoverMenu(null);
+  };
+  const navigateGuidance = (guidance: (typeof CREDIT_GUIDANCE)[number]) => {
+    setIsQuestMenuOpen(false);
+    handleCloseImmediately();
+    if (guidance.action === 'broker-comparison') {
+      onOpenBrokerComparison?.();
+      return;
+    }
+    if (guidance.action === 'risk-calculator') {
+      onOpenCalculator?.('forex');
+      return;
+    }
+    setActiveTab(guidance.route, guidance.route === 'instrument' ? currentSymbol : undefined, guidance.section);
+  };
+  const navigateUnlockGuidance = (guidance: (typeof TEMPORARY_UNLOCK_GUIDANCE)[number]) => {
+    setIsQuestMenuOpen(false);
+    handleCloseImmediately();
+    if (guidance.action === 'broker-comparison') {
+      onOpenBrokerComparison?.();
+      return;
+    }
+    if (guidance.action === 'risk-calculator') {
+      onOpenCalculator?.('forex');
+      return;
+    }
+    setActiveTab(guidance.route, guidance.route === 'instrument' ? currentSymbol : undefined, guidance.section);
   };
 
   return (
@@ -307,18 +336,21 @@ export const Header: React.FC<HeaderProps> = ({
                   </button>
                 </label>
               </div>
-              {questPanelMode === 'quests' ? <><div className="mt-3 space-y-2">
-                {[['D1', 'Daily market check-in', '+20 C', '1/day'], ['D3', 'Build a research shortlist', '+50 C', '1/day'], ['D3', 'Compare partner spreads', '+30 C', '2/week'], ['D3', 'Configure risk control', '+40 C', '2/week']].map(([level, title, reward, cadence]) => <div key={title} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/70 p-2">
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-violet-100 text-[9px] font-bold text-violet-700">{level}</span>
-                  <div className="min-w-0 flex-1"><b className="block truncate text-[11px] text-slate-800">{title}</b><span className="text-[9px] text-slate-500">{cadence} · {reward}</span></div>
-                  <button className="secondary px-2 py-1 text-[9px]" onClick={() => { onShowToast?.(`${title} opened`); setIsQuestMenuOpen(false); }}>Start</button>
+              {questPanelMode === 'quests' ? <><div className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-1">
+                {CREDIT_GUIDANCE.map((guidance) => <div key={guidance.id} className="rounded-xl border border-slate-100 bg-slate-50/70 p-2">
+                  <div className="flex items-center gap-2">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-violet-100 text-[9px] font-bold text-violet-700">{guidance.code}</span>
+                    <div className="min-w-0 flex-1"><b className="block truncate text-[11px] text-slate-800">{guidance.title}</b><span className="text-[9px] text-slate-500">{guidance.cadence} · {guidance.reward}</span></div>
+                    <button className="secondary px-2 py-1 text-[9px]" onClick={() => navigateGuidance(guidance)}>Explore</button>
+                  </div>
+                  <p className="mt-1.5 pl-9 text-[9px] leading-relaxed text-slate-500">{guidance.description}</p>
                 </div>)}
-              </div><p className="mt-3 text-[9px] leading-relaxed text-slate-500">Complete meaningful research actions to earn Credits. Simple browsing and clicks do not qualify.</p></> : <><div className="mt-3 space-y-2">
-                {[['Advanced screener scatter', '100 C · 1 day'], ['High-precision signals & correlations', '140 C · 1 day'], ['Chart event intelligence', '120 C · 1 day'], ['Chart order-flow analysis', '180 C · 1 day']].map(([title, price]) => <div key={title} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/70 p-2">
-                  <LockKeyhole className="h-4 w-4 shrink-0 text-violet-600" /><div className="min-w-0 flex-1"><b className="block truncate text-[11px] text-slate-800">{title}</b><span className="text-[9px] text-slate-500">{price} · seven-day access available</span></div>
-                  <button className="primary px-2 py-1 text-[9px]" onClick={() => { onShowToast?.(`${title} unlock opened`); setIsQuestMenuOpen(false); }}>Unlock</button>
+              </div><p className="mt-3 text-[9px] leading-relaxed text-slate-500">D1–D5 rewards require meaningful, validated research. Browsing, refreshes, and repeated clicks do not earn Credits.</p></> : <><div className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-1">
+                {TEMPORARY_UNLOCK_GUIDANCE.map((guidance) => <div key={guidance.title} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/70 p-2">
+                  <LockKeyhole className="h-4 w-4 shrink-0 text-violet-600" /><div className="min-w-0 flex-1"><b className="block truncate text-[11px] text-slate-800">{guidance.title}</b><span className="text-[9px] text-slate-500">{guidance.cost} · 6h / 1d / 7d options</span></div>
+                  <button className="primary px-2 py-1 text-[9px]" onClick={() => navigateUnlockGuidance(guidance)}>Explore</button>
                 </div>)}
-              </div><p className="mt-3 text-[9px] leading-relaxed text-slate-500">Credits unlock tools for a selected duration. Higher member levels may include selected tools.</p></>}
+              </div><p className="mt-3 text-[9px] leading-relaxed text-slate-500">Explore a tool first, then unlock eligible access. Level 4 includes eligible features; no Credit charge is applied there.</p></>}
             </div>}
           </div>
 

@@ -243,6 +243,7 @@ function Application() {
           }
         }}
         onNavigateToCashbackOverview={() => setActiveTab('cashback-overview')}
+        currentSymbol={new URLSearchParams(routeSearch).get('symbol') ?? undefined}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onOpenSearchModal={() => setIsSearchModalOpen(true)}
