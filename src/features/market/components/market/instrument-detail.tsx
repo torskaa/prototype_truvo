@@ -3372,8 +3372,10 @@ function Forecast({
       author: "Daniel Markson",
       initials: "DM",
       bias: "Bullish pullback",
+      movement: "Pullback → continuation",
       target: `+${Math.max(6, instrument.return1m * 0.9).toFixed(1)}%`,
       communityVote: 76,
+      possibility: "High",
       voteSide: "Bullish",
       voteCount: 128,
       horizon: "30D",
@@ -3382,13 +3384,17 @@ function Forecast({
       catalyst: "Participation and volume confirmation",
       summary:
         "Participation remains constructive; confirmation is expected around the next controlled pullback.",
+      writerOpinion:
+        "Participation remains constructive; confirmation is expected around the next controlled pullback.",
     },
     {
       author: "CLORA",
       initials: "CL",
       bias: "Constructive trend",
+      movement: "Trend continuation",
       target: `+${Math.max(4, instrument.return1m * 0.65).toFixed(1)}%`,
       communityVote: 69,
+      possibility: "Moderate",
       voteSide: "Bullish",
       voteCount: 94,
       horizon: "30D",
@@ -3396,13 +3402,16 @@ function Forecast({
       invalidation: "Below trend support",
       catalyst: `${instrument.sector} breadth expansion`,
       summary: `Volume and broader ${instrument.sector.toLowerCase()} breadth support a continuation scenario.`,
+      writerOpinion: `Volume and broader ${instrument.sector.toLowerCase()} breadth support a continuation scenario.`,
     },
     {
       author: "Aisha Rahman",
       initials: "AR",
       bias: "Measured upside",
+      movement: "Measured upside",
       target: "+6.4%",
       communityVote: 72,
+      possibility: "Moderate",
       voteSide: "Bullish",
       voteCount: 113,
       horizon: "30D",
@@ -3411,13 +3420,17 @@ function Forecast({
       catalyst: "Steady demand and improving breadth",
       summary:
         "Steady demand and improving market breadth support upside, with event volatility kept in view.",
+      writerOpinion:
+        "Steady demand and improving market breadth support upside, with event volatility kept in view.",
     },
     {
       author: "Leo Park",
       initials: "LP",
       bias: "Range breakout",
+      movement: "Range → breakout",
       target: "+3.1%",
       communityVote: 61,
+      possibility: "Balanced",
       voteSide: "Bullish",
       voteCount: 81,
       horizon: "30D",
@@ -3426,13 +3439,17 @@ function Forecast({
       catalyst: "Participation confirms a clean break",
       summary:
         "Consolidation remains the base case until participation confirms a clean break from the current range.",
+      writerOpinion:
+        "Consolidation remains the base case until participation confirms a clean break from the current range.",
     },
     {
       author: "Sofia Mendes",
       initials: "SM",
       bias: "Risk retest",
+      movement: "Risk retest → recovery",
       target: "-5.8%",
       communityVote: 58,
+      possibility: "Risk-weighted",
       voteSide: "Bearish",
       voteCount: 67,
       horizon: "30D",
@@ -3440,6 +3457,8 @@ function Forecast({
       invalidation: "Recovery above resistance",
       catalyst: "Valuation sensitivity and event risk",
       summary:
+        "Valuation sensitivity creates a downside retest scenario before a potential longer-term trend recovery.",
+      writerOpinion:
         "Valuation sensitivity creates a downside retest scenario before a potential longer-term trend recovery.",
     },
   ];
@@ -3640,25 +3659,22 @@ function Forecast({
               <button
                 key={scenario.author}
                 onClick={() => onCommunityScenario?.(scenario.author)}
-                className={`absolute right-3 ${position} max-w-36 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left text-[9px] shadow-sm transition hover:-translate-x-1 hover:border-violet-300`}
+                className={`absolute right-3 ${position} max-w-48 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left text-[8px] shadow-sm transition hover:-translate-x-1 hover:border-violet-300`}
               >
                 <b className={`block truncate ${color}`}>
                   {scenario.author} · {scenario.voteSide === "Bullish" ? "Buy" : "Sell"} prediction
                 </b>
-                <span className="mt-0.5 flex items-center gap-1.5 text-[8px] font-semibold text-slate-500">
-                  <span className="inline-flex items-center gap-0.5 text-emerald-600" title={`Agree ${scenario.communityVote}%`}>
-                    <ThumbsUp className="size-2.5" />{scenario.communityVote}%
-                  </span>
-                  <span className="inline-flex items-center gap-0.5 text-rose-600" title={`Disagree ${100 - scenario.communityVote}%`}>
-                    <ThumbsDown className="size-2.5" />{100 - scenario.communityVote}%
-                  </span>
-                  <span
-                    className={`inline-flex items-center gap-0.5 ${scenario.voteSide === "Bullish" ? "text-emerald-600" : "text-rose-600"}`}
-                    title={scenario.voteSide === "Bullish" ? "Long / Buy" : "Short / Sell"}
-                  >
-                    {scenario.voteSide === "Bullish" ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
-                    {scenario.voteSide === "Bullish" ? "L" : "S"}
-                  </span>
+                <span className="mt-0.5 block truncate font-semibold text-slate-500" title={scenario.movement}>
+                  Strategy · {scenario.movement}
+                </span>
+                <span className="block truncate text-slate-500" title={`Entry ${scenario.entry} · Target ${scenario.target}`}>
+                  Entry · {scenario.entry} · Target {scenario.target}
+                </span>
+                <span className="block truncate font-semibold text-slate-500">
+                  Possibility · {scenario.possibility} · {scenario.communityVote}% · {scenario.voteSide === "Bullish" ? "Long" : "Short"}
+                </span>
+                <span className="block max-w-44 truncate text-slate-400" title={scenario.writerOpinion}>
+                  Writer opinion · {scenario.writerOpinion}
                 </span>
               </button>
               );
@@ -3779,9 +3795,13 @@ function Forecast({
                     </span>
                   </b>
                   <span className="mt-2 block text-[8px] text-slate-500">
-                    {scenario.voteCount} community votes
+                    {scenario.possibility} possibility · {scenario.voteCount} votes
                   </span>
                 </div>
+              </div>
+              <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50/70 p-3">
+                <span className="text-[8px] uppercase tracking-wide text-slate-400">Strategy movement</span>
+                <b className="mt-1 block text-[10px] text-slate-800">{scenario.movement}</b>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2 rounded-lg border border-slate-100 bg-slate-50/70 p-3">
                 <div>
@@ -3798,6 +3818,9 @@ function Forecast({
                 </div>
               </div>
               <p className="mt-3 text-[9px] text-slate-500">
+                <span className="font-semibold text-slate-700">Writer opinion:</span> {scenario.writerOpinion}
+              </p>
+              <p className="mt-2 text-[9px] text-slate-500">
                 <span className="font-semibold text-slate-700">Catalyst:</span> {scenario.catalyst}
               </p>
               <button

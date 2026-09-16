@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.33] - 2026-09-16
+
+### Changed
+
+- Expanded Forecast scenario callouts and community cards with strategy movement, entry, target, possibility, and writer opinion.
+
 ## [1.5.32] - 2026-09-16
 
 ### Changed
