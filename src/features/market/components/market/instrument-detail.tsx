@@ -3666,12 +3666,13 @@ function Forecast({
               ["top-[190px]", "text-rose-600"],
             ].map(([position, color], index) => {
               const scenario = communityScenarios[index];
+              if (hoveredScenario !== scenario.author) return null;
               return (
               <button
                 key={scenario.author}
                 onClick={() => onCommunityScenario?.(scenario.author)}
                 onMouseEnter={() => setHoveredScenario(scenario.author)}
-                className={`absolute right-3 ${position} max-w-48 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left text-[8px] shadow-sm transition hover:-translate-x-1 hover:border-violet-300 ${hoveredScenario === scenario.author ? "z-30 ring-2 ring-violet-200" : "opacity-75"}`}
+                className={`absolute right-3 ${position} z-30 max-w-48 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left text-[8px] shadow-sm transition hover:-translate-x-1 hover:border-violet-300 ring-2 ring-violet-200`}
               >
                 <b className={`block truncate ${color}`}>
                   {scenario.author} · {scenario.voteSide === "Bullish" ? "Buy" : "Sell"} prediction

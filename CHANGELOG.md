@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.35] - 2026-09-16
+
+### Changed
+
+- Removed permanent Forecast callouts so only the hovered scenario displays its detail card.
+
 ## [1.5.34] - 2026-09-16
 
 ### Changed
