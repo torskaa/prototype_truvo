@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.36] - 2026-09-16
+
+### Changed
+
+- Added strategy-specific technical tools to community forecast cards and hovered chart details.
+
 ## [1.5.35] - 2026-09-16
 
 ### Changed

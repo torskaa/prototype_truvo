@@ -3382,6 +3382,7 @@ function Forecast({
       horizon: "30D",
       entry: "Controlled pullback",
       invalidation: "Below recent support",
+      technicalTools: "Volume profile · RSI(14) · Support levels",
       catalyst: "Participation and volume confirmation",
       summary:
         "Participation remains constructive; confirmation is expected around the next controlled pullback.",
@@ -3401,6 +3402,7 @@ function Forecast({
       horizon: "30D",
       entry: "Current market range",
       invalidation: "Below trend support",
+      technicalTools: "EMA trend · Relative volume · Breadth",
       catalyst: `${instrument.sector} breadth expansion`,
       summary: `Volume and broader ${instrument.sector.toLowerCase()} breadth support a continuation scenario.`,
       writerOpinion: `Volume and broader ${instrument.sector.toLowerCase()} breadth support a continuation scenario.`,
@@ -3418,6 +3420,7 @@ function Forecast({
       horizon: "30D",
       entry: "On confirmed strength",
       invalidation: "Event volatility break",
+      technicalTools: "Momentum · Breadth · Event volatility",
       catalyst: "Steady demand and improving breadth",
       summary:
         "Steady demand and improving market breadth support upside, with event volatility kept in view.",
@@ -3437,6 +3440,7 @@ function Forecast({
       horizon: "30D",
       entry: "Range breakout close",
       invalidation: "Failed range expansion",
+      technicalTools: "Range levels · Volume confirmation · Breakout",
       catalyst: "Participation confirms a clean break",
       summary:
         "Consolidation remains the base case until participation confirms a clean break from the current range.",
@@ -3456,6 +3460,7 @@ function Forecast({
       horizon: "30D",
       entry: "Weakness below current range",
       invalidation: "Recovery above resistance",
+      technicalTools: "Volatility bands · Resistance · Valuation",
       catalyst: "Valuation sensitivity and event risk",
       summary:
         "Valuation sensitivity creates a downside retest scenario before a potential longer-term trend recovery.",
@@ -3682,6 +3687,7 @@ function Forecast({
                     <span className="mt-0.5 block truncate font-semibold text-slate-500">Strategy · {scenario.movement}</span>
                     <span className="block truncate text-slate-500">Entry · {scenario.entry} · Target {scenario.target}</span>
                     <span className="block truncate font-semibold text-slate-500">Possibility · {scenario.possibility} · {scenario.communityVote}% · {scenario.voteSide === "Bullish" ? "Long" : "Short"}</span>
+                    <span className="block truncate text-slate-400">Technical tools · {scenario.technicalTools}</span>
                     <span className="block max-w-44 truncate text-slate-400" title={scenario.writerOpinion}>Writer opinion · {scenario.writerOpinion}</span>
                   </>
                 ) : (
@@ -3827,6 +3833,10 @@ function Forecast({
                   <span className="text-[8px] uppercase tracking-wide text-slate-400">Invalidation</span>
                   <b className="mt-1 block text-[10px] text-slate-800">{scenario.invalidation}</b>
                 </div>
+              </div>
+              <div className="mt-2 rounded-lg border border-slate-100 bg-slate-50/70 p-3">
+                <span className="text-[8px] uppercase tracking-wide text-slate-400">Technical tools</span>
+                <b className="mt-1 block text-[10px] text-slate-800">{scenario.technicalTools}</b>
               </div>
               <p className="mt-3 text-[9px] text-slate-500">
                 <span className="font-semibold text-slate-700">Writer opinion:</span> {scenario.writerOpinion}
