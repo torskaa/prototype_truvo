@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.25] - 2026-09-16
+
+### Changed
+
+- Restricted financial growth, profitability, financial health, reporting-period, and custom technical-period controls to Level 3+ users.
+
 ## [1.5.24] - 2026-09-16
 
 ### Changed

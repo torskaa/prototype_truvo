@@ -696,11 +696,21 @@ export function InstrumentDetail({
                   <Metric label="1M return" value={`${instrument.return1m}%`} />
                 </div>
                 <h3>Technical evidence</h3>
-                <TechnicalSummary instrument={instrument} />
+                <TechnicalSummary
+                  instrument={instrument}
+                  tierLevel={snapshot.level.level}
+                  onToast={onToast}
+                />
               </section>
             </>
           )}
-          {tab === "Technicals" && <TechnicalSummary instrument={instrument} />}
+          {tab === "Technicals" && (
+            <TechnicalSummary
+              instrument={instrument}
+              tierLevel={snapshot.level.level}
+              onToast={onToast}
+            />
+          )}
           {tab === "Market Data" && (
             <MarketStats
               instrument={instrument}
@@ -717,7 +727,6 @@ export function InstrumentDetail({
               kind={kind}
               onCommunityScenario={focusCommunityPost}
               onConnectTrade={() => onToast(`Connect a broker to trade ${instrument.symbol}`)}
-              onToast={onToast}
             />
           )}
           {["Products", "Brokers", "Products & Brokers"].includes(tab) && (
@@ -732,7 +741,11 @@ export function InstrumentDetail({
             />
           )}
           {tab === "Financial Report" && (
-            <FinancialReport instrument={instrument} />
+            <FinancialReport
+              instrument={instrument}
+              tierLevel={snapshot.level.level}
+              onToast={onToast}
+            />
           )}
         </div>
         <aside className="concept-trading-signal concept-card" aria-label="Trading signal">
@@ -1422,7 +1435,13 @@ function LegacyInstrumentDetail({
               onNews={() => setTab("News")}
             />
           )}
-          {tab === "Technicals" && <TechnicalSummary instrument={instrument} />}
+          {tab === "Technicals" && (
+            <TechnicalSummary
+              instrument={instrument}
+              tierLevel={snapshot.level.level}
+              onToast={onToast}
+            />
+          )}
           {tab === "Market Data" && (
             <MarketStats
               instrument={instrument}
@@ -1475,7 +1494,11 @@ function LegacyInstrumentDetail({
             <AssetSpecific kind="Crypto" instrument={instrument} />
           )}
           {tab === "Financial Report" && (
-            <FinancialReport instrument={instrument} />
+            <FinancialReport
+              instrument={instrument}
+              tierLevel={snapshot.level.level}
+              onToast={onToast}
+            />
           )}
           {related.length > 0 && (
             <section className="panel p-5">
@@ -2612,7 +2635,16 @@ function Overview({
   );
 }
 
-function TechnicalSummary({ instrument }: { instrument: Instrument }) {
+function TechnicalSummary({
+  instrument,
+  tierLevel,
+  onToast,
+}: {
+  instrument: Instrument;
+  tierLevel: number;
+  onToast: (message: string) => void;
+}) {
+  const technicalPeriodLocked = tierLevel < 3;
   const today = new Date().toISOString().slice(0, 10);
   const defaultFrom = new Date(Date.now() - 30 * 86400000)
     .toISOString()
@@ -2653,31 +2685,44 @@ function TechnicalSummary({ instrument }: { instrument: Instrument }) {
           {instrument.signal} - {instrument.confidence}%
         </span>
       </div>
-      <div className="mt-4 flex flex-wrap items-end gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
-        <label className="text-[10px] font-semibold text-slate-500">
-          From
-          <input
-            type="date"
-            value={fromDate}
-            max={toDate}
-            onChange={(event) => setFromDate(event.target.value)}
-            className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700"
-          />
-        </label>
-        <label className="text-[10px] font-semibold text-slate-500">
-          To
-          <input
-            type="date"
-            value={toDate}
-            min={fromDate}
-            max={today}
-            onChange={(event) => setToDate(event.target.value)}
-            className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700"
-          />
-        </label>
-        <span className="pb-1 text-[10px] text-slate-400">
-          Showing technicals for the selected period
-        </span>
+      <div className="relative mt-4 flex flex-wrap items-end gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <div className={technicalPeriodLocked ? "pointer-events-none select-none opacity-45" : "contents"}>
+          <label className="text-[10px] font-semibold text-slate-500">
+            From
+            <input
+              type="date"
+              value={fromDate}
+              max={toDate}
+              disabled={technicalPeriodLocked}
+              onChange={(event) => setFromDate(event.target.value)}
+              className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700"
+            />
+          </label>
+          <label className="text-[10px] font-semibold text-slate-500">
+            To
+            <input
+              type="date"
+              value={toDate}
+              min={fromDate}
+              max={today}
+              disabled={technicalPeriodLocked}
+              onChange={(event) => setToDate(event.target.value)}
+              className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700"
+            />
+          </label>
+          <span className="pb-1 text-[10px] text-slate-400">
+            Showing technicals for the selected period
+          </span>
+        </div>
+        {technicalPeriodLocked && (
+          <button
+            type="button"
+            className="absolute inset-0 flex items-center justify-center gap-1 rounded-lg bg-white/75 text-[10px] font-semibold text-violet-700"
+            onClick={() => onToast("Custom technical periods require Level 3.")}
+          >
+            <Lock size={12} /> Requires Level 3
+          </button>
+        )}
       </div>
       <div className="mt-5 grid grid-cols-3 gap-3 max-md:grid-cols-1">
         <CompassGauge
@@ -3720,7 +3765,16 @@ function Forecast({
     </div>
   );
 }
-function FinancialReport({ instrument }: { instrument: Instrument }) {
+function FinancialReport({
+  instrument,
+  tierLevel,
+  onToast,
+}: {
+  instrument: Instrument;
+  tierLevel: number;
+  onToast: (message: string) => void;
+}) {
+  const financialAnalysisLocked = tierLevel < 3;
   const [period, setPeriod] = useState<"Annual" | "Quarterly">("Annual");
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
   const [aiSummary, setAiSummary] = useState(false);
@@ -3783,10 +3837,18 @@ function FinancialReport({ instrument }: { instrument: Instrument }) {
               {(["Annual", "Quarterly"] as const).map((item) => (
                 <button
                   key={item}
-                  onClick={() => setPeriod(item)}
-                  className={period === item ? "active" : ""}
+                  onClick={() => {
+                    if (financialAnalysisLocked) {
+                      onToast("Annual and quarterly financial analysis requires Level 3.");
+                      return;
+                    }
+                    setPeriod(item);
+                  }}
+                  aria-disabled={financialAnalysisLocked}
+                  className={`${period === item ? "active" : ""} ${financialAnalysisLocked ? "cursor-not-allowed opacity-50" : ""}`}
                 >
                   {item}
+                  {financialAnalysisLocked && <Lock className="ml-1 inline size-2.5" />}
                 </button>
               ))}
             </div>
@@ -3839,8 +3901,10 @@ function FinancialReport({ instrument }: { instrument: Instrument }) {
           </div>
         </div>}
       </section>
-      <div className="grid grid-cols-2 gap-4 max-xl:grid-cols-1">
-        <section className="panel p-5">
+      <div className="relative">
+        <div className={financialAnalysisLocked ? "pointer-events-none select-none opacity-50" : ""}>
+          <div className="grid grid-cols-2 gap-4 max-xl:grid-cols-1">
+            <section className="panel p-5">
           <div className="flex items-start justify-between">
             <div>
               <p className="label">Growth</p>
@@ -3888,8 +3952,8 @@ function FinancialReport({ instrument }: { instrument: Instrument }) {
               </div>
             ))}
           </div>
-        </section>
-        <section className="panel p-5">
+            </section>
+            <section className="panel p-5">
           <p className="label">Profitability</p>
           <h3 className="mt-1 text-sm font-semibold text-slate-900">
             Net margin trend
@@ -3917,9 +3981,9 @@ function FinancialReport({ instrument }: { instrument: Instrument }) {
             <Metric label="ROE" value="91.4%" />
             <Metric label="Free cash flow" value="$60.9B" />
           </div>
-        </section>
-      </div>
-      <section className="panel overflow-hidden">
+            </section>
+          </div>
+          <section className="panel overflow-hidden">
         <div className="border-b border-border p-5">
           <p className="label">Financial health</p>
           <h3 className="mt-1 text-sm font-semibold text-slate-900">
@@ -3972,7 +4036,18 @@ function FinancialReport({ instrument }: { instrument: Instrument }) {
             </table>
           </div>
         </div>
-      </section>
+          </section>
+        </div>
+        {financialAnalysisLocked && (
+          <button
+            type="button"
+            className="absolute inset-0 z-10 flex items-center justify-center gap-2 rounded-2xl bg-white/75 text-xs font-semibold text-violet-700 shadow-sm"
+            onClick={() => onToast("Financial analysis requires Level 3.")}
+          >
+            <Lock size={14} /> Financial analysis · Requires Level 3
+          </button>
+        )}
+      </div>
       <p className="px-1 text-[9px] leading-relaxed text-slate-400">
         All figures are synthetic demo data for interface evaluation and are not
         investment information.
