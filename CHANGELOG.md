@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.90] - 2026-09-16
+
+### Changed
+
+- Reworked Crypto broker coverage into pair rows with 5–10 generated brokers per pair and Spot, Perpetual, and CFD coverage badges.
+
 ## [1.4.89] - 2026-09-16
 
 ### Changed
