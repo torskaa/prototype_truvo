@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.51] - 2026-09-16
+
+### Changed
+
+- Restored symbol-cell hover actions so Buy and Sell appear in the symbol’s original position.
+
 ## [1.5.50] - 2026-09-16
 
 ### Changed
