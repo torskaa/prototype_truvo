@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.93] - 2026-09-16
+
+### Changed
+
+- Added generated Crypto pair rows with 5–10 individual broker rows per pair across Spot, Perpetual, and CFD.
+
 ## [1.4.92] - 2026-09-16
 
 ### Changed

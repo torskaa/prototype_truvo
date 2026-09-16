@@ -75,6 +75,34 @@ type Broker = {
   details?: string;
 };
 
+const cryptoCoveragePairs = [
+  "BTC/USD",
+  "ETH/USD",
+  "SOL/USD",
+  "XRP/USD",
+  "ADA/USD",
+  "DOGE/USD",
+  "AVAX/USD",
+  "LINK/USD",
+  "DOT/USD",
+  "MATIC/USD",
+];
+const cryptoCoverageBrokers = [
+  "Atlas Exchange",
+  "Marketsyde Demo",
+  "Nova Crypto",
+  "OrbitX Markets",
+  "Zenith Digital",
+  "Harbor Markets",
+  "Vertex Exchange",
+  "Meridian Crypto",
+  "Aster Markets",
+  "BluePeak Digital",
+];
+const cryptoCoverageProducts: ProductType[] = ["Spot", "Perpetual", "CFD"];
+const cryptoCoverageSeed = (value: string) =>
+  [...value].reduce((total, character) => (total * 31 + character.charCodeAt(0)) % 997, 7);
+
 const brokers: Broker[] = [
   {
     name: "Marketsyde Demo",
@@ -3868,7 +3896,10 @@ function ProductsAndBrokersTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {matchedBrokers.map((broker) => (
+            {instrument.market === "Crypto" ? (
+              <CryptoBrokerRows instrument={instrument} product={product} />
+            ) : (
+            matchedBrokers.map((broker) => (
               <tr
                 key={`${product}-${broker.name}`}
                 className="group cursor-pointer bg-white hover:bg-violet-50/40"
@@ -3876,11 +3907,6 @@ function ProductsAndBrokersTable({
                   window.location.href = "?view=brokers";
                 }}
               >
-                {instrument.market === "Crypto" && (
-                  <td className="w-[11%] px-2 py-3 font-mono font-semibold text-slate-900">
-                    {instrument.symbol}
-                  </td>
-                )}
                 <td className="w-[11%] px-2 py-3 font-semibold text-violet-700">
                   {product}
                 </td>
@@ -3943,11 +3969,12 @@ function ProductsAndBrokersTable({
                   </button>
                 </td>
               </tr>
-            ))}
+            ))
+            )}
           </tbody>
         </table>
       </div>
-      {matchedBrokers.length === 0 && (
+      {instrument.market !== "Crypto" && matchedBrokers.length === 0 && (
         <div className="m-5 rounded-xl bg-amber-50 p-4 text-xs text-amber-700">
           <Lock className="mr-2 inline size-3" />
           No demo provider supports this exact product combination.
@@ -3956,6 +3983,84 @@ function ProductsAndBrokersTable({
     </section>
   );
 }
+
+function CryptoBrokerRows({
+  instrument,
+  product,
+}: {
+  instrument: Instrument;
+  product: ProductType;
+}) {
+  const pairs = [
+    instrument.symbol,
+    ...cryptoCoveragePairs.filter((pair) => pair !== instrument.symbol),
+  ];
+  return (
+    <>
+      {pairs.flatMap((pair) => {
+        const brokerCount = 5 + (cryptoCoverageSeed(pair) % 6);
+        const brokerNames = [...cryptoCoverageBrokers]
+          .sort(
+            (left, right) =>
+              cryptoCoverageSeed(`${pair}-${left}`) -
+              cryptoCoverageSeed(`${pair}-${right}`),
+          )
+          .slice(0, brokerCount);
+        const orderedProducts = [
+          product,
+          ...cryptoCoverageProducts.filter((item) => item !== product),
+        ];
+        return brokerNames.map((broker, index) => ({
+          broker,
+          pair,
+          product: orderedProducts[index % orderedProducts.length],
+        }));
+      }).map((row) => (
+        <tr
+          key={`${row.pair}-${row.broker}`}
+          className="group cursor-pointer bg-white hover:bg-violet-50/40"
+          onClick={() => {
+            window.location.href = "?view=brokers";
+          }}
+        >
+          <td className="w-[11%] px-2 py-3 font-mono font-semibold text-slate-900">
+            {row.pair}
+          </td>
+          <td className="w-[11%] px-2 py-3 font-semibold text-violet-700">
+            {row.product}
+          </td>
+          <td className="w-[18%] px-2 py-3 font-semibold text-slate-900">
+            {row.broker}
+          </td>
+          <td className="w-[14%] px-2 py-3 text-slate-500">
+            Digital assets
+          </td>
+          <td className="w-[16%] px-2 py-3 text-slate-500">
+            Digital asset venue demo
+          </td>
+          <td className="w-[9%] px-2 py-3 text-slate-600">From 0.04%</td>
+          <td className="w-[8%] px-2 py-3 text-slate-600">$10</td>
+          <td className="w-[12%] px-2 py-3 text-slate-600">API + web</td>
+          <td className="w-[10%] px-2 py-3">
+            <span className="badge">Requires account</span>
+          </td>
+          <td className="w-[10%] px-2 py-3 text-right">
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                window.location.href = "?view=brokers";
+              }}
+              className="primary justify-center"
+            >
+              Connect
+            </button>
+          </td>
+        </tr>
+      ))}
+    </>
+  );
+}
+
 function ProductPanel({
   products,
   product,
