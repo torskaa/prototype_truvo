@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.94] - 2026-09-16
+
+### Changed
+
+- Made Crypto Spot, Perpetual, and CFD buttons filter the generated broker rows to the selected product.
+
 ## [1.4.93] - 2026-09-16
 
 ### Changed

@@ -99,7 +99,6 @@ const cryptoCoverageBrokers = [
   "Aster Markets",
   "BluePeak Digital",
 ];
-const cryptoCoverageProducts: ProductType[] = ["Spot", "Perpetual", "CFD"];
 const cryptoCoverageSeed = (value: string) =>
   [...value].reduce((total, character) => (total * 31 + character.charCodeAt(0)) % 997, 7);
 
@@ -4006,14 +4005,10 @@ function CryptoBrokerRows({
               cryptoCoverageSeed(`${pair}-${right}`),
           )
           .slice(0, brokerCount);
-        const orderedProducts = [
-          product,
-          ...cryptoCoverageProducts.filter((item) => item !== product),
-        ];
-        return brokerNames.map((broker, index) => ({
+        return brokerNames.map((broker) => ({
           broker,
           pair,
-          product: orderedProducts[index % orderedProducts.length],
+          product,
         }));
       }).map((row) => (
         <tr
