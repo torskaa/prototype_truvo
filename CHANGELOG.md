@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.18] - 2026-09-16
+
+### Changed
+
+- Linked community symbol tags to the matching news article and added focused scrolling/highlighting for AI news navigation.
+
 ## [1.5.17] - 2026-09-16
 
 ### Changed

@@ -35,8 +35,10 @@ export default function MarketWorkspace({
   onOpenPlans: () => void;
 }) {
   const { snapshot } = useRewards();
-  const symbol = new URLSearchParams(locationSearch).get("symbol");
-  const section = new URLSearchParams(locationSearch).get("section");
+  const routeParams = new URLSearchParams(locationSearch);
+  const symbol = routeParams.get("symbol");
+  const section = routeParams.get("section");
+  const focus = routeParams.get("focus");
   const index = marketIndices.find((item) => item.symbol === symbol);
   const selectedInstrument =
     instruments.find((item) => item.symbol === symbol) ??
@@ -148,13 +150,14 @@ export default function MarketWorkspace({
         )}
         {(view === "instrument" || view === "chart") && hasSelectedInstrument && (
           <InstrumentDetail
-            key={`${instrument.symbol}-${section ?? "overview"}`}
+            key={`${instrument.symbol}-${section ?? "overview"}-${focus ?? ""}`}
             instrument={instrument}
             initialTab={
               section === "News" || section === "Market Data"
                 ? section
                 : undefined
             }
+            focusId={focus ?? undefined}
             chartOpen={chartOpen}
             showLinkedTags={showLinkedTags}
             watchlistCount={watchlist.length}

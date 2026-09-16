@@ -381,6 +381,7 @@ function performanceSeries(
 export function InstrumentDetail({
   instrument,
   initialTab,
+  focusId,
   chartOpen,
   chartContent,
   showLinkedTags,
@@ -397,6 +398,7 @@ export function InstrumentDetail({
 }: {
   instrument: Instrument;
   initialTab?: string;
+  focusId?: string;
   chartOpen: boolean;
   chartContent: ReactNode;
   showLinkedTags: boolean;
@@ -428,6 +430,24 @@ export function InstrumentDetail({
     ...item,
     tag: marketTagTopics[index % marketTagTopics.length],
   }));
+  useEffect(() => {
+    if (!focusId) return;
+    let timeout: number | undefined;
+    const frame = window.requestAnimationFrame(() => {
+      const target = document.getElementById(focusId);
+      if (!target) return;
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      target.classList.add("market-context-highlight");
+      timeout = window.setTimeout(
+        () => target.classList.remove("market-context-highlight"),
+        2200,
+      );
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      if (timeout) window.clearTimeout(timeout);
+    };
+  }, [focusId, instrument.symbol]);
   const positive = instrument.change >= 0;
   const toggleWatching = () => {
     if (!watching && watchlistCount >= watchlistLimit) {
@@ -1025,11 +1045,18 @@ function CommunityPredictionPost({
       </div>
       <a
         className="concept-post-tag market-context-tag"
-        href="#seasonal-performance"
-        onClick={() => {
-          document
-            .getElementById("seasonal-performance")
-            ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        href={`#news-${instrument.symbol.replaceAll("/", "-")}-${post.tag}`}
+        onClick={(event) => {
+          event.preventDefault();
+          const target = document.getElementById(
+            `news-${instrument.symbol.replaceAll("/", "-")}-${post.tag}`,
+          );
+          target?.scrollIntoView({ behavior: "smooth", block: "center" });
+          target?.classList.add("market-context-highlight");
+          window.setTimeout(
+            () => target?.classList.remove("market-context-highlight"),
+            2200,
+          );
         }}
       >
         #{instrument.symbol}_{post.tag}

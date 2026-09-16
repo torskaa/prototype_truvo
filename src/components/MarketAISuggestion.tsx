@@ -25,7 +25,12 @@ type MarketAISuggestionProps = {
   routeSearch: string;
   tierLevel: number;
   recentTrades: CashbackTrade[];
-  onNavigate: (view: string, symbol?: string, section?: string) => void;
+  onNavigate: (
+    view: string,
+    symbol?: string,
+    section?: string,
+    focus?: string,
+  ) => void;
 };
 
 const quickPrompts = [
@@ -123,7 +128,12 @@ export function MarketAISuggestion({
       return;
     }
     if (option === "news") {
-      onNavigate("instrument", targetSymbol, "News");
+      onNavigate(
+        "instrument",
+        targetSymbol,
+        "News",
+        `news-${targetSymbol.replaceAll("/", "-")}-TECHNICAL`,
+      );
       addAssistantMessage(
         `Trade-linked news brief for ${targetSymbol}: review company, macro, and sector headlines around the position before changing direction. The visible demo feed is context only, so verify the original source and timestamp.`,
       );
