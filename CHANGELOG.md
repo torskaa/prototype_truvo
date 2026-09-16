@@ -1,5 +1,67 @@
 # Changelog
 
+## [1.5.61] - 2026-09-16
+
+### Fixed
+
+- Restored the default absolute sidebar positioning while reserving measured sidebar overflow before the cashback banner.
+
+## [1.5.60] - 2026-09-16
+
+### Fixed
+
+- Anchored instrument sidebar grid rows to their content to remove excess vertical spacing above community and news panels.
+
+## [1.5.59] - 2026-09-16
+
+### Fixed
+
+- Prevented the instrument cashback banner from overlapping sidebar content by restoring desktop sidebar flow and responsive CTA wrapping.
+
+## [1.5.58] - 2026-09-16
+
+### Changed
+
+- Removed the contributor scenario card grid and detail modal from the Forecast page so the community vote comparison remains the focused view.
+
+## [1.5.57] - 2026-09-16
+
+### Fixed
+
+- Cleared mojibake UI text and resolved remaining type/parameter errors across search, trading signals, market scatter, and instrument views.
+
+## [1.5.56] - 2026-09-16
+
+### Changed
+
+- Simplified community scenario cards to show shared ideas, technical support tools, community votes, and contributor precision scores.
+- Relabeled forecast confidence as community confidence.
+
+## [1.5.55] - 2026-09-16
+
+### Changed
+
+- Added an adaptive chart time scale with day ticks for short ranges and month ticks for 6M/1Y views.
+
+## [1.5.54] - 2026-09-16
+
+### Changed
+
+- Matched vote markers to the selected timeline cadence: weekly for 2W/1M and monthly for 6M/1Y.
+
+## [1.5.53] - 2026-09-16
+
+### Changed
+
+- Added level-gated vote history filters: 2W for Level 1, 1M for Level 2, 6M for Level 3, and 1Y for Level 4.
+
+## [1.5.52] - 2026-09-16
+
+### Changed
+
+- Replaced the Forecast scenario form with a 30-day community-vote versus price plot.
+- Limited instrument sentiment voting to one vote every seven days per instrument and persisted the weekly vote locally.
+
 ## [1.5.51] - 2026-09-16
 
 ### Changed

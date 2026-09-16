@@ -31,7 +31,7 @@ function IndexScatter({ data, open }: { data: MarketIndex[]; open: (index: Marke
  const yOption = metricLabel(yMetric, 'Indices');
  const sizeOption = metricLabel(sizeMetric, 'Indices');
  const points = data.map(index => ({ index, xValue: index[xMetric === 'change' ? 'change' : 'price'], yValue: index[yMetric === 'change' ? 'change' : 'price'], sizeValue: index[sizeMetric === 'change' ? 'change' : 'price'] }));
- return <div className="p-4"><div className="mb-3 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3"><div><p className="text-xs font-semibold text-slate-900">Market indices scatter</p><p className="mt-0.5 text-[10px] text-slate-400">Compare index change % against last spot points.</p></div><div className="flex flex-wrap gap-2"><MetricSelect label="X axis" value={xMetric} options={options} onChange={setXMetric} /><MetricSelect label="Y axis" value={yMetric} options={options} onChange={setYMetric} /><MetricSelect label="Point size" value={sizeMetric} options={options} onChange={setSizeMetric} /></div></div><div className="mb-2 flex gap-4 text-[10px] text-slate-400"><span>X: {xOption.label} ({xOption.unit})</span><span>Y: {yOption.label} ({yOption.unit})</span><span>Size: {sizeOption.label} ({sizeOption.unit})</span></div><ResponsiveContainer width="100%" height={330}><ScatterChart margin={{ left: 10, right: 20, top: 10, bottom: 10 }}><CartesianGrid stroke="#eceaf3" /><XAxis type="number" dataKey="xValue" name={xOption.label} unit={xOption.unit} stroke="#94a3b8" fontSize={10} /><YAxis type="number" dataKey="yValue" name={yOption.label} unit={yOption.unit} stroke="#94a3b8" fontSize={10} /><ZAxis type="number" dataKey="sizeValue" range={[80, 720]} /><Tooltip cursor={{ stroke: '#7c3aed55' }} contentStyle={{ background: '#ffffff', border: '1px solid #e7e5ef', fontSize: 11 }} /><Scatter data={points} onClick={point => { const index = marketIndices.find(item => item.symbol === (point as unknown as { symbol: string }).symbol); if (index) open(index); }}>{points.map(index => <Cell key={index.symbol} fill={index.change >= 0 ? '#7c3aed' : '#ef4444'} />)}</Scatter></ScatterChart></ResponsiveContainer></div>;
+ return <div className="p-4"><div className="mb-3 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3"><div><p className="text-xs font-semibold text-slate-900">Market indices scatter</p><p className="mt-0.5 text-[10px] text-slate-400">Compare index change % against last spot points.</p></div><div className="flex flex-wrap gap-2"><MetricSelect label="X axis" value={xMetric} options={options} onChange={setXMetric} /><MetricSelect label="Y axis" value={yMetric} options={options} onChange={setYMetric} /><MetricSelect label="Point size" value={sizeMetric} options={options} onChange={setSizeMetric} /></div></div><div className="mb-2 flex gap-4 text-[10px] text-slate-400"><span>X: {xOption.label} ({xOption.unit})</span><span>Y: {yOption.label} ({yOption.unit})</span><span>Size: {sizeOption.label} ({sizeOption.unit})</span></div><ResponsiveContainer width="100%" height={330}><ScatterChart margin={{ left: 10, right: 20, top: 10, bottom: 10 }}><CartesianGrid stroke="#eceaf3" /><XAxis type="number" dataKey="xValue" name={xOption.label} unit={xOption.unit} stroke="#94a3b8" fontSize={10} /><YAxis type="number" dataKey="yValue" name={yOption.label} unit={yOption.unit} stroke="#94a3b8" fontSize={10} /><ZAxis type="number" dataKey="sizeValue" range={[80, 720]} /><Tooltip cursor={{ stroke: '#7c3aed55' }} contentStyle={{ background: '#ffffff', border: '1px solid #e7e5ef', fontSize: 11 }} />  <Scatter data={points} onClick={point => { const clicked = point as { index?: MarketIndex; payload?: { index?: MarketIndex } }; const index = clicked.index ?? clicked.payload?.index; if (index) open(index); }}>{points.map(point => <Cell key={point.index.symbol} fill={point.index.change >= 0 ? '#7c3aed' : '#ef4444'} />)}</Scatter></ScatterChart></ResponsiveContainer></div>;
 }
 
 type DerivativesSnapshot = {
@@ -46,7 +46,7 @@ type DerivativesSnapshot = {
  marketSizeChangeValue: string;
  volume24hChange: string;
  volume24hChangeValue: string;
- bars: number[];
+ bars: readonly number[];
 };
 
 const marketCards = [
@@ -690,7 +690,7 @@ function Correlation({ names, instruments, recentTrades, userTierLevel, precisio
  const [customPrices, setCustomPrices] = useState({ mainTarget: '', mainStop: '', pairTarget: '', pairStop: '' });
  const tradeBase = benchmarkSymbol.split('/')[0].toUpperCase();
  const primary = instruments.find(instrument => instrument.symbol.toUpperCase() === benchmarkSymbol.toUpperCase() || instrument.symbol.toUpperCase().startsWith(`${tradeBase}/`)) ?? instruments[0];
- const benchmarkAction = primary?.signal === 'LONG' ? 'BUY' : primary?.signal === 'SHORT' ? 'SELL' : latestTrade?.type ?? 'BUY';
+ const benchmarkAction = primary?.signal === 'LONG' ? 'BUY' : primary?.change < 0 ? 'SELL' : latestTrade?.type ?? 'BUY';
  const primaryIndex = primary ? displayNames.indexOf(primary.symbol) : -1;
  const pairSuggestions = primary && primaryIndex >= 0 ? instruments.filter(instrument => instrument.symbol !== primary.symbol && displayNames.includes(instrument.symbol)).map((instrument, index) => {
    const candidateIndex = displayNames.indexOf(instrument.symbol);

@@ -794,11 +794,11 @@ export const TradingSignalsPage: React.FC<TradingSignalsPageProps> = ({
                   <ul className="text-xs space-y-1 text-slate-700">
                     <li className="flex items-center justify-between">
                       <span>• Premium</span>
-                      <HelpCircle className="w-3 h-3 text-slate-400" title="Low spreads, zero commission" />
+                      <HelpCircle className="w-3 h-3 text-slate-400" aria-label="Low spreads, zero commission" />
                     </li>
                     <li className="flex items-center justify-between">
                       <span>• Pro</span>
-                      <HelpCircle className="w-3 h-3 text-slate-400" title="Ultra tight raw spreads" />
+                      <HelpCircle className="w-3 h-3 text-slate-400" aria-label="Ultra tight raw spreads" />
                     </li>
                     <li>• Pro Plus</li>
                   </ul>

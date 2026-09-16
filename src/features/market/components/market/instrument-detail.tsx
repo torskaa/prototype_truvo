@@ -291,9 +291,12 @@ function displayValue(instrument: Instrument) {
 }
 
 type PerformancePeriod = "1D" | "1W" | "1M" | "1Y";
+type VoteSide = "Bullish" | "Bearish";
+type VoteRange = "2W" | "1M" | "6M" | "1Y";
 type CompareRange =
   "1d" | "3d" | "7d" | "14d" | "1m" | "3m" | "6m" | "1y" | "3y" | "5y";
 const thirtyTwo = 32;
+const weeklyVoteWindow = 7 * 24 * 60 * 60 * 1000;
 const marketTagTopics = [
   "TECHNICAL",
   "BREADTH",
@@ -317,6 +320,68 @@ const compareReturn = (instrument: Instrument, range: CompareRange) =>
   range === "1m"
     ? instrument.return1m
     : instrument.change * rangeReturnMultiplier[range];
+const voteRangeOptions: {
+  value: VoteRange;
+  label: string;
+  days: number;
+  requiredLevel: number;
+  compareRange: CompareRange;
+  intervalDays: number;
+  cadence: "week" | "month";
+}[] = [
+  {
+    value: "2W",
+    label: "2W",
+    days: 14,
+    requiredLevel: 1,
+    compareRange: "14d",
+    intervalDays: 7,
+    cadence: "week",
+  },
+  {
+    value: "1M",
+    label: "1M",
+    days: 30,
+    requiredLevel: 2,
+    compareRange: "1m",
+    intervalDays: 7,
+    cadence: "week",
+  },
+  {
+    value: "6M",
+    label: "6M",
+    days: 183,
+    requiredLevel: 3,
+    compareRange: "6m",
+    intervalDays: 30,
+    cadence: "month",
+  },
+  {
+    value: "1Y",
+    label: "1Y",
+    days: 365,
+    requiredLevel: 4,
+    compareRange: "1y",
+    intervalDays: 30,
+    cadence: "month",
+  },
+];
+function voteHistorySeries(instrument: Instrument, range: VoteRange) {
+  const config = voteRangeOptions.find((option) => option.value === range);
+  if (!config) return [];
+  const totalReturn = compareReturn(instrument, config.compareRange);
+  const volatility = Math.max(Math.abs(totalReturn) * 0.18, 0.35);
+  return Array.from({ length: config.days + 1 }, (_, index) => {
+    const progress = index / config.days;
+    const wave =
+      Math.sin(index * 0.21 + instrument.price) * volatility * (1 - progress) +
+      Math.sin(index * 0.07) * volatility * 0.35;
+    return (
+      instrument.price *
+      (1 - totalReturn / 100 + (totalReturn / 100) * progress + wave / 100)
+    );
+  });
+}
 const periodReturn = (instrument: Instrument, period: PerformancePeriod) =>
   period === "1D"
     ? instrument.change
@@ -348,6 +413,33 @@ function performanceSeries(
       (1 - totalReturn / 100 + (totalReturn / 100) * progress + wave / 100)
     );
   });
+}
+
+function weeklyVoteStorageKey(symbol: string) {
+  return `marketsyde:weekly-vote:${symbol}`;
+}
+
+function readWeeklyVote(symbol: string): { side: VoteSide; votedAt: number } | null {
+  const stored = window.localStorage.getItem(weeklyVoteStorageKey(symbol));
+  if (!stored) return null;
+  try {
+    const parsed = JSON.parse(stored) as { side?: VoteSide; votedAt?: number };
+    if (
+      (parsed.side !== "Bullish" && parsed.side !== "Bearish") ||
+      typeof parsed.votedAt !== "number"
+    ) {
+      window.localStorage.removeItem(weeklyVoteStorageKey(symbol));
+      return null;
+    }
+    if (Date.now() - parsed.votedAt >= weeklyVoteWindow) {
+      window.localStorage.removeItem(weeklyVoteStorageKey(symbol));
+      return null;
+    }
+    return { side: parsed.side, votedAt: parsed.votedAt };
+  } catch {
+    window.localStorage.removeItem(weeklyVoteStorageKey(symbol));
+    return null;
+  }
 }
 
 export function InstrumentDetail({
@@ -388,8 +480,13 @@ export function InstrumentDetail({
   const [tab, setTab] = useState(initialTab ?? "Overview");
   const { openBrokerAccess } = useMarketEngagement();
   const { snapshot } = useRewards();
+  const conceptColumnsRef = useRef<HTMLDivElement>(null);
+  const cashbackRef = useRef<HTMLElement>(null);
   const [watching, setWatching] = useState(false);
-  const [vote, setVote] = useState<string | null>(null);
+  const [weeklyVote, setWeeklyVote] = useState<{
+    side: VoteSide;
+    votedAt: number;
+  } | null>(null);
   const [article, setArticle] = useState<InstrumentNews | null>(null);
   const [product, setProduct] = useState<ProductType>(
     availableProducts(instrument)[0],
@@ -398,13 +495,60 @@ export function InstrumentDetail({
   const [newsFilter, setNewsFilter] = useState("All news");
   const kind = assetClass(instrument);
   const instrumentTitle = instrument.name.includes("Basket")
-    ? `${instrument.symbol} Â· ${instrument.name}`
+    ? `${instrument.symbol} · ${instrument.name}`
     : instrument.name;
   const news = instrumentNews(instrument);
   const taggedNews = news.map((item, index) => ({
     ...item,
     tag: marketTagTopics[index % marketTagTopics.length],
   }));
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setWeeklyVote(readWeeklyVote(instrument.symbol));
+  }, [instrument.symbol]);
+  useEffect(() => {
+    const columns = conceptColumnsRef.current;
+    const cashback = cashbackRef.current;
+    if (!columns || !cashback || typeof ResizeObserver === "undefined") return;
+    const sidebars = Array.from(columns.children).filter((child): child is HTMLElement =>
+      child instanceof HTMLElement &&
+      (child.classList.contains("concept-community") ||
+        child.classList.contains("concept-trading-signal")),
+    );
+    const updateReservedSpace = () => {
+      const columnsBottom = columns.getBoundingClientRect().bottom;
+      const sidebarBottom = Math.max(
+        columnsBottom,
+        ...sidebars.map((sidebar) => sidebar.getBoundingClientRect().bottom),
+      );
+      const overflow = Math.max(0, Math.ceil(sidebarBottom - columnsBottom));
+      cashback.style.marginTop = `${24 + overflow}px`;
+    };
+    const observer = new ResizeObserver(updateReservedSpace);
+    observer.observe(columns);
+    sidebars.forEach((sidebar) => observer.observe(sidebar));
+    window.addEventListener("resize", updateReservedSpace);
+    updateReservedSpace();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateReservedSpace);
+      cashback.style.marginTop = "";
+    };
+  }, [instrument.symbol, tab]);
+  useEffect(() => {
+    if (!weeklyVote) return;
+    const remaining = weeklyVoteWindow - (Date.now() - weeklyVote.votedAt);
+    if (remaining <= 0) {
+      setWeeklyVote(null);
+      window.localStorage.removeItem(weeklyVoteStorageKey(instrument.symbol));
+      return;
+    }
+    const timeout = window.setTimeout(() => {
+      setWeeklyVote(null);
+      window.localStorage.removeItem(weeklyVoteStorageKey(instrument.symbol));
+    }, remaining);
+    return () => window.clearTimeout(timeout);
+  }, [instrument.symbol, weeklyVote]);
   useEffect(() => {
     if (!focusId) return;
     let timeout: number | undefined;
@@ -432,14 +576,18 @@ export function InstrumentDetail({
     setWatching(current => !current);
     onToast(watching ? "Removed from watchlist" : "Added to watchlist");
   };
-  const focusCommunityPost = (name: string) => {
-    const post = Array.from(
-      document.querySelectorAll<HTMLElement>(".concept-post"),
-    ).find((item) => item.querySelector("b")?.textContent?.includes(name));
-    if (!post) return;
-    post.scrollIntoView({ behavior: "smooth", block: "center" });
-    post.classList.add("concept-post-focus");
-    window.setTimeout(() => post.classList.remove("concept-post-focus"), 2200);
+  const recordVote = (side: VoteSide) => {
+    if (weeklyVote) {
+      onToast("You can vote again in 7 days.");
+      return;
+    }
+    const nextVote = { side, votedAt: Date.now() };
+    window.localStorage.setItem(
+      weeklyVoteStorageKey(instrument.symbol),
+      JSON.stringify(nextVote),
+    );
+    setWeeklyVote(nextVote);
+    onToast(`${side} vote recorded for this week`);
   };
   const instrumentTabs = (
     <nav
@@ -484,8 +632,8 @@ export function InstrumentDetail({
                 <span>{instrument.subSector ?? instrument.sector}</span>
               </div>
               <p>
-                Demo quote Â·{" "}
-                {kind === "Crypto" ? "24/7 market" : "Regular market session"} Â·
+                Demo quote ·{" "}
+                {kind === "Crypto" ? "24/7 market" : "Regular market session"} ·
                 USD
               </p>
             </div>
@@ -497,17 +645,17 @@ export function InstrumentDetail({
             {displayValue(instrument)}
           </h2>
           <span className={positive ? "concept-up" : "concept-down"}>
-            {positive ? "â†— +" : "â†˜ "}
+            {positive ? "↗ +" : "↘ "}
             {instrument.change.toFixed(2)}%
           </span>
-          <small> Today Â· demo snapshot</small>
+          <small> Today · demo snapshot</small>
           <div className="concept-quote-stats">
             <div>
               <small>MARKET CAP</small>
               <b>
                 {instrument.marketCap
                   ? `$${instrument.marketCap.toLocaleString()}B`
-                  : "â€”"}
+                  : "—"}
               </b>
             </div>
             <div>
@@ -516,7 +664,7 @@ export function InstrumentDetail({
             </div>
             <div>
               <small>RELATIVE VOLUME</small>
-              <b>{instrument.rvol.toFixed(2)}Ã—</b>
+              <b>{instrument.rvol.toFixed(2)}×</b>
             </div>
             <div>
               <small>1 MONTH RETURN</small>
@@ -549,7 +697,7 @@ export function InstrumentDetail({
           </div>
         </div>
       </section>
-      <div className="concept-columns">
+      <div className="concept-columns" ref={conceptColumnsRef}>
         <aside className="concept-news concept-card" id="financial-news">
           <div className="concept-section-title">
             <Newspaper size={19} />
@@ -652,7 +800,7 @@ export function InstrumentDetail({
                           : "Neutral outlook"}
                     </h2>
                     <p>
-                      Synthetic signal Â· {instrument.confidence}% confidence
+                      Synthetic signal · {instrument.confidence}% confidence
                     </p>
                   </div>
                   <div>
@@ -667,7 +815,7 @@ export function InstrumentDetail({
                 <div className="concept-metrics">
                   <Metric
                     label="P/E ratio"
-                    value={instrument.pe ? `${instrument.pe.toFixed(1)}x` : "â€”"}
+                    value={instrument.pe ? `${instrument.pe.toFixed(1)}x` : "—"}
                   />
                   <Metric label="RSI (14)" value={instrument.rsi.toFixed(1)} />
                   <Metric
@@ -706,10 +854,8 @@ export function InstrumentDetail({
             <Forecast
               instrument={instrument}
               kind={kind}
-              onCommunityScenario={focusCommunityPost}
-              onConnectTrade={() => onToast(`Connect a broker to trade ${instrument.symbol}`)}
               tierLevel={snapshot.level.level}
-              onToast={onToast}
+              userVote={weeklyVote?.side ?? null}
             />
           )}
           {["Products", "Brokers", "Products & Brokers"].includes(tab) && (
@@ -772,7 +918,7 @@ export function InstrumentDetail({
               },
               {
                 symbol: "BTC/USD",
-                mark: "â‚¿",
+                mark: "₿",
                 markClass: "bg-orange-500 text-white",
                 change: "Premium Signal",
                 action: "Upgrade",
@@ -809,7 +955,7 @@ export function InstrumentDetail({
                 <div className="min-w-0 flex-1">
                   <b className="block text-sm font-medium text-slate-800">{signal.symbol}</b>
                   <span className={`block text-xs font-semibold ${signal.premium ? "text-fuchsia-500" : signal.change.startsWith("-") ? "text-violet-600" : "text-lime-600"}`}>
-                    {signal.premium && "â—‡ "}{signal.change}
+                    {signal.premium && "◇ "}{signal.change}
                   </span>
                 </div>
                 <svg viewBox="0 0 100 24" className={`h-7 w-20 shrink-0 ${signal.chartClass}`} aria-hidden="true">
@@ -835,9 +981,9 @@ export function InstrumentDetail({
           </div>
           <div className="concept-voting">
             <div>
-              <b className="concept-up">â†— {instrument.sentiment}% Bullish</b>
+              <b className="concept-up">↗ {instrument.sentiment}% Bullish</b>
               <b className="concept-down">
-                {100 - instrument.sentiment}% Bearish â†˜
+                {100 - instrument.sentiment}% Bearish ↘
               </b>
             </div>
             <div className="concept-sentiment-bar">
@@ -847,16 +993,21 @@ export function InstrumentDetail({
               {["Bullish", "Bearish"].map((item) => (
                 <button
                   key={item}
-                  aria-pressed={vote === item}
-                  onClick={() => {
-                    setVote(item);
-                    onToast(`${item} demo vote recorded`);
-                  }}
+                  type="button"
+                  aria-pressed={weeklyVote?.side === item}
+                  disabled={Boolean(weeklyVote)}
+                  title={weeklyVote ? "You can vote again in 7 days" : undefined}
+                  onClick={() => recordVote(item as VoteSide)}
                 >
-                  {vote === item ? "âœ“ " : ""}Vote {item}
+                  {weeklyVote?.side === item ? "✓ " : ""}Vote {item}
                 </button>
               ))}
             </div>
+            <p className="concept-vote-status">
+              {weeklyVote
+                ? `Your ${weeklyVote.side.toLowerCase()} vote is counted · next vote in 7 days`
+                : "Vote once every 7 days to update the community view"}
+            </p>
           </div>
           <h3 className="concept-eyebrow">PREDICTOR SPOTLIGHT</h3>
           <div className="concept-predictor">
@@ -866,7 +1017,7 @@ export function InstrumentDetail({
               <p>Momentum analyst</p>
             </div>
             <strong>
-              82%<small>accuracy Â· demo</small>
+              82%<small>accuracy · demo</small>
             </strong>
           </div>
           <button
@@ -950,7 +1101,7 @@ export function InstrumentDetail({
           ))}
         </aside>
       </div>
-      <section className="concept-cashback">
+      <section className="concept-cashback" ref={cashbackRef}>
         <div className="concept-bounty-icon">
           <WalletCards />
         </div>
@@ -973,7 +1124,7 @@ export function InstrumentDetail({
       </section>
       <footer className="concept-footer">
         <b>marketsyde</b>
-        <span>Market intelligence Â· News Â· Community Â· Rewards</span>
+        <span>Market intelligence · News · Community · Rewards</span>
         <small>Demo market data and community content</small>
       </footer>
       {article && (
@@ -995,7 +1146,7 @@ export function InstrumentDetail({
               Close article
             </button>
             <p className="concept-eyebrow">
-              {article.source} Â· {article.time} Â· DEMO
+              {article.source} · {article.time} · DEMO
             </p>
             <h2>{article.title}</h2>
             <p>{article.summary}</p>
@@ -1066,7 +1217,7 @@ function CommunityPredictionPost({
   const direction = agreePercent >= 50 ? "Long" : "Short";
   const vote = (next: "agree" | "disagree") => {
     setReaction((current) => (current === next ? null : next));
-    onToast(`${next === "agree" ? "Agree" : "Disagree"} vote recorded Â· demo`);
+    onToast(`${next === "agree" ? "Agree" : "Disagree"} vote recorded · demo`);
   };
   return (
     <article
@@ -1086,12 +1237,12 @@ function CommunityPredictionPost({
         <span className="concept-avatar">{post.initials}</span>
         <b>
           {post.name}
-          <small>Community contributor Â· {post.time}</small>
+          <small>Community contributor · {post.time}</small>
         </b>
         <span
           className={`ml-auto rounded-full px-2 py-1 text-[8px] font-bold ${direction === "Long" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}
         >
-          Community vote Â· {direction} {agreePercent}%
+          Community vote · {direction} {agreePercent}%
         </span>
       </div>
       <a
@@ -1188,7 +1339,7 @@ function CommunityPredictionPost({
                 <b>
                   {item.author}{" "}
                   <small className="font-normal text-slate-400">
-                    Â· {item.time}
+                    · {item.time}
                   </small>
                 </b>
                 <p className="mt-0.5 text-slate-600">{item.text}</p>
@@ -1210,14 +1361,14 @@ function CommunityPredictionPost({
                 },
               ]);
               setComment("");
-              onToast("Comment posted Â· demo");
+              onToast("Comment posted · demo");
             }}
           >
             <input
               autoFocus
               value={comment}
               onChange={(event) => setComment(event.target.value)}
-              placeholder="Add a commentâ€¦"
+              placeholder="Add a comment…"
               className="min-w-0 flex-1 rounded-lg border border-slate-200 px-2 py-1.5 text-[10px]"
             />
             <button type="submit" aria-label="Post comment">
@@ -1523,7 +1674,7 @@ function LegacyInstrumentDetail({
               instrument={instrument}
               kind={kind}
               tierLevel={snapshot.level.level}
-              onToast={onToast}
+              userVote={null}
             />
           )}
           {tab === "Products" && (
@@ -1635,7 +1786,7 @@ function LegacyInstrumentDetail({
         />
       )}
       <footer className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-[9px] text-slate-400">
-        <span>MarketSyde Â· Demo market intelligence</span>
+        <span>MarketSyde · Demo market intelligence</span>
         <span>
           Market data, broker access, rewards, News, and Community remain
           asset-linked to {instrument.symbol}.
@@ -1806,8 +1957,8 @@ function CampaignPromotion({ instrument }: { instrument: Instrument }) {
               Bonus points for {instrument.symbol}
             </h2>
             <p className="mt-1 text-[10px] text-slate-500">
-              Symbol-linked rewards for {instrument.name} Â· {instrument.market}{" "}
-              Â· {instrument.primaryMarket ?? "Demo venue"}.
+              Symbol-linked rewards for {instrument.name} · {instrument.market}{" "}
+              · {instrument.primaryMarket ?? "Demo venue"}.
             </p>
           </div>
           <button className="secondary">
@@ -2215,7 +2366,7 @@ function InstrumentInsightRail({
                       </svg>
                       <div className="relative flex h-full items-end justify-between">
                         <span className="rounded bg-black/50 px-1.5 py-1 text-[9px] font-semibold text-cyan-200">
-                          {instrument.symbol} Â· SHARED CHART
+                          {instrument.symbol} · SHARED CHART
                         </span>
                         <span className="rounded bg-black/50 px-1.5 py-1 text-[8px] text-emerald-300">
                           Open full chart
@@ -2327,7 +2478,7 @@ function InstrumentInsightRail({
         </ResizablePanel>
       </ResizablePanelGroup>
       <div className="pointer-events-none absolute bottom-1 right-1 text-xs text-slate-300">
-        Ã¢â€”Â¢
+        ◈
       </div>
       <button
         aria-label="Resize insights width"
@@ -2425,7 +2576,7 @@ function Overview({
               {instrument.symbol} price performance
             </h2>
             <p className="mt-1 text-[10px] text-slate-400">
-              Demo price series Â· {compareRange} range
+              Demo price series · {compareRange} range
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -2783,7 +2934,7 @@ function TechnicalTable({
 }) {
   return (
     <div>
-      <h3 className="mb-2 text-sm font-semibold text-slate-900">{title} â€º</h3>
+      <h3 className="mb-2 text-sm font-semibold text-slate-900">{title} ›</h3>
       <div className="overflow-hidden rounded-lg border border-slate-200">
         {rows.map(([name, value, action]) => (
           <div
@@ -3310,391 +3461,327 @@ function Analysis({
     </section>
   );
 }
+function WeeklyVoteChart({
+  instrument,
+  userVote,
+  tierLevel,
+}: {
+  instrument: Instrument;
+  userVote: VoteSide | null;
+  tierLevel: number;
+}) {
+  const maximumRange =
+    tierLevel >= 4 ? "1Y" : tierLevel >= 3 ? "6M" : tierLevel >= 2 ? "1M" : "2W";
+  const [range, setRange] = useState<VoteRange>(maximumRange);
+  useEffect(() => {
+    setRange(maximumRange);
+  }, [instrument.symbol, maximumRange]);
+  const prices = voteHistorySeries(instrument, range);
+  const rangeConfig = voteRangeOptions.find((option) => option.value === range);
+  const rangeDays = rangeConfig?.days ?? 14;
+  const markerInterval = rangeConfig?.intervalDays ?? 7;
+  const timelineDays =
+    rangeDays >= 180
+      ? [
+          rangeDays,
+          Math.round(rangeDays * 0.75),
+          Math.round(rangeDays * 0.5),
+          Math.round(rangeDays * 0.25),
+          0,
+        ]
+      : rangeDays <= 14
+        ? [rangeDays, 7, 0]
+        : [rangeDays, 21, 14, 7, 0];
+  const timelineLabels = timelineDays.map((days) => ({
+    days,
+    label:
+      days === 0
+        ? "Today"
+        : rangeConfig?.cadence === "month"
+          ? `${Math.max(1, Math.round(days / 30))}mo`
+          : `${days}d`,
+  }));
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+  const priceSpan = Math.max(maxPrice - minPrice, 0.01);
+  const voteSeries = prices.map((_, index) =>
+    Math.max(
+      18,
+      Math.min(
+        88,
+        instrument.sentiment +
+          Math.sin(index * 0.52 + instrument.price) * 6 +
+          (index / Math.max(prices.length - 1, 1) - 0.5) *
+            (instrument.change >= 0 ? 7 : -7),
+      ),
+    ),
+  );
+  const voteTimelinePoints = Array.from(
+    { length: Math.ceil(rangeDays / markerInterval) + 1 },
+    (_, index) => Math.min(rangeDays, index * markerInterval),
+  )
+    .filter((index, pointIndex, indexes) => indexes.indexOf(index) === pointIndex)
+    .map((index, pointIndex, points) => {
+      const bullish = Math.round(voteSeries[index]);
+      const normalizedPrice =
+        ((prices[index] - minPrice) / priceSpan) * 100;
+      return {
+        index,
+        bullish,
+        bearish: 100 - bullish,
+        normalizedPrice,
+        date:
+          pointIndex === points.length - 1
+            ? "Today"
+            : rangeConfig?.cadence === "month"
+              ? `${Math.max(1, Math.round((rangeDays - index) / 30))}mo ago`
+              : `${rangeDays - index}d ago`,
+      };
+    });
+  const [selectedWeekIndex, setSelectedWeekIndex] = useState(
+    voteTimelinePoints.length - 1,
+  );
+  useEffect(() => {
+    setSelectedWeekIndex(voteTimelinePoints.length - 1);
+  }, [range, voteTimelinePoints.length]);
+  const selectedWeek =
+    voteTimelinePoints[selectedWeekIndex] ??
+    voteTimelinePoints[voteTimelinePoints.length - 1];
+  const point = (value: number, index: number) => {
+    const x = (index / Math.max(prices.length - 1, 1)) * 94 + 3;
+    const y = 92 - value * 0.72;
+    return `${x},${y}`;
+  };
+  const pricePoints = prices
+    .map((value, index) =>
+      point(((value - minPrice) / priceSpan) * 100, index),
+    )
+    .join(" ");
+  const votePoints = voteSeries
+    .map((value, index) => point(value, index))
+    .join(" ");
+  const currentBullish = Math.round(voteSeries[voteSeries.length - 1]);
+  return (
+    <div className="mt-5 overflow-hidden rounded-xl border border-border bg-white">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+        <div>
+          <p className="text-[10px] font-semibold text-slate-900">
+            {rangeDays}-day vote history
+          </p>
+          <p className="mt-1 text-[9px] text-slate-400">
+            Price is indexed to 100 so direction can be compared with the
+            community vote share.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <div className="seg">
+            {voteRangeOptions.map((option) => {
+              const locked = option.requiredLevel > tierLevel;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`${range === option.value ? "active" : ""} ${locked ? "cursor-not-allowed opacity-40" : ""}`}
+                  disabled={locked}
+                  aria-label={
+                    locked
+                      ? `${option.label} timeline requires Level ${option.requiredLevel}`
+                      : `Show ${option.label} vote timeline`
+                  }
+                  title={
+                    locked
+                      ? `Requires Level ${option.requiredLevel}`
+                      : `Show ${option.label} vote timeline`
+                  }
+                  onClick={() => setRange(option.value)}
+                >
+                  {locked && <Lock className="mr-1 inline size-2.5" />}
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex gap-3 text-[9px] text-slate-500">
+            <span>
+              <i className="mr-1 inline-block size-2 rounded-full bg-violet-500" />
+              Price
+            </span>
+            <span>
+              <i className="mr-1 inline-block size-2 rounded-full bg-emerald-400" />
+              By community vote
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="relative h-64 bg-gradient-to-b from-white to-slate-50">
+        <div className="absolute inset-x-4 top-3 flex justify-between text-[9px] text-slate-400">
+          <span>100%</span>
+          <span>50%</span>
+          <span>0%</span>
+        </div>
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          className="absolute inset-4 size-[calc(100%-2rem)]"
+          aria-label={`${instrument.symbol} price and community vote history`}
+        >
+          {[20, 50, 80].map((y) => (
+            <line
+              key={y}
+              x1="3"
+              x2="97"
+              y1={y}
+              y2={y}
+              stroke="#e8edf4"
+              strokeWidth=".5"
+            />
+          ))}
+          <polyline
+            points={pricePoints}
+            fill="none"
+            stroke="#7657ff"
+            strokeWidth="1.8"
+            vectorEffect="non-scaling-stroke"
+          />
+          <polyline
+            points={votePoints}
+            fill="none"
+            stroke="#10b981"
+            strokeWidth="1.8"
+            vectorEffect="non-scaling-stroke"
+          />
+          {voteTimelinePoints.map((week) => (
+            <circle
+              key={week.index}
+              cx={point(week.bullish, week.index).split(",")[0]}
+              cy={point(week.bullish, week.index).split(",")[1]}
+              r={selectedWeek?.index === week.index ? "2.8" : "2.2"}
+              fill={week.bullish >= 50 ? "#10b981" : "#f43f5e"}
+              stroke="white"
+              strokeWidth="1"
+              className="cursor-pointer"
+              role="button"
+              tabIndex={0}
+              aria-label={`${week.date}: ${week.bullish}% Bullish, ${week.bearish}% Bearish`}
+              onClick={() =>
+                setSelectedWeekIndex(voteTimelinePoints.indexOf(week))
+              }
+              onFocus={() =>
+                setSelectedWeekIndex(voteTimelinePoints.indexOf(week))
+              }
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  setSelectedWeekIndex(voteTimelinePoints.indexOf(week));
+                }
+              }}
+            >
+              <title>
+                {week.date} · {week.bullish}% Bullish · {week.bearish}% Bearish
+              </title>
+            </circle>
+          ))}
+          <circle
+            cx="97"
+            cy={point(((prices[prices.length - 1] - minPrice) / priceSpan) * 100, prices.length - 1).split(",")[1]}
+            r="1.8"
+            fill="#7657ff"
+          />
+          <circle
+            cx="97"
+            cy={point(currentBullish, voteSeries.length - 1).split(",")[1]}
+            r="1.8"
+            fill="#10b981"
+          />
+        </svg>
+        <div className="absolute inset-x-4 bottom-3 flex justify-between text-[9px] text-slate-400">
+          {timelineLabels.map((tick) => (
+            <span key={tick.days}>{tick.label}</span>
+          ))}
+        </div>
+      </div>
+      {selectedWeek && (
+        <div className="grid grid-cols-4 gap-3 border-t border-border bg-slate-50 px-4 py-3 text-[10px]">
+          <div>
+            <span className="label">Selected vote</span>
+            <b className="mt-1 block text-slate-800">{selectedWeek.date}</b>
+          </div>
+          <div>
+            <span className="label">Bullish</span>
+            <b className="mt-1 block text-emerald-600">
+              {selectedWeek.bullish}%
+            </b>
+          </div>
+          <div>
+            <span className="label">Bearish</span>
+            <b className="mt-1 block text-rose-600">
+              {selectedWeek.bearish}%
+            </b>
+          </div>
+          <div>
+            <span className="label">Price index</span>
+            <b className="mt-1 block text-violet-600">
+              {selectedWeek.normalizedPrice.toFixed(0)}
+            </b>
+          </div>
+        </div>
+      )}
+      <div className="grid grid-cols-3 gap-3 border-t border-border p-4 text-[10px]">
+        <div>
+          <span className="label">By community vote</span>
+          <b className="mt-1 block text-sm text-emerald-600">
+            {currentBullish}% Bullish
+          </b>
+        </div>
+        <div>
+          <span className="label">Price direction</span>
+          <b className="mt-1 block text-sm text-violet-600">
+            {prices[prices.length - 1] >= prices[0] ? "Uptrend" : "Downtrend"}
+          </b>
+        </div>
+        <div>
+          <span className="label">Your weekly vote</span>
+          <b className="mt-1 block text-sm text-slate-800">
+            {userVote ?? "Not voted"}
+          </b>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Forecast({
   instrument,
   kind,
-  onCommunityScenario,
-  onConnectTrade,
   tierLevel,
-  onToast,
+  userVote,
 }: {
   instrument: Instrument;
   kind: string;
-  onCommunityScenario?: (name: string) => void;
-  onConnectTrade?: () => void;
   tierLevel: number;
-  onToast: (message: string) => void;
+  userVote: VoteSide | null;
 }) {
-  const scenarioPeriodLocked = tierLevel < 3;
   const forecast = instrument.return1m * 1.35;
-  const today = new Date().toISOString().slice(0, 10);
-  const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
-  const [fromDate, setFromDate] = useState(monthAgo);
-  const [toDate, setToDate] = useState(today);
-  const [selectedScenario, setSelectedScenario] = useState<(typeof communityScenarios)[number] | null>(null);
-  const [hoveredScenario, setHoveredScenario] = useState<string | null>(null);
-  const communityScenarios = [
-    {
-      author: "Daniel Markson",
-      initials: "DM",
-      bias: "Bullish pullback",
-      movement: "Pullback â†’ continuation",
-      target: `+${Math.max(6, instrument.return1m * 0.9).toFixed(1)}%`,
-      communityVote: 76,
-      possibility: "High",
-      voteSide: "Bullish",
-      voteCount: 128,
-      riskPercent: 3.5,
-      horizon: "30D",
-      entry: "Controlled pullback",
-      invalidation: "Below recent support",
-      technicalTools: "Volume profile Â· RSI(14) Â· Support levels",
-      catalyst: "Participation and volume confirmation",
-      summary:
-        "Participation remains constructive; confirmation is expected around the next controlled pullback.",
-      writerOpinion:
-        "Participation remains constructive; confirmation is expected around the next controlled pullback.",
-    },
-    {
-      author: "CLORA",
-      initials: "CL",
-      bias: "Constructive trend",
-      movement: "Trend continuation",
-      target: `+${Math.max(4, instrument.return1m * 0.65).toFixed(1)}%`,
-      communityVote: 69,
-      possibility: "Moderate",
-      voteSide: "Bullish",
-      voteCount: 94,
-      riskPercent: 4,
-      horizon: "30D",
-      entry: "Current market range",
-      invalidation: "Below trend support",
-      technicalTools: "EMA trend Â· Relative volume Â· Breadth",
-      catalyst: `${instrument.sector} breadth expansion`,
-      summary: `Volume and broader ${instrument.sector.toLowerCase()} breadth support a continuation scenario.`,
-      writerOpinion: `Volume and broader ${instrument.sector.toLowerCase()} breadth support a continuation scenario.`,
-    },
-    {
-      author: "Aisha Rahman",
-      initials: "AR",
-      bias: "Measured upside",
-      movement: "Measured upside",
-      target: "+6.4%",
-      communityVote: 72,
-      possibility: "Moderate",
-      voteSide: "Bullish",
-      voteCount: 113,
-      riskPercent: 4.2,
-      horizon: "30D",
-      entry: "On confirmed strength",
-      invalidation: "Event volatility break",
-      technicalTools: "Momentum Â· Breadth Â· Event volatility",
-      catalyst: "Steady demand and improving breadth",
-      summary:
-        "Steady demand and improving market breadth support upside, with event volatility kept in view.",
-      writerOpinion:
-        "Steady demand and improving market breadth support upside, with event volatility kept in view.",
-    },
-    {
-      author: "Leo Park",
-      initials: "LP",
-      bias: "Range breakout",
-      movement: "Range â†’ breakout",
-      target: "+3.1%",
-      communityVote: 61,
-      possibility: "Balanced",
-      voteSide: "Bullish",
-      voteCount: 81,
-      riskPercent: 2.8,
-      horizon: "30D",
-      entry: "Range breakout close",
-      invalidation: "Failed range expansion",
-      technicalTools: "Range levels Â· Volume confirmation Â· Breakout",
-      catalyst: "Participation confirms a clean break",
-      summary:
-        "Consolidation remains the base case until participation confirms a clean break from the current range.",
-      writerOpinion:
-        "Consolidation remains the base case until participation confirms a clean break from the current range.",
-    },
-    {
-      author: "Sofia Mendes",
-      initials: "SM",
-      bias: "Risk retest",
-      movement: "Risk retest â†’ recovery",
-      target: "-5.8%",
-      communityVote: 58,
-      possibility: "Risk-weighted",
-      voteSide: "Bearish",
-      voteCount: 67,
-      riskPercent: 5.5,
-      horizon: "30D",
-      entry: "Weakness below current range",
-      invalidation: "Recovery above resistance",
-      technicalTools: "Volatility bands Â· Resistance Â· Valuation",
-      catalyst: "Valuation sensitivity and event risk",
-      summary:
-        "Valuation sensitivity creates a downside retest scenario before a potential longer-term trend recovery.",
-      writerOpinion:
-        "Valuation sensitivity creates a downside retest scenario before a potential longer-term trend recovery.",
-    },
-  ];
-  const formatScenarioPrice = (value: number) =>
-    assetClass(instrument) === "Forex" || value < 1
-      ? value.toFixed(4)
-      : value.toLocaleString(undefined, { maximumFractionDigits: 2 });
-  const precisionFor = (scenario: (typeof communityScenarios)[number]) => {
-    const targetPercent = Number.parseFloat(scenario.target);
-    const entry = instrument.price;
-    const target = entry * (1 + targetPercent / 100);
-    const risk = entry * (scenario.voteSide === "Bullish"
-      ? 1 - scenario.riskPercent / 100
-      : 1 + scenario.riskPercent / 100);
-    return {
-      entry: formatScenarioPrice(entry),
-      risk: formatScenarioPrice(risk),
-      target: formatScenarioPrice(target),
-    };
-  };
   return (
     <div className="space-y-4">
       <section className="panel p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="label">Forecast</p>
+            <p className="label">Community vote vs price</p>
             <h2 className="mt-1 text-sm font-semibold text-slate-900">
-              Demo forward outlook
+              How sentiment tracked the last 30 days
             </h2>
             <p className="mt-1 text-[10px] text-slate-400">
-              Scenario model for {instrument.symbol}; not a recommendation.
+              Compare the synthetic price path with the community bullish vote
+              share for {instrument.symbol}.
             </p>
           </div>
-          <span className="badge">DEMO MODEL</span>
+          <span className="badge">WEEKLY VOTES</span>
         </div>
-        <div className="relative mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-          <div className={scenarioPeriodLocked ? "pointer-events-none select-none opacity-50" : "contents"}>
-            <label className="text-[10px] text-slate-500">From<input type="date" value={fromDate} max={toDate} disabled={scenarioPeriodLocked} onChange={(event) => setFromDate(event.target.value)} className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-[10px]" /></label>
-            <label className="text-[10px] text-slate-500">To<input type="date" value={toDate} min={fromDate} max={today} disabled={scenarioPeriodLocked} onChange={(event) => setToDate(event.target.value)} className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-[10px]" /></label>
-            <span className="text-[10px] text-slate-400">Scenario dates update to match this range.</span>
-          </div>
-          {scenarioPeriodLocked && (
-            <button
-              type="button"
-              className="absolute inset-0 flex items-center justify-center gap-1 rounded-lg bg-white/75 text-[10px] font-semibold text-violet-700"
-              onClick={() => onToast("Forecast scenario date filters require Level 3.")}
-            >
-              <Lock size={12} /> Requires Level 3
-            </button>
-          )}
-        </div>
-        <div className="mt-5 overflow-hidden rounded-xl border border-border bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-            <div>
-              <p className="text-[10px] font-semibold text-slate-900">
-                Price scenario summary
-              </p>
-              <p className="mt-1 text-[9px] text-slate-400">
-                Select a community path to open its prediction post
-              </p>
-            </div>
-            <div className="flex gap-3 text-[9px] text-slate-500">
-              <span>
-                <i className="mr-1 inline-block size-2 rounded-full bg-violet-500" />
-                History
-              </span>
-              <span>
-                <i className="mr-1 inline-block size-2 rounded-full bg-emerald-400" />
-                5 community scenarios
-              </span>
-            </div>
-          </div>
-          <div className="relative h-64 bg-gradient-to-b from-white to-slate-50">
-            <svg
-              viewBox="0 0 800 240"
-              preserveAspectRatio="none"
-              className="absolute inset-0 size-full"
-              aria-label={`${instrument.symbol} community forecast scenarios`}
-            >
-              <defs>
-                <linearGradient id="forecastFan" x1="0" x2="1">
-                  <stop offset="0%" stopColor="#34d399" stopOpacity=".05" />
-                  <stop offset="100%" stopColor="#34d399" stopOpacity=".2" />
-                </linearGradient>
-              </defs>
-              {[48, 96, 144, 192].map((y) => (
-                <line
-                  key={y}
-                  x1="28"
-                  x2="770"
-                  y1={y}
-                  y2={y}
-                  stroke="#e8edf4"
-                  strokeWidth="1"
-                />
-              ))}
-              <line
-                x1="472"
-                x2="472"
-                y1="18"
-                y2="218"
-                stroke="#cbd5e1"
-                strokeDasharray="5 5"
-              />
-              <path
-                d="M28 180 C80 169 116 184 162 160 S250 151 305 135 S398 144 472 118"
-                fill="none"
-                stroke="#7657ff"
-                strokeWidth="4"
-                strokeLinecap="round"
-              />
-              <path
-                d="M472 118 C560 106 642 65 770 38 L770 130 C652 132 560 123 472 118 Z"
-                fill="url(#forecastFan)"
-              />
-              <path
-                d="M472 118 C560 100 650 62 770 38"
-                fill="none"
-                stroke="#34d399"
-                strokeWidth="3"
-                strokeDasharray="7 5"
-                className="cursor-pointer"
-                onMouseEnter={() => setHoveredScenario(communityScenarios[0].author)}
-              />
-              <path
-                d="M472 118 C565 116 654 102 770 82"
-                fill="none"
-                stroke="#22d3ee"
-                strokeWidth="3"
-                strokeDasharray="7 5"
-                className="cursor-pointer"
-                onMouseEnter={() => setHoveredScenario(communityScenarios[1].author)}
-              />
-              <path
-                d="M472 118 C570 120 660 112 770 126"
-                fill="none"
-                stroke="#f59e0b"
-                strokeWidth="2.5"
-                strokeDasharray="6 5"
-                className="cursor-pointer"
-                onMouseEnter={() => setHoveredScenario(communityScenarios[2].author)}
-              />
-              <path
-                d="M472 118 C570 132 660 146 770 160"
-                fill="none"
-                stroke="#3b82f6"
-                strokeWidth="2.5"
-                strokeDasharray="6 5"
-                className="cursor-pointer"
-                onMouseEnter={() => setHoveredScenario(communityScenarios[3].author)}
-              />
-              <path
-                d="M472 118 C570 145 660 178 770 196"
-                fill="none"
-                stroke="#f43f5e"
-                strokeWidth="2.5"
-                strokeDasharray="6 5"
-                className="cursor-pointer"
-                onMouseEnter={() => setHoveredScenario(communityScenarios[4].author)}
-              />
-              <circle
-                cx="472"
-                cy="118"
-                r="6"
-                fill="#7657ff"
-                stroke="white"
-                strokeWidth="3"
-              />
-              <circle
-                cx="770"
-                cy="38"
-                r="6"
-                fill="#34d399"
-                stroke="white"
-                strokeWidth="3"
-              />
-              <circle
-                cx="770"
-                cy="82"
-                r="6"
-                fill="#22d3ee"
-                stroke="white"
-                strokeWidth="3"
-              />
-              <circle
-                cx="770"
-                cy="126"
-                r="5"
-                fill="#f59e0b"
-                stroke="white"
-                strokeWidth="3"
-              />
-              <circle
-                cx="770"
-                cy="160"
-                r="5"
-                fill="#3b82f6"
-                stroke="white"
-                strokeWidth="3"
-              />
-              <circle
-                cx="770"
-                cy="196"
-                r="5"
-                fill="#f43f5e"
-                stroke="white"
-                strokeWidth="3"
-              />
-            </svg>
-            <span className="absolute bottom-3 left-4 text-[9px] text-slate-400">
-              Historical demo path
-            </span>
-            <span className="absolute bottom-3 left-[59%] text-[9px] text-slate-400">
-              Community forecast
-            </span>
-            {[
-              ["top-2", "text-emerald-600"],
-              ["top-[49px]", "text-cyan-600"],
-              ["top-[96px]", "text-amber-600"],
-              ["top-[143px]", "text-blue-600"],
-              ["top-[190px]", "text-rose-600"],
-            ].map(([position, color], index) => {
-              const scenario = communityScenarios[index];
-              if (hoveredScenario !== scenario.author) return null;
-              return (
-              <button
-                key={scenario.author}
-                onClick={() => onCommunityScenario?.(scenario.author)}
-                onMouseEnter={() => setHoveredScenario(scenario.author)}
-                className={`absolute right-3 ${position} z-30 max-w-48 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left text-[8px] shadow-sm transition hover:-translate-x-1 hover:border-violet-300 ring-2 ring-violet-200`}
-              >
-                <b className={`block truncate ${color}`}>
-                  {scenario.author} Â· {scenario.voteSide === "Bullish" ? "Buy" : "Sell"} prediction
-                </b>
-                {hoveredScenario === scenario.author ? (
-                  <>
-                    <span className="mt-0.5 block truncate font-semibold text-slate-500">Strategy Â· {scenario.movement}</span>
-                    <span className="block truncate text-slate-500">Entry Â· {scenario.entry} Â· Target {scenario.target}</span>
-                    {tierLevel >= 3 ? (
-                      <span className="block truncate font-semibold text-violet-600">
-                        Precision Â· Entry {precisionFor(scenario).entry} Â· Risk {precisionFor(scenario).risk} Â· Target {precisionFor(scenario).target}
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1 text-slate-400"><Lock className="size-2.5" /> Precision spots require Level 3</span>
-                    )}
-                    <span className="block truncate font-semibold text-slate-500">Possibility Â· {scenario.possibility} Â· {scenario.communityVote}% Â· {scenario.voteSide === "Bullish" ? "Long" : "Short"}</span>
-                    <span className="block truncate text-slate-400">Technical tools Â· {scenario.technicalTools}</span>
-                    <span className="block max-w-44 truncate text-slate-400" title={scenario.writerOpinion}>Writer opinion Â· {scenario.writerOpinion}</span>
-                  </>
-                ) : (
-                  <span className="mt-0.5 block truncate font-semibold text-slate-500">{scenario.communityVote}% vote Â· {scenario.voteSide === "Bullish" ? "Long" : "Short"}</span>
-                )}
-              </button>
-              );
-            })}
-            <div className="absolute left-[54%] top-[104px] rounded bg-violet-600 px-2 py-1 text-[9px] font-semibold text-white">
-              Now Â· {displayValue(instrument)}
-            </div>
-          </div>
-        </div>
+        <WeeklyVoteChart
+          instrument={instrument}
+          userVote={userVote}
+          tierLevel={tierLevel}
+        />
         <div className="mt-5 grid grid-cols-4 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
           <Metric
             label="30D scenario"
@@ -3705,7 +3792,7 @@ function Forecast({
             value={forecast >= 0 ? "Positive bias" : "Negative bias"}
           />
           <Metric
-            label="Confidence"
+            label="Community confidence"
             value={`${Math.max(35, Math.min(88, instrument.confidence - 4))}%`}
           />
           <Metric
@@ -3727,177 +3814,6 @@ function Forecast({
           a validated data provider and model provenance.
         </div>
       </section>
-      <section className="panel overflow-hidden">
-        <div className="border-b border-border p-5">
-          <div>
-            <p className="label">Community scenarios</p>
-            <h2 className="mt-1 text-sm font-semibold text-slate-900">
-              What contributors expect next
-            </h2>
-            <p className="mt-1 text-[10px] text-slate-400">
-              Community-authored demo scenarios linked to their original
-              discussion posts.
-            </p>
-          </div>
-          <span className="badge">5 VIEWS</span>
-        </div>
-        <div className="grid grid-cols-2 gap-4 p-5 max-lg:grid-cols-1">
-          {communityScenarios
-            .map((scenario, scenarioIndex) => ({
-              scenario,
-              scenarioIndex,
-              date: new Date(Date.now() - scenarioIndex * 7 * 86400000)
-                .toISOString()
-                .slice(0, 10),
-            }))
-            .filter(({ date }) => date >= fromDate && date <= toDate)
-            .map(({ scenario, scenarioIndex, date }) => (
-            <article
-              key={scenario.author}
-              onClick={() => setSelectedScenario(scenario)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") setSelectedScenario(scenario);
-              }}
-              role="button"
-              tabIndex={0}
-              className="group relative rounded-xl border border-border bg-white p-4 pb-12 text-left transition hover:border-violet-300 hover:bg-violet-50/40 hover:shadow-md"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="concept-avatar">{scenario.initials}</span>
-                  <div>
-                    <b className="text-xs text-slate-900">{scenario.author}</b>
-                    <span className="mt-1 block text-[9px] text-slate-400">
-                      Community contributor Â· {date}
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[10px] font-semibold text-emerald-600">
-                  {scenario.bias}
-                </span>
-              </div>
-              {scenarioIndex % 2 === 0 && (
-                <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-1 text-[8px] font-semibold text-amber-700">
-                  <span className="grid size-4 place-items-center rounded-full bg-amber-500 text-[7px] font-bold text-white">
-                    {scenarioIndex === 0 ? "NM" : "AT"}
-                  </span>
-                  Sponsored by {scenarioIndex === 0 ? "Northstar Markets" : "ApexTrade"}
-                </span>
-              )}
-              <p className="mt-4 text-[11px] leading-relaxed text-slate-600">
-                {scenario.summary}
-              </p>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-lg bg-slate-50 p-3">
-                  <span className="text-[8px] uppercase tracking-wide text-slate-400">
-                    Scenario target
-                  </span>
-                  <b className={`mt-1 block text-sm ${scenario.target.startsWith("-") ? "text-rose-600" : "text-emerald-600"}`}>
-                    {scenario.target}
-                  </b>
-                </div>
-                <div className="rounded-lg bg-slate-50 p-3">
-                  <span className="text-[8px] uppercase tracking-wide text-slate-400">
-                    Community vote
-                  </span>
-                  <b className="mt-1 block text-sm text-slate-900">
-                    <span className={scenario.voteSide === "Bullish" ? "text-emerald-600" : "text-rose-600"}>
-                      {scenario.communityVote}% {scenario.voteSide}
-                    </span>
-                  </b>
-                  <span className="mt-2 block text-[8px] text-slate-500">
-                    {scenario.possibility} possibility Â· {scenario.voteCount} votes
-                  </span>
-                </div>
-              </div>
-              <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50/70 p-3">
-                <span className="text-[8px] uppercase tracking-wide text-slate-400">Strategy movement</span>
-                <b className="mt-1 block text-[10px] text-slate-800">{scenario.movement}</b>
-                {tierLevel >= 3 ? (
-                  <div className="mt-2 grid grid-cols-3 gap-2 border-t border-slate-200 pt-2">
-                    <span className="text-[8px] text-slate-500">Entry<b className="mt-0.5 block text-[10px] text-violet-700">{precisionFor(scenario).entry}</b></span>
-                    <span className="text-[8px] text-slate-500">Risk<b className="mt-0.5 block text-[10px] text-rose-600">{precisionFor(scenario).risk}</b></span>
-                    <span className="text-[8px] text-slate-500">Target<b className="mt-0.5 block text-[10px] text-emerald-600">{precisionFor(scenario).target}</b></span>
-                  </div>
-                ) : (
-                  <span className="mt-2 flex items-center gap-1 border-t border-slate-200 pt-2 text-[8px] font-semibold text-slate-400"><Lock className="size-2.5" /> Precision spots require Level 3</span>
-                )}
-              </div>
-              <div className="mt-3 grid grid-cols-3 gap-2 rounded-lg border border-slate-100 bg-slate-50/70 p-3">
-                <div>
-                  <span className="text-[8px] uppercase tracking-wide text-slate-400">Horizon</span>
-                  <b className="mt-1 block text-[10px] text-slate-800">{scenario.horizon}</b>
-                </div>
-                <div>
-                  <span className="text-[8px] uppercase tracking-wide text-slate-400">Entry</span>
-                  <b className="mt-1 block text-[10px] text-slate-800">{scenario.entry}</b>
-                </div>
-                <div>
-                  <span className="text-[8px] uppercase tracking-wide text-slate-400">Invalidation</span>
-                  <b className="mt-1 block text-[10px] text-slate-800">{scenario.invalidation}</b>
-                </div>
-              </div>
-              <div className="mt-2 rounded-lg border border-slate-100 bg-slate-50/70 p-3">
-                <span className="text-[8px] uppercase tracking-wide text-slate-400">Technical tools</span>
-                <b className="mt-1 block text-[10px] text-slate-800">{scenario.technicalTools}</b>
-              </div>
-              <p className="mt-3 text-[9px] text-slate-500">
-                <span className="font-semibold text-slate-700">Writer opinion:</span> {scenario.writerOpinion}
-              </p>
-              <p className="mt-2 text-[9px] text-slate-500">
-                <span className="font-semibold text-slate-700">Catalyst:</span> {scenario.catalyst}
-              </p>
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onConnectTrade?.();
-                }}
-                className="absolute bottom-3 right-3 rounded-md bg-violet-600 px-2.5 py-1.5 text-[9px] font-semibold text-white"
-              >
-                Connect & trade
-              </button>
-              <div className="mt-4 flex items-center justify-between text-[9px] font-medium text-violet-600">
-                <span>View original community post</span>
-                <ArrowRight className="size-3 transition-transform group-hover:translate-x-1" />
-              </div>
-            </article>
-          ))}
-        </div>
-        <div className="border-t border-border bg-amber-50/60 px-5 py-3 text-[9px] text-amber-700">
-          Community scenarios are opinions and synthetic demo content, not
-          analyst research or investment advice.
-        </div>
-      </section>
-      {selectedScenario && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 p-4" role="dialog" aria-modal="true" aria-label="Community signal view">
-          <div className="w-full max-w-lg rounded-2xl border border-violet-200 bg-white p-5 shadow-2xl">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="label">Community signal view</p>
-                <h2 className="mt-1 text-lg font-semibold text-slate-900">{instrument.symbol} Â· {selectedScenario.bias}</h2>
-                <p className="mt-1 text-xs text-slate-500">Signal submitted by {selectedScenario.author}. Treat this as an opinion, not a recommendation.</p>
-              </div>
-              <button type="button" className="secondary" onClick={() => setSelectedScenario(null)}>Close</button>
-            </div>
-            <div className="mt-5 grid grid-cols-4 gap-2">
-              <div className="rounded-lg bg-slate-50 p-3"><span className="label">Target</span><b className="mt-1 block text-sm text-emerald-600">{selectedScenario.target}</b></div>
-              <div className="rounded-lg bg-slate-50 p-3"><span className="label">Community vote</span><b className="mt-1 block text-sm text-slate-900">{selectedScenario.communityVote}% {selectedScenario.voteSide}</b><small className="mt-1 block text-[9px] text-slate-500">{selectedScenario.voteCount} votes</small></div>
-              <div className="rounded-lg bg-slate-50 p-3"><span className="label">Horizon</span><b className="mt-1 block text-sm text-slate-900">{selectedScenario.horizon}</b></div>
-              <div className="rounded-lg bg-slate-50 p-3"><span className="label">Entry plan</span><b className="mt-1 block text-[10px] text-slate-900">{selectedScenario.entry}</b></div>
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <div className="rounded-lg bg-slate-50 p-3"><span className="label">Invalidation</span><b className="mt-1 block text-[10px] text-slate-900">{selectedScenario.invalidation}</b></div>
-              <div className="rounded-lg bg-slate-50 p-3"><span className="label">Catalyst</span><b className="mt-1 block text-[10px] text-slate-900">{selectedScenario.catalyst}</b></div>
-            </div>
-            <p className="mt-4 rounded-xl bg-violet-50 p-4 text-sm leading-relaxed text-slate-700">{selectedScenario.summary}</p>
-            <div className="mt-4 flex flex-wrap justify-end gap-2">
-              <button type="button" className="secondary" onClick={() => onCommunityScenario?.(selectedScenario.author)}>View original post</button>
-              <button type="button" className="primary" onClick={onConnectTrade}>Connect & trade</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -3994,11 +3910,11 @@ function FinancialReport({
         <div className="mt-5 grid grid-cols-4 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
           <Metric
             label="Market capitalization"
-            value={`$${instrument.marketCap?.toLocaleString() ?? "â€”"}B`}
+            value={`$${instrument.marketCap?.toLocaleString() ?? "—"}B`}
           />
           <Metric
             label="P/E ratio (TTM)"
-            value={instrument.pe ? `${instrument.pe.toFixed(1)}Ã—` : "â€”"}
+            value={instrument.pe ? `${instrument.pe.toFixed(1)}×` : "—"}
           />
           <Metric
             label="Basic EPS (TTM)"
@@ -4023,7 +3939,7 @@ function FinancialReport({
           {["FY25 annual report", "Q1 FY26 earnings release", "10-Q filing"].map((report) => (
             <button key={report} className={`rounded-lg border p-3 text-left text-[10px] ${selectedReport === report ? "border-violet-300 bg-violet-50" : "border-slate-200 bg-white"}`} onClick={() => setSelectedReport(report)}>
               <b className="block text-slate-900">{report}</b>
-              <span className="mt-1 block text-slate-400">Official release document Â· demo link</span>
+              <span className="mt-1 block text-slate-400">Official release document · demo link</span>
             </button>
           ))}
         </div>
@@ -4154,11 +4070,11 @@ function FinancialReport({
             <table className="w-full text-[10px]">
               <tbody className="divide-y divide-border">
                 {[
-                  ["Price / sales", "26.1Ã—"],
-                  ["Price / book", "51.8Ã—"],
-                  ["EV / EBITDA", "42.7Ã—"],
+                  ["Price / sales", "26.1×"],
+                  ["Price / book", "51.8×"],
+                  ["EV / EBITDA", "42.7×"],
                   ["Debt / equity", "11.5%"],
-                  ["Current ratio", "4.1Ã—"],
+                  ["Current ratio", "4.1×"],
                   ["Dividend yield", "0.03%"],
                 ].map(([label, value]) => (
                   <tr key={label}>
@@ -4180,7 +4096,7 @@ function FinancialReport({
             className="absolute inset-0 z-10 flex items-center justify-center gap-2 rounded-2xl bg-white/75 text-xs font-semibold text-violet-700 shadow-sm"
             onClick={() => onToast("Financial analysis requires Level 3.")}
           >
-            <Lock size={14} /> Financial analysis Â· Requires Level 3
+            <Lock size={14} /> Financial analysis · Requires Level 3
           </button>
         )}
       </div>

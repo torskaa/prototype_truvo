@@ -214,6 +214,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
     action: 'SELL',
     price: 182.4,
     change24h: -0.11,
+    sparkline: [183.2, 183.0, 182.8, 182.9, 182.6, 182.4],
     timeframe: '1H',
     confidence: 74,
     entryPrice: 1.069,
