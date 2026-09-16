@@ -36,6 +36,7 @@ export default function MarketWorkspace({
 }) {
   const { snapshot } = useRewards();
   const symbol = new URLSearchParams(locationSearch).get("symbol");
+  const section = new URLSearchParams(locationSearch).get("section");
   const index = marketIndices.find((item) => item.symbol === symbol);
   const selectedInstrument =
     instruments.find((item) => item.symbol === symbol) ??
@@ -147,8 +148,13 @@ export default function MarketWorkspace({
         )}
         {(view === "instrument" || view === "chart") && hasSelectedInstrument && (
           <InstrumentDetail
-            key={instrument.symbol}
+            key={`${instrument.symbol}-${section ?? "overview"}`}
             instrument={instrument}
+            initialTab={
+              section === "News" || section === "Market Data"
+                ? section
+                : undefined
+            }
             chartOpen={chartOpen}
             showLinkedTags={showLinkedTags}
             watchlistCount={watchlist.length}

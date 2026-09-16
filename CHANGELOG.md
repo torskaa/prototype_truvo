@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.17] - 2026-09-16
+
+### Changed
+
+- Guided AI market-data and news actions now open the selected trade symbol directly on its matching destination tab.
+
 ## [1.5.16] - 2026-09-16
 
 ### Added

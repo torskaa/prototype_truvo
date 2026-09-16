@@ -380,6 +380,7 @@ function performanceSeries(
 
 export function InstrumentDetail({
   instrument,
+  initialTab,
   chartOpen,
   chartContent,
   showLinkedTags,
@@ -395,6 +396,7 @@ export function InstrumentDetail({
   onToast,
 }: {
   instrument: Instrument;
+  initialTab?: string;
   chartOpen: boolean;
   chartContent: ReactNode;
   showLinkedTags: boolean;
@@ -409,7 +411,7 @@ export function InstrumentDetail({
   onChart: () => void;
   onToast: (message: string) => void;
 }) {
-  const [tab, setTab] = useState("Overview");
+  const [tab, setTab] = useState(initialTab ?? "Overview");
   const { requestUnlock, openBrokerAccess } = useMarketEngagement();
   const { hasAccess, snapshot } = useRewards();
   const [watching, setWatching] = useState(false);

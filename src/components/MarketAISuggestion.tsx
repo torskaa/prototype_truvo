@@ -25,7 +25,7 @@ type MarketAISuggestionProps = {
   routeSearch: string;
   tierLevel: number;
   recentTrades: CashbackTrade[];
-  onNavigate: (view: string, symbol?: string) => void;
+  onNavigate: (view: string, symbol?: string, section?: string) => void;
 };
 
 const quickPrompts = [
@@ -116,14 +116,14 @@ export function MarketAISuggestion({
     }
 
     if (option === "data") {
-      onNavigate("instrument", targetSymbol);
+      onNavigate("instrument", targetSymbol, "Market Data");
       addAssistantMessage(
         `${targetSymbol} is ${target?.signal ?? "being monitored"} at ${target?.confidence ?? "—"}% confidence. Scenario idea: compare its current move with relative volume and define the price that would invalidate the setup.`,
       );
       return;
     }
     if (option === "news") {
-      onNavigate("instrument", targetSymbol);
+      onNavigate("instrument", targetSymbol, "News");
       addAssistantMessage(
         `Trade-linked news brief for ${targetSymbol}: review company, macro, and sector headlines around the position before changing direction. The visible demo feed is context only, so verify the original source and timestamp.`,
       );

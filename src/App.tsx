@@ -102,7 +102,7 @@ function Application() {
     return requested;
   });
   const [routeSearch, setRouteSearch] = useState(window.location.search);
-  const setActiveTab = (next: string, symbol?: string) => {
+  const setActiveTab = (next: string, symbol?: string, section?: string) => {
     if (next === 'explorer') next = 'screener';
     const chartMode = next === 'chart';
     if (chartMode) next = 'instrument';
@@ -110,6 +110,7 @@ function Application() {
     params.set('view', next);
     if (chartMode) params.set('mode', 'chart');
     if (symbol) params.set('symbol', symbol);
+    if (section) params.set('section', section);
     window.history.pushState(null, '', `?${params}`);
     setRouteSearch(window.location.search);
     updateActiveTab(next);
