@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.22] - 2026-09-16
+
+### Removed
+
+- Removed the floating AI suggestions launcher and adaptive pair-trade suggestion panel from the market workspace.
+
 ## [1.5.21] - 2026-09-16
 
 ### Fixed
