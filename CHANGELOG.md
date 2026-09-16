@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.7] - 2026-09-16
+
+### Changed
+
+- Made each recommended leg card editable in place, including side, product, target price, and stop price.
+- Kept risk/reward, benchmark, lots, stop-loss percentage, and take-profit percentage in the recommendation detail workflow.
+- Included customized target and stop prices in pair-draft confirmation and broker-queue messages.
+
 ## [1.5.6] - 2026-09-16
 
 ### Changed
