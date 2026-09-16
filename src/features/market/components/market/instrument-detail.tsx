@@ -3629,22 +3629,26 @@ function Forecast({
               Community forecast
             </span>
             {[
-              ["Daniel Markson", "DM", "+11.5%", "top-2", "text-emerald-600"],
-              ["CLORA", "CL", "+8.2%", "top-[49px]", "text-cyan-600"],
-              ["Aisha Rahman", "AR", "+6.4%", "top-[96px]", "text-amber-600"],
-              ["Leo Park", "LP", "+3.1%", "top-[143px]", "text-blue-600"],
-              ["Sofia Mendes", "SM", "-5.8%", "top-[190px]", "text-rose-600"],
-            ].map(([name, initials, target, position, color]) => (
+              ["top-2", "text-emerald-600"],
+              ["top-[49px]", "text-cyan-600"],
+              ["top-[96px]", "text-amber-600"],
+              ["top-[143px]", "text-blue-600"],
+              ["top-[190px]", "text-rose-600"],
+            ].map(([position, color], index) => {
+              const scenario = communityScenarios[index];
+              return (
               <button
-                key={name}
-                onClick={() => onCommunityScenario?.(name)}
-                className={`absolute right-3 ${position} rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left text-[9px] shadow-sm transition hover:-translate-x-1 hover:border-violet-300`}
+                key={scenario.author}
+                onClick={() => onCommunityScenario?.(scenario.author)}
+                className={`absolute right-3 ${position} max-w-36 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left text-[9px] shadow-sm transition hover:-translate-x-1 hover:border-violet-300`}
               >
-                <b className={`block ${color}`}>
-                  {initials} · {target}
-                </b>
+                <b className={`block truncate ${color}`}>{scenario.author}</b>
+                <span className="mt-0.5 block text-[8px] font-semibold text-slate-500">
+                  {scenario.communityVote}% community vote
+                </span>
               </button>
-            ))}
+              );
+            })}
             <div className="absolute left-[54%] top-[104px] rounded bg-violet-600 px-2 py-1 text-[9px] font-semibold text-white">
               Now · {displayValue(instrument)}
             </div>

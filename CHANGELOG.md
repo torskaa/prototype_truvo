@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.29] - 2026-09-16
+
+### Changed
+
+- Updated Forecast chart callouts to show the community contributor account name and vote score.
+
 ## [1.5.28] - 2026-09-16
 
 ### Changed
