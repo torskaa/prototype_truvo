@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.83] - 2026-09-16
+
+### Changed
+
+- Removed the visible Name and Signal columns from the market screener table.
+
 ## [1.4.82] - 2026-09-15
 
 ### Changed
