@@ -35,10 +35,6 @@ import type {
 import { useMarketEngagement } from "@market/MarketEngagement";
 import { useRewards } from "../../../rewards/RewardProvider";
 import { instrumentDetailData, marketIndices } from "@market/data/mock-market";
-import {
-  clampSignalConfidence,
-  signalTierForConfidence,
-} from "@market/signal-access";
 import { historicalTierForTimeframe } from "@market/tier-access";
 import {
   ResizableHandle,
@@ -414,8 +410,8 @@ export function InstrumentDetail({
   onToast: (message: string) => void;
 }) {
   const [tab, setTab] = useState(initialTab ?? "Overview");
-  const { requestUnlock, openBrokerAccess } = useMarketEngagement();
-  const { hasAccess, snapshot } = useRewards();
+  const { openBrokerAccess } = useMarketEngagement();
+  const { snapshot } = useRewards();
   const [watching, setWatching] = useState(false);
   const [vote, setVote] = useState<string | null>(null);
   const [article, setArticle] = useState<InstrumentNews | null>(null);
@@ -750,46 +746,98 @@ export function InstrumentDetail({
             />
           )}
         </div>
-        <aside className="concept-trading-signal concept-card" aria-label="Trading signal">
-          <div className="concept-section-title"><TrendingUp size={20} /><div><h2>Trading signals</h2><p>Monitored setups for {instrument.symbol}</p></div></div>
-          <div className="concept-signal-list">
-            {products.map((productName, productIndex) => {
-              const confidence = clampSignalConfidence(
-                instrument.confidence + (productIndex === 0 ? 0 : productIndex === 1 ? -3 : 2),
-              );
-              const entry = {
-                label: productIndex === 0 ? "CURRENT SIGNAL" : "PRODUCT SETUP",
-                tag: productIndex === 0 ? "RISK" : "TECHNICAL",
-                signal: instrument.signal,
-                confidence,
-                period: productIndex === 0 ? "30m" : productIndex === 1 ? "1h" : "4h",
-                validity: productIndex === 0 ? "valid for 12m" : productIndex === 1 ? "valid for 28m" : "valid for 45m",
-                action: instrument.signal === "LONG" ? "Buy" : "Sell",
-              };
-              const signalTier = signalTierForConfidence(entry.confidence);
-              const signalDetailsLocked =
-                !hasAccess("signalPrecision") &&
-                snapshot.level.level < signalTier;
-              return (
-              <div className="concept-signal-item" key={`${entry.label}-${productName}`}>
-                <div className="concept-signal-item-head"><span className="concept-signal-logo">{instrument.symbol.slice(0, 1)}</span><b>{instrument.symbol}</b><strong>{entry.confidence}%<small>Confidence</small></strong></div>
-                <a className="concept-signal-tag" href={`/?view=instrument&symbol=${encodeURIComponent(instrument.symbol)}&mode=chart#chart-${instrument.symbol}-${entry.tag}-${productName}`}>#{instrument.symbol}_{productName}_{entry.tag}</a>
-                <button type="button" className={`concept-signal-levels ${signalDetailsLocked ? "concept-locked-detail" : ""}`} onClick={() => signalDetailsLocked && requestUnlock("signalPrecision")} aria-label={signalDetailsLocked ? "Unlock signal details with Credits" : undefined}><div><span>Target</span><b>{displayValue(instrument)}</b></div><div><span>Entry</span><b>{displayValue(instrument)}</b></div><div><span>Stop</span><b>{displayValue(instrument)}</b></div>{signalDetailsLocked && <span className="concept-lock-label"><Lock size={11} /> Unlock with Credits</span>}</button>
-                <div className="concept-trading-signal-row"><span>Risk/Reward</span><b>1:1.5</b></div>
-                <div className="concept-signal-meta"><span>{productName}</span><span>{entry.period} period</span><span>{entry.validity}</span><span>Level {signalTier} access</span></div>
-                <div className="concept-signal-action">
-                  <button className="concept-primary" onClick={() => setTab("Products & Brokers")}>{entry.action} <ArrowRight size={14} /></button>
-                  <div className="concept-broker-popover" role="tooltip">
-                    <div className="concept-broker-popover-title">Buy on Exchanges <span>Sponsored</span></div>
-                    <button className="concept-broker-offer" onClick={() => setTab("Products & Brokers")}>
-                      <span className="concept-broker-logo">A</span>
-                      <b>{entry.action} on Aster</b>
-                    </button>
-                  </div>
+        <aside className="concept-trading-signal concept-card !bg-slate-100" aria-label="Most recent signals">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight text-slate-900">
+                Most Recent <span className="text-violet-600">Signals.</span>
+              </h2>
+              <p className="mt-1 text-[11px] text-slate-500">
+                View most recent signals for your trading
+              </p>
+            </div>
+            <a
+              href="/?view=screener"
+              className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-slate-900"
+            >
+              More <ArrowRight className="size-3" />
+            </a>
+          </div>
+          <div className="mt-4 divide-y divide-slate-200">
+            {[
+              {
+                symbol: "EUR/USD",
+                mark: "EU",
+                markClass: "bg-blue-700",
+                change: "+0.33%",
+                action: "Buy",
+                actionClass: "bg-lime-400 text-slate-950",
+                chart: "M2 10 C14 8 16 16 25 12 S37 10 43 15 S53 8 61 12 S74 15 82 8 S92 11 98 6",
+                chartClass: "text-lime-500",
+              },
+              {
+                symbol: "GOOGL",
+                mark: "G",
+                markClass: "bg-white text-blue-600",
+                change: "-0.11%",
+                action: "Sell",
+                actionClass: "bg-violet-600 text-white",
+                chart: "M2 7 C12 12 17 5 26 10 S39 18 48 12 S58 14 67 8 S79 13 88 6 S94 7 98 4",
+                chartClass: "text-violet-500",
+              },
+              {
+                symbol: "BTC/USD",
+                mark: "₿",
+                markClass: "bg-orange-500 text-white",
+                change: "Premium Signal",
+                action: "Upgrade",
+                actionClass: "border border-violet-300 bg-white text-fuchsia-600",
+                chart: "M2 11 C13 6 18 15 27 10 S40 13 48 8 S61 14 70 9 S82 14 91 7 S96 9 98 5",
+                chartClass: "text-violet-500",
+                premium: true,
+              },
+              {
+                symbol: "S&P 500",
+                mark: "500",
+                markClass: "bg-rose-700 text-white",
+                change: "+0.44%",
+                action: "Buy",
+                actionClass: "bg-lime-400 text-slate-950",
+                chart: "M2 12 C13 10 16 6 24 11 S38 13 46 8 S59 15 67 10 S78 14 86 7 S94 10 98 4",
+                chartClass: "text-lime-500",
+              },
+              {
+                symbol: "XAU/USD",
+                mark: "Au",
+                markClass: "bg-amber-500 text-white",
+                change: "+0.24%",
+                action: "Buy",
+                actionClass: "bg-lime-400 text-slate-950",
+                chart: "M2 13 C12 8 20 16 29 11 S39 12 48 7 S62 14 70 10 S83 13 91 6 S96 8 98 4",
+                chartClass: "text-lime-500",
+              },
+            ].map((signal) => (
+              <div key={signal.symbol} className="flex items-center gap-2 py-3">
+                <span className={`grid size-8 shrink-0 place-items-center rounded-full text-[10px] font-bold ${signal.markClass}`}>
+                  {signal.mark}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <b className="block text-sm font-medium text-slate-800">{signal.symbol}</b>
+                  <span className={`block text-xs font-semibold ${signal.premium ? "text-fuchsia-500" : signal.change.startsWith("-") ? "text-violet-600" : "text-lime-600"}`}>
+                    {signal.premium && "◇ "}{signal.change}
+                  </span>
                 </div>
+                <svg viewBox="0 0 100 24" className={`h-7 w-20 shrink-0 ${signal.chartClass}`} aria-hidden="true">
+                  <path d={signal.chart} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                <a
+                  href={signal.premium ? "/?view=points-credits" : `/?view=instrument&symbol=${encodeURIComponent(signal.symbol)}`}
+                  className={`inline-flex min-w-[64px] items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold ${signal.actionClass}`}
+                >
+                  {signal.action}
+                </a>
               </div>
-              );
-            })}
+            ))}
           </div>
         </aside>
         <aside className="concept-community concept-card">

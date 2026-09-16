@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.27] - 2026-09-16
+
+### Changed
+
+- Reworked the instrument trading sidebar into a compact Most Recent Signals card with signal trends, actions, and upgrade routing.
+
 ## [1.5.26] - 2026-09-16
 
 ### Changed
