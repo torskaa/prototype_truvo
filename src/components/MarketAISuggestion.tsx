@@ -121,7 +121,7 @@ export function MarketAISuggestion({
     }
 
     if (option === "data") {
-      onNavigate("instrument", targetSymbol, "Market Data");
+      onNavigate("instrument", targetSymbol, "Forecast");
       addAssistantMessage(
         `${targetSymbol} is ${target?.signal ?? "being monitored"} at ${target?.confidence ?? "—"}% confidence. Scenario idea: compare its current move with relative volume and define the price that would invalidate the setup.`,
       );

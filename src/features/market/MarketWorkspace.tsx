@@ -153,7 +153,9 @@ export default function MarketWorkspace({
             key={`${instrument.symbol}-${section ?? "overview"}-${focus ?? ""}`}
             instrument={instrument}
             initialTab={
-              section === "News" || section === "Market Data"
+              section === "News" ||
+              section === "Market Data" ||
+              section === "Forecast"
                 ? section
                 : undefined
             }

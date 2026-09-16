@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.19] - 2026-09-16
+
+### Changed
+
+- Linked the AI data-and-scenario action directly to the selected instrument’s Forecast tab.
+
 ## [1.5.18] - 2026-09-16
 
 ### Changed
