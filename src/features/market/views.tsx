@@ -675,12 +675,13 @@ function Correlation({ names, instruments, recentTrades, userTierLevel, precisio
  const [customPrices, setCustomPrices] = useState({ mainTarget: '', mainStop: '', pairTarget: '', pairStop: '' });
  const tradeBase = benchmarkSymbol.split('/')[0].toUpperCase();
  const primary = instruments.find(instrument => instrument.symbol.toUpperCase() === benchmarkSymbol.toUpperCase() || instrument.symbol.toUpperCase().startsWith(`${tradeBase}/`)) ?? instruments[0];
+ const benchmarkAction = primary?.signal === 'LONG' ? 'BUY' : primary?.signal === 'SHORT' ? 'SELL' : latestTrade?.type ?? 'BUY';
  const primaryIndex = primary ? displayNames.indexOf(primary.symbol) : -1;
  const pairSuggestions = primary && primaryIndex >= 0 ? instruments.filter(instrument => instrument.symbol !== primary.symbol && displayNames.includes(instrument.symbol)).map((instrument, index) => {
    const candidateIndex = displayNames.indexOf(instrument.symbol);
    const correlation = Number((Math.cos((primaryIndex + 1) * (candidateIndex + 2) + displayNames.length) * 0.7).toFixed(2));
    const confidence = clampSignalConfidence((primary.confidence + instrument.confidence) / 2 + Math.abs(correlation) * 8);
-   return { instrument, correlation, confidence, tier: signalTierForConfidence(confidence), key: `${primary.symbol}-${instrument.symbol}`, direction: correlation >= 0 ? (latestTrade?.type ?? 'BUY') : (latestTrade?.type === 'BUY' ? 'SELL' : 'BUY') };
+   return { instrument, correlation, confidence, tier: signalTierForConfidence(confidence), key: `${primary.symbol}-${instrument.symbol}`, direction: correlation >= 0 ? benchmarkAction : (benchmarkAction === 'BUY' ? 'SELL' : 'BUY') };
  }).sort((left, right) => Math.abs(right.correlation) - Math.abs(left.correlation)) : [];
  const positivePairs = pairSuggestions.filter(pair => pair.correlation > 0).sort((left, right) => right.correlation - left.correlation).slice(0, 2);
  const negativePairs = pairSuggestions.filter(pair => pair.correlation < 0).sort((left, right) => left.correlation - right.correlation).slice(0, 2);

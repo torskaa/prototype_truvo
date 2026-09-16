@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.10] - 2026-09-16
+
+### Changed
+
+- Auto side selection now follows the selected benchmark symbol's own LONG/SHORT signal when switching through the correlation matrix.
+
 ## [1.5.9] - 2026-09-16
 
 ### Changed
