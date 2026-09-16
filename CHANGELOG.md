@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.40] - 2026-09-16
+
+### Changed
+
+- Replaced generic CFD actions with two CFD-only partner options showing partner spread and platform details.
+
 ## [1.5.39] - 2026-09-16
 
 ### Changed

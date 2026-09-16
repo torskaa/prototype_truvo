@@ -4291,9 +4291,20 @@ function ProductsAndBrokersTable({
           <div className="rounded-lg bg-slate-50 p-3"><span className="text-slate-400">Spread</span><b className="mt-1 block text-slate-800">{cfdDetails.spread}</b></div>
           <div className="rounded-lg bg-slate-50 p-3"><span className="text-slate-400">Minimum</span><b className="mt-1 block text-slate-800">{cfdDetails.minimum}</b></div>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button className="secondary" onClick={() => { window.location.href = "?view=brokers"; }}>Compare CFD partners</button>
-          <button className="primary" onClick={() => { window.location.href = "?view=brokers"; }}>Connect CFD partner <ArrowRight size={13} /></button>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          {cfdBrokers.slice(0, 2).map((partner) => (
+            <button
+              key={partner.name}
+              className="flex items-center justify-between gap-3 rounded-lg border border-violet-200 bg-white px-3 py-2 text-left hover:border-violet-400 hover:bg-violet-50"
+              onClick={() => { window.location.href = "?view=brokers"; }}
+            >
+              <span className="min-w-0">
+                <b className="block truncate text-[10px] text-slate-900">{partner.name}</b>
+                <span className="mt-1 block truncate text-[9px] text-slate-500">CFD · {partner.spread} · {partner.platform}</span>
+              </span>
+              <ArrowRight className="size-3 shrink-0 text-violet-600" />
+            </button>
+          ))}
         </div>
       </div>
       {false && <div className="w-full overflow-hidden">
