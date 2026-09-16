@@ -4204,8 +4204,19 @@ function ProductsAndBrokersTable({
   setProduct: (product: ProductType) => void;
   brokers: Broker[];
 }) {
+  const cfdBrokers = brokers.filter((broker) => broker.products.includes("CFD"));
+  const keyPartner = cfdBrokers[0] ?? brokers[0];
+  const cfdDetails = keyPartner ?? {
+    name: "CFD partner desk",
+    venue: "Multi-venue CFD access",
+    platform: "Web + mobile",
+    spread: "From 0.04%",
+    minimum: "$10",
+    status: "Requires account" as const,
+    details: "Connect a verified partner account to compare CFD access for this instrument.",
+  };
   const matchedBrokers = brokers.filter((broker) =>
-    broker.products.includes(product),
+    broker.products.includes("CFD"),
   );
   const productDetails: Record<ProductType, string> = {
     Spot: "Buy or sell the underlying asset for direct settlement.",
@@ -4232,14 +4243,15 @@ function ProductsAndBrokersTable({
         <div>
           <p className="label">Products & broker access</p>
           <h2 className="mt-1 text-sm font-semibold text-slate-900">
-            Trade {instrument.symbol} by product
+            Key CFD partner for {instrument.symbol}
           </h2>
           <p className="mt-1 text-[10px] text-slate-400">
-            Choose a product to compare matching providers, costs, minimums, and
-            access.
+            Focused partner access for CFD trading, pricing, platform, and account
+            requirements.
           </p>
         </div>
-        <div className="mt-4 flex flex-wrap justify-end gap-2">
+        <span className="badge positive">CFD ONLY</span>
+        {false && <div className="mt-4 flex flex-wrap justify-end gap-2">
           {products.map((item) => (
             <span key={item} className="group relative">
               <button
@@ -4262,9 +4274,29 @@ function ProductsAndBrokersTable({
               </span>
             </span>
           ))}
+        </div>}
+      </div>
+      <div className="border-t border-border p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-violet-200 bg-violet-50/60 p-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-[9px] font-semibold uppercase tracking-wide text-violet-600">Key CFD partner</p>
+            <h3 className="mt-1 text-sm font-semibold text-slate-900">{cfdDetails.name}</h3>
+            <p className="mt-1 text-[10px] leading-relaxed text-slate-500">{cfdDetails.details}</p>
+          </div>
+          <span className={`badge ${cfdDetails.status === "Available" ? "positive" : ""}`}>{cfdDetails.status}</span>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] sm:grid-cols-4">
+          <div className="rounded-lg bg-slate-50 p-3"><span className="text-slate-400">Venue</span><b className="mt-1 block text-slate-800">{cfdDetails.venue}</b></div>
+          <div className="rounded-lg bg-slate-50 p-3"><span className="text-slate-400">Platform</span><b className="mt-1 block text-slate-800">{cfdDetails.platform}</b></div>
+          <div className="rounded-lg bg-slate-50 p-3"><span className="text-slate-400">Spread</span><b className="mt-1 block text-slate-800">{cfdDetails.spread}</b></div>
+          <div className="rounded-lg bg-slate-50 p-3"><span className="text-slate-400">Minimum</span><b className="mt-1 block text-slate-800">{cfdDetails.minimum}</b></div>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button className="secondary" onClick={() => { window.location.href = "?view=brokers"; }}>Compare CFD partners</button>
+          <button className="primary" onClick={() => { window.location.href = "?view=brokers"; }}>Connect CFD partner <ArrowRight size={13} /></button>
         </div>
       </div>
-      <div className="w-full overflow-hidden">
+      {false && <div className="w-full overflow-hidden">
         <table className="w-full table-fixed text-left text-[9px]">
           <thead className="bg-slate-50 text-slate-500">
             <tr>
@@ -4360,7 +4392,7 @@ function ProductsAndBrokersTable({
             )}
           </tbody>
         </table>
-      </div>
+      </div>}
       {instrument.market !== "Crypto" && matchedBrokers.length === 0 && (
         <div className="m-5 rounded-xl bg-amber-50 p-4 text-xs text-amber-700">
           <Lock className="mr-2 inline size-3" />

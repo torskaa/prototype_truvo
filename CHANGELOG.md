@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.39] - 2026-09-16
+
+### Changed
+
+- Replaced the product selector and comparison table with a focused Key CFD partner surface.
+
 ## [1.5.38] - 2026-09-16
 
 ### Changed
