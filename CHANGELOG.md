@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.95] - 2026-09-16
+
+### Changed
+
+- Bound generated Crypto broker rows to the active instrument symbol so SOL/USD never displays unrelated pairs such as BTC/USD.
+
 ## [1.4.94] - 2026-09-16
 
 ### Changed

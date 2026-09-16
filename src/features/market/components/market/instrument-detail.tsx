@@ -75,18 +75,6 @@ type Broker = {
   details?: string;
 };
 
-const cryptoCoveragePairs = [
-  "BTC/USD",
-  "ETH/USD",
-  "SOL/USD",
-  "XRP/USD",
-  "ADA/USD",
-  "DOGE/USD",
-  "AVAX/USD",
-  "LINK/USD",
-  "DOT/USD",
-  "MATIC/USD",
-];
 const cryptoCoverageBrokers = [
   "Atlas Exchange",
   "Marketsyde Demo",
@@ -3990,10 +3978,7 @@ function CryptoBrokerRows({
   instrument: Instrument;
   product: ProductType;
 }) {
-  const pairs = [
-    instrument.symbol,
-    ...cryptoCoveragePairs.filter((pair) => pair !== instrument.symbol),
-  ];
+  const pairs = [instrument.symbol];
   return (
     <>
       {pairs.flatMap((pair) => {
