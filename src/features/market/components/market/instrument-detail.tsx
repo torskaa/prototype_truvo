@@ -727,6 +727,8 @@ export function InstrumentDetail({
               kind={kind}
               onCommunityScenario={focusCommunityPost}
               onConnectTrade={() => onToast(`Connect a broker to trade ${instrument.symbol}`)}
+              tierLevel={snapshot.level.level}
+              onToast={onToast}
             />
           )}
           {["Products", "Brokers", "Products & Brokers"].includes(tab) && (
@@ -1472,7 +1474,12 @@ function LegacyInstrumentDetail({
             <Analysis instrument={instrument} kind={kind} />
           )}
           {tab === "Forecast" && (
-            <Forecast instrument={instrument} kind={kind} />
+            <Forecast
+              instrument={instrument}
+              kind={kind}
+              tierLevel={snapshot.level.level}
+              onToast={onToast}
+            />
           )}
           {tab === "Products" && (
             <ProductPanel
@@ -3295,12 +3302,17 @@ function Forecast({
   kind,
   onCommunityScenario,
   onConnectTrade,
+  tierLevel,
+  onToast,
 }: {
   instrument: Instrument;
   kind: string;
   onCommunityScenario?: (name: string) => void;
   onConnectTrade?: () => void;
+  tierLevel: number;
+  onToast: (message: string) => void;
 }) {
+  const scenarioPeriodLocked = tierLevel < 3;
   const forecast = instrument.return1m * 1.35;
   const today = new Date().toISOString().slice(0, 10);
   const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
@@ -3398,10 +3410,21 @@ function Forecast({
           </div>
           <span className="badge">DEMO MODEL</span>
         </div>
-        <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-          <label className="text-[10px] text-slate-500">From<input type="date" value={fromDate} max={toDate} onChange={(event) => setFromDate(event.target.value)} className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-[10px]" /></label>
-          <label className="text-[10px] text-slate-500">To<input type="date" value={toDate} min={fromDate} max={today} onChange={(event) => setToDate(event.target.value)} className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-[10px]" /></label>
-          <span className="text-[10px] text-slate-400">Scenario dates update to match this range.</span>
+        <div className="relative mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div className={scenarioPeriodLocked ? "pointer-events-none select-none opacity-50" : "contents"}>
+            <label className="text-[10px] text-slate-500">From<input type="date" value={fromDate} max={toDate} disabled={scenarioPeriodLocked} onChange={(event) => setFromDate(event.target.value)} className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-[10px]" /></label>
+            <label className="text-[10px] text-slate-500">To<input type="date" value={toDate} min={fromDate} max={today} disabled={scenarioPeriodLocked} onChange={(event) => setToDate(event.target.value)} className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-[10px]" /></label>
+            <span className="text-[10px] text-slate-400">Scenario dates update to match this range.</span>
+          </div>
+          {scenarioPeriodLocked && (
+            <button
+              type="button"
+              className="absolute inset-0 flex items-center justify-center gap-1 rounded-lg bg-white/75 text-[10px] font-semibold text-violet-700"
+              onClick={() => onToast("Forecast scenario date filters require Level 3.")}
+            >
+              <Lock size={12} /> Requires Level 3
+            </button>
+          )}
         </div>
         <div className="mt-5 overflow-hidden rounded-xl border border-border bg-white">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">

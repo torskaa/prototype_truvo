@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.26] - 2026-09-16
+
+### Changed
+
+- Restricted the Forecast scenario date filter to Level 3–4 users.
+
 ## [1.5.25] - 2026-09-16
 
 ### Changed
