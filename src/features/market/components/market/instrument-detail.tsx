@@ -91,28 +91,27 @@ const cryptoPairUniverse = [
 const cryptoPairSeed = (value: string) =>
   [...value].reduce((total, character) => (total * 31 + character.charCodeAt(0)) % 997, 7);
 
-const cryptoBrokerCoverage = [
-  "Atlas Exchange",
-  "Marketsyde Demo",
-  "Nova Crypto",
-  "OrbitX Markets",
-  "Zenith Digital",
-  "Harbor Markets",
-  "Vertex Exchange",
-  "Meridian Crypto",
-  "Aster Markets",
-  "BluePeak Digital",
-];
-
-const cryptoProducts: ProductType[] = ["Spot", "Perpetual", "CFD"];
-
-const cryptoBrokersForPair = (pair: string) => {
-  const orderedBrokers = [...cryptoBrokerCoverage].sort(
+const cryptoPairsForBroker = (
+  instrumentSymbol: string,
+  product: ProductType,
+  broker: Broker,
+) => {
+  const supportedPairs = [...new Set(
+    broker.symbols.filter((symbol) => cryptoPairUniverse.includes(symbol)),
+  )];
+  const orderedPairs = supportedPairs.sort(
     (left, right) =>
-      cryptoPairSeed(`${pair}-${left}`) - cryptoPairSeed(`${pair}-${right}`),
+      cryptoPairSeed(`${product}-${broker.name}-${left}`) -
+      cryptoPairSeed(`${product}-${broker.name}-${right}`),
   );
-  const brokerCount = 5 + (cryptoPairSeed(pair) % 6);
-  return orderedBrokers.slice(0, brokerCount);
+  const pairCount = Math.min(
+    orderedPairs.length,
+    5 + (cryptoPairSeed(`${product}-${broker.name}-${instrumentSymbol}`) % 6),
+  );
+  return [
+    instrumentSymbol,
+    ...orderedPairs.filter((symbol) => symbol !== instrumentSymbol),
+  ].slice(0, pairCount);
 };
 
 const brokers: Broker[] = [
@@ -3896,13 +3895,13 @@ function ProductsAndBrokersTable({
           ))}
         </div>
       </div>
-      {instrument.market === "Crypto" ? (
-        <CryptoBrokerCoverageTable instrument={instrument} product={product} />
-      ) : (
       <div className="w-full overflow-hidden">
         <table className="w-full table-fixed text-left text-[9px]">
           <thead className="bg-slate-50 text-slate-500">
             <tr>
+              {instrument.market === "Crypto" && (
+                <th className="px-4 py-3">Pair</th>
+              )}
               <th className="px-5 py-3">Product</th>
               <th className="px-4 py-3">Broker</th>
               <th className="px-4 py-3">Category</th>
@@ -3923,6 +3922,22 @@ function ProductsAndBrokersTable({
                   window.location.href = "?view=brokers";
                 }}
               >
+                {instrument.market === "Crypto" && (
+                  <td className="w-[18%] px-2 py-3 font-mono font-semibold text-slate-900">
+                    <div className="flex flex-wrap gap-1">
+                      {cryptoPairsForBroker(instrument.symbol, product, broker).map(
+                        (pair) => (
+                          <span
+                            key={pair}
+                            className={`rounded px-1 py-0.5 text-[8px] ${pair === instrument.symbol ? "bg-violet-100 text-violet-700" : "bg-slate-100 text-slate-600"}`}
+                          >
+                            {pair}
+                          </span>
+                        ),
+                      )}
+                    </div>
+                  </td>
+                )}
                 <td className="w-[11%] px-2 py-3 font-semibold text-violet-700">
                   {product}
                 </td>
@@ -3989,7 +4004,6 @@ function ProductsAndBrokersTable({
           </tbody>
         </table>
       </div>
-      )}
       {matchedBrokers.length === 0 && (
         <div className="m-5 rounded-xl bg-amber-50 p-4 text-xs text-amber-700">
           <Lock className="mr-2 inline size-3" />
@@ -3999,88 +4013,6 @@ function ProductsAndBrokersTable({
     </section>
   );
 }
-
-function CryptoBrokerCoverageTable({
-  instrument,
-  product,
-}: {
-  instrument: Instrument;
-  product: ProductType;
-}) {
-  const pairs = [
-    instrument.symbol,
-    ...cryptoPairUniverse.filter((pair) => pair !== instrument.symbol),
-  ];
-  return (
-    <div className="w-full overflow-hidden">
-      <table className="w-full table-fixed text-left text-[9px]">
-        <thead className="bg-slate-50 text-slate-500">
-          <tr>
-            <th className="w-[16%] px-4 py-3">Pair</th>
-            <th className="w-[45%] px-4 py-3">Broker coverage</th>
-            <th className="w-[25%] px-4 py-3">Products</th>
-            <th className="w-[14%] px-4 py-3 text-right">Action</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {pairs.map((pair) => (
-            <tr
-              key={pair}
-              className="group cursor-pointer bg-white hover:bg-violet-50/40"
-              onClick={() => {
-                window.location.href = "?view=brokers";
-              }}
-            >
-              <td className="px-2 py-3 font-mono font-semibold text-slate-900">
-                <span
-                  className={`rounded px-1.5 py-1 ${pair === instrument.symbol ? "bg-violet-100 text-violet-700" : "bg-slate-100 text-slate-600"}`}
-                >
-                  {pair}
-                </span>
-              </td>
-              <td className="px-2 py-3">
-                <div className="flex flex-wrap gap-1">
-                  {cryptoBrokersForPair(pair).map((broker) => (
-                    <span
-                      key={broker}
-                      className="rounded bg-slate-100 px-1.5 py-1 text-[8px] font-semibold text-slate-700"
-                    >
-                      {broker}
-                    </span>
-                  ))}
-                </div>
-              </td>
-              <td className="px-2 py-3">
-                <div className="flex flex-wrap gap-1">
-                  {cryptoProducts.map((item) => (
-                    <span
-                      key={item}
-                      className={`rounded px-1.5 py-1 text-[8px] font-semibold ${item === product ? "bg-violet-100 text-violet-700" : "bg-slate-100 text-slate-600"}`}
-                    >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </td>
-              <td className="px-2 py-3 text-right">
-                <button
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    window.location.href = "?view=brokers";
-                  }}
-                  className="primary justify-center"
-                >
-                  Connect
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 function ProductPanel({
   products,
   product,

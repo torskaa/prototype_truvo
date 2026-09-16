@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.91] - 2026-09-16
+
+### Changed
+
+- Reverted the latest Crypto broker coverage table edit and restored the previous pair coverage presentation.
+
 ## [1.4.90] - 2026-09-16
 
 ### Changed
