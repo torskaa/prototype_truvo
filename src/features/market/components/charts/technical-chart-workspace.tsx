@@ -81,11 +81,14 @@ import {
 } from "./event-intelligence-panel";
 import { useRewards } from "../../../rewards/RewardProvider";
 import { useMarketEngagement } from "../../MarketEngagement";
+import { historicalTierForTimeframe } from "../../tier-access";
 
 type ChartKind =
   "Candles" | "Bars" | "Line" | "Area" | "Heikin Ashi" | "Renko" | "Range";
 type Props = {
   tier: Tier;
+  tierLevel: number;
+  onToast: (message: string) => void;
   requestEventAccess?: () => void;
   sharedBy?: string;
   followedPublisher?: { name: string; tag: string };
@@ -156,6 +159,8 @@ const chartKinds: [ChartKind, React.ElementType][] = [
 export function TechnicalChartWorkspace(props: Props) {
   const {
     tier,
+    tierLevel,
+    onToast,
     sharedBy,
     followedPublisher,
     showLinkedTags = true,
@@ -305,15 +310,21 @@ export function TechnicalChartWorkspace(props: Props) {
             </PopoverContent>
           </Popover>
           <div className="mx-1 h-5 w-px bg-white/8" />
-          {["1m", "5m", "15m", "1H", "4H", "1D", "1W"].map((t) => (
+          {["1m", "5m", "15m", "1H", "4H", "1D", "1W", "1M", "1Y"].map((t) => {
+            const historicalTier = historicalTierForTimeframe(t);
+            const historicalLocked = historicalTier > tierLevel;
+            return (
             <button
               key={t}
-              onClick={() => setTimeframe(t)}
+              onClick={() => historicalLocked ? onToast(`${t} historical data starts at Level ${historicalTier}.`) : setTimeframe(t)}
               className={`chart-tool ${timeframe === t ? "selected" : ""}`}
+              aria-label={historicalLocked ? `${t} historical data requires Level ${historicalTier}` : `Set chart timeframe to ${t}`}
             >
               {t}
+              {historicalLocked && <Lock className="ml-1 size-3" />}
             </button>
-          ))}
+            );
+          })}
           <Popover>
             <PopoverTrigger className="chart-tool wide">
               <BarChart3 />

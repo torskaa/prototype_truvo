@@ -6,6 +6,7 @@ interface BrokerComparisonModalProps {
   isOpen: boolean;
   onClose: () => void;
   brokers: Broker[];
+  tierLevel: number;
   onConnectBroker: (broker: Broker) => void;
 }
 
@@ -13,6 +14,7 @@ export const BrokerComparisonModal: React.FC<BrokerComparisonModalProps> = ({
   isOpen,
   onClose,
   brokers,
+  tierLevel,
   onConnectBroker,
 }) => {
   const [brokerAId, setBrokerAId] = useState<string>(brokers[0]?.id || 'exness');
@@ -75,6 +77,9 @@ export const BrokerComparisonModal: React.FC<BrokerComparisonModalProps> = ({
       isBetter: 'equal',
     },
   ];
+  const comparisonDepth = tierLevel >= 4 ? comparisonRows.length : tierLevel >= 3 ? 6 : tierLevel >= 2 ? 5 : 3;
+  const visibleRows = comparisonRows.slice(0, comparisonDepth);
+  const comparisonLabel = tierLevel >= 4 ? "Full" : tierLevel >= 3 ? "Pro" : tierLevel >= 2 ? "Advanced" : "Basic";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
@@ -91,7 +96,7 @@ export const BrokerComparisonModal: React.FC<BrokerComparisonModalProps> = ({
                   Broker Head-to-Head Comparison
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-[#5338ec]/10 text-[#5338ec] text-[11px] font-bold">
-                  Live Battle
+                  {comparisonLabel} comparison
                 </span>
               </div>
               <p className="text-xs text-slate-500">
@@ -202,7 +207,7 @@ export const BrokerComparisonModal: React.FC<BrokerComparisonModalProps> = ({
             </div>
 
             <div className="divide-y divide-slate-100 text-xs">
-              {comparisonRows.map((row, idx) => (
+              {visibleRows.map((row, idx) => (
                 <div
                   key={idx}
                   className={`grid grid-cols-12 px-4 py-3 items-center ${
@@ -243,6 +248,7 @@ export const BrokerComparisonModal: React.FC<BrokerComparisonModalProps> = ({
               ))}
             </div>
           </div>
+          {comparisonDepth < comparisonRows.length && <p className="text-center text-[10px] text-slate-500">Level {tierLevel + 1} unlocks deeper broker conditions and platform details.</p>}
 
           {/* Quick Actions Footer */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">

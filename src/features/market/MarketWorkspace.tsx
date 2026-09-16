@@ -7,6 +7,7 @@ import type { Instrument, View, Visualization, Tier } from "./types";
 import type { Broker, CashbackTrade } from "../../types";
 import { useRewards } from "../rewards/RewardProvider";
 import { MarketEngagement } from "./MarketEngagement";
+import { watchlistLimitForTier } from "./tier-access";
 
 export const marketViews = ["screener", "instrument", "chart"];
 export default function MarketWorkspace({
@@ -96,16 +97,23 @@ export default function MarketWorkspace({
       : snapshot.level.level >= 2
         ? "INTERMEDIATE"
         : "BASIC";
+  const watchlistLimit = watchlistLimitForTier(snapshot.level.level);
   const navigate = (next: View) => onNavigate(next, instrument.symbol);
   const openInstrument = (item: Instrument) =>
     onNavigate("instrument", item.symbol);
   const toggleWatch = (ticker: string) => {
-    setWatchlist((current) =>
-      current.includes(ticker)
-        ? current.filter((item) => item !== ticker)
-        : [...current, ticker],
-    );
-    onToast("Market watchlist updated");
+    setWatchlist((current) => {
+      if (current.includes(ticker)) {
+        onToast("Market watchlist updated");
+        return current.filter((item) => item !== ticker);
+      }
+      if (current.length >= watchlistLimit) {
+        onToast(`Level ${snapshot.level.level} watchlists are limited to ${watchlistLimit} symbols.`);
+        return current;
+      }
+      onToast("Market watchlist updated");
+      return [...current, ticker];
+    });
   };
   return (
     <div className="market-feature min-w-0 rounded-2xl">
@@ -143,6 +151,8 @@ export default function MarketWorkspace({
             instrument={instrument}
             chartOpen={chartOpen}
             showLinkedTags={showLinkedTags}
+            watchlistCount={watchlist.length}
+            watchlistLimit={watchlistLimit}
             onShowLinkedTagsChange={setShowLinkedTags}
             followedPublisher={followedPublisher}
             onFollowPublisher={(name, tag) => {
@@ -162,6 +172,8 @@ export default function MarketWorkspace({
                 showLinkedTags={showLinkedTags}
                 instrument={instrument}
                 tier={tier}
+                tierLevel={snapshot.level.level}
+                onToast={onToast}
                 timeframe={timeframe}
                 setTimeframe={setTimeframe}
                 indicators={indicators}

@@ -10,6 +10,7 @@ import type { Broker } from '../../types';
 import { useMarketEngagement } from './MarketEngagement';
 import { useRewards } from '../rewards/RewardProvider';
 import { clampSignalConfidence, signalTierForConfidence } from './signal-access';
+import { visualizationLabels, visualizationRequiredTier } from './tier-access';
 
 function IndexHeatmap({ data, open }: { data: MarketIndex[]; open: (index: MarketIndex) => void }) {
  const options = metricOptions.Indices;
@@ -205,24 +206,6 @@ type MarketFilter = (typeof marketFilters)[number];
 
 const marketFilterKey: Partial<Record<MarketFilter, string[]>> = { Stocks: ['US Stocks', 'Stocks'], Crypto: ['Crypto'], Forex: ['Forex'], Commodities: ['Commodity'] };
 
-const visualizationRequiredTier: Record<Visualization, number> = {
- Table: 1,
- Heatmap: 2,
- Scatter: 3,
- Correlation: 3,
- 'Cross-market': 3,
- Custom: 4,
-};
-
-const visualizationLabels: Record<Visualization, string> = {
- Table: 'Table',
- Heatmap: 'Heatmap',
- Scatter: 'Scatter',
- Correlation: 'Correlation',
- 'Cross-market': 'Cross-market comparison',
- Custom: 'Advanced/custom visualization',
-};
-
 function VisualizationTierLock({ visualization, currentTier }: { visualization: Visualization; currentTier: number }) {
  const requiredTier = visualizationRequiredTier[visualization];
  return <div className="flex min-h-80 flex-col items-center justify-center gap-3 p-6 text-center"><Lock className="size-7 text-violet-500" /><h2 className="font-semibold text-slate-800">{visualizationLabels[visualization]} is locked</h2><p className="max-w-md text-xs text-slate-500">This visualization is available from Level {requiredTier}. Your current access is Level {currentTier}.</p></div>;
@@ -340,7 +323,7 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
  }, [primaryChoices, sectorChoices, regionOptions, countryOptions, subSectorChoices, primary, sector, region, country, subSector]);
  return (
   <>
-   <PageHead eyebrow="Discover → Explain → Monitor" title="Instrument Analysis" desc="Review market highlights, Fear & Greed, derivatives activity, and 24-hour changes before selecting an instrument." action={<button onClick={() => toast('Screen saved')} className="secondary">Save screen</button>} />
+   <PageHead eyebrow="Discover → Explain → Monitor" title="Instrument Analysis" desc="Review market highlights, Fear & Greed, derivatives activity, and 24-hour changes before selecting an instrument." action={<button onClick={() => snapshot.level.level < 2 ? toast('Saved screeners start at Level 2.') : toast('Screen saved')} className="secondary">Save screen{snapshot.level.level < 2 && <Lock className="ml-1 inline size-3" />}</button>} />
    <MarketHighlights openInstrument={openInstrument} market={market} currentResults={currentResults} userTierLevel={snapshot.level.level} />
    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
     <div className="flex flex-wrap items-center gap-2">
@@ -350,7 +333,7 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
     {market !== 'Indices' && <label className="flex items-center gap-2 text-[10px] text-slate-500"><span>Sector</span><select value={sector} onChange={event => { setSector(event.target.value); setSubSector('All'); }} className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-700 outline-none">{sectorChoices.map(option => <option key={option}>{option}</option>)}</select></label>}
     <label className="flex items-center gap-2 text-[10px] text-slate-500"><span>{market === 'Indices' ? 'Index sector' : 'Sub-sector'}</span><select value={subSector} onChange={event => setSubSector(event.target.value)} className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-700 outline-none">{subSectorChoices.map(option => <option key={option}>{option}</option>)}</select></label>
     </div>
-    <div className="seg">{views.map(v => <button key={v} onClick={() => { setViz(v); if (v === 'Scatter' && !scatterUnlocked) requestUnlock('advancedScreener'); }} className={viz === v ? 'active' : ''}>{v}{v === 'Scatter' && !scatterUnlocked && <Lock className="ml-1 inline size-2.5" />}{v === 'Correlation' && !precisionUnlocked && <Lock className="ml-1 inline size-2.5" />}</button>)}</div>
+    <div className="seg">{views.map(v => { const tierLocked = snapshot.level.level < visualizationRequiredTier[v]; const featureLocked = v === 'Scatter' && !scatterUnlocked; return <button key={v} onClick={() => { setViz(v); if (v === 'Scatter' && !scatterUnlocked && !tierLocked) requestUnlock('advancedScreener'); }} className={viz === v ? 'active' : ''}>{visualizationLabels[v]}{(tierLocked || featureLocked || v === 'Correlation' && !precisionUnlocked) && <Lock className="ml-1 inline size-2.5" />}</button>; })}</div>
    </div>
    <div className="panel p-3">
     <div className="flex flex-wrap items-center gap-2">
@@ -362,7 +345,7 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
       </div>
      ))}
     <div className="relative">
-     <button aria-label="Add custom filter" onClick={() => setCustomFilterOpen(open => !open)} className={`icon-button ${customFilterOpen ? 'bg-violet-50 text-violet-700' : ''}`}><Plus /></button>
+     <button aria-label="Add custom filter" onClick={() => snapshot.level.level < 2 ? toast('Advanced filters start at Level 2.') : setCustomFilterOpen(open => !open)} className={`icon-button ${customFilterOpen ? 'bg-violet-50 text-violet-700' : ''}`}><Plus />{snapshot.level.level < 2 && <Lock className="absolute -right-1 -top-1 size-2.5 rounded-full bg-white text-violet-600" />}</button>
      {customFilterOpen && <div className="absolute left-0 top-9 z-20 w-72 rounded-xl border border-border bg-white p-2 shadow-xl">
       <div className="flex items-start justify-between border-b border-border px-2 pb-2"><div><p className="text-xs font-semibold text-slate-900">Add custom filter</p><p className="mt-0.5 text-[10px] text-slate-400">{market === 'All' ? 'All market fields' : `${market} fields and units`}</p></div><button aria-label="Close custom filter menu" onClick={() => setCustomFilterOpen(false)} className="text-slate-400 hover:text-slate-700"><X className="size-3.5" /></button></div>
       <div className="mt-1 max-h-72 overflow-y-auto">{customFilterOptions(market).map(option => <button key={`${option.field}-${option.operator}`} onClick={() => { setRules([...rules, { id: crypto.randomUUID(), field: option.field, operator: option.operator, value: option.value, join: 'AND' }]); track('filter_added', { field: option.field, market }); setCustomFilterOpen(false); }} className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left hover:bg-violet-50"><span><b className="block text-[10px] text-slate-700">{option.field}</b><span className="text-[9px] text-slate-400">{option.operator} {option.value}{option.unit && ` ${option.unit}`}</span></span><Plus className="size-3 text-violet-600" /></button>)}</div>
@@ -374,12 +357,13 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-500">
     <span><b className="text-slate-900">{market === 'Indices' ? filteredIndices.length : filtered.length}</b> matches · independent results, never sponsored</span>
     <div className="flex flex-wrap gap-2"><button className="secondary border-violet-200 bg-violet-50 text-violet-700 hover:border-violet-300 hover:bg-violet-100" onClick={() => requestQuest('screener-research', (market === 'Indices' ? filteredIndices : filtered).map(item => item.symbol))}><span className="block text-[9px] font-bold uppercase tracking-wide">Today&apos;s quest</span><span>Guided comparison · +50 C</span><span className="block text-[9px] text-violet-500">Available until 23:59 UTC</span></button><button className="secondary" onClick={openBrokerAccess}>Broker access</button><button className="secondary" onClick={() => {
+      if (snapshot.level.level < 2) { toast('CSV export starts at Level 2.'); return; }
       const rows = market === 'Indices' ? filteredIndices : filtered;
       const csv = ['Symbol,Name,Price,Change', ...rows.map(item => [item.symbol, item.name, item.price, item.change].map(value => `"${String(value).replace(/"/g, '""')}"`).join(','))].join('\r\n');
       const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
       const link = document.createElement('a'); link.href = url; link.download = 'market-research.csv'; link.click(); URL.revokeObjectURL(url);
       toast('Market research CSV exported');
-    }}><Download />Export CSV</button></div>
+    }}>{snapshot.level.level < 2 ? <Lock /> : <Download />}Export CSV</button></div>
    </div>
    <div className="panel mt-3 min-h-95">
     {snapshot.level.level < visualizationRequiredTier[viz] ? <VisualizationTierLock visualization={viz} currentTier={snapshot.level.level} /> : viz === 'Scatter' && !scatterUnlocked ? <div className="flex min-h-80 flex-col items-center justify-center gap-3 p-6 text-center"><Lock className="size-7 text-violet-500" /><h2 className="font-semibold text-slate-800">Advanced scatter research</h2><p className="max-w-md text-xs text-slate-500">Compare three dimensions with the existing scatter tool. Table, heatmap, exports, and guided research remain free.</p><button className="primary" onClick={() => requestUnlock('advancedScreener')}>Choose credit unlock</button></div> : viz === 'Cross-market' ? <VolumeFlowPanel currentMarket={market} currentResults={currentResults} userTierLevel={snapshot.level.level} /> : viz === 'Custom' ? <div className="flex min-h-80 flex-col items-center justify-center gap-3 p-6 text-center"><b className="text-sm text-slate-900">Advanced custom visualization</b><p className="max-w-md text-xs text-slate-500">Tier 4 unlocks custom axes, saved layouts, and advanced visualization controls for the active screener results.</p><div className="flex flex-wrap justify-center gap-2 text-[10px] text-slate-500"><span className="rounded-lg bg-slate-100 px-2 py-1">{currentResults.length} results</span><span className="rounded-lg bg-slate-100 px-2 py-1">{rules.length} filters</span><span className="rounded-lg bg-violet-50 px-2 py-1 text-violet-700">{market} market</span></div></div> : market === 'Indices'

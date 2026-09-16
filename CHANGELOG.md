@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.12] - 2026-09-16
+
+### Changed
+
+- Added the full Tier 1–4 market intelligence access matrix to the member plan view.
+- Enforced tier access for historical chart ranges, advanced filters, saved screeners, CSV export, custom dashboards, and watchlist capacity.
+- Kept core market overview, instrument analysis, 24H data, and Fear & Greed available across all tiers.
+
 ## [1.5.11] - 2026-09-16
 
 ### Changed

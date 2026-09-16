@@ -382,6 +382,8 @@ export function InstrumentDetail({
   chartOpen,
   chartContent,
   showLinkedTags,
+  watchlistCount,
+  watchlistLimit,
   onShowLinkedTagsChange,
   followedPublisher,
   onFollowPublisher,
@@ -395,6 +397,8 @@ export function InstrumentDetail({
   chartOpen: boolean;
   chartContent: ReactNode;
   showLinkedTags: boolean;
+  watchlistCount: number;
+  watchlistLimit: number;
   onShowLinkedTagsChange: (show: boolean) => void;
   followedPublisher: { name: string; tag: string } | null;
   onFollowPublisher: (name: string, tag: string) => void;
@@ -422,6 +426,14 @@ export function InstrumentDetail({
     tag: marketTagTopics[index % marketTagTopics.length],
   }));
   const positive = instrument.change >= 0;
+  const toggleWatching = () => {
+    if (!watching && watchlistCount >= watchlistLimit) {
+      onToast(`Level ${snapshot.level.level} watchlists are limited to ${watchlistLimit} symbols.`);
+      return;
+    }
+    setWatching(current => !current);
+    onToast(watching ? "Removed from watchlist" : "Added to watchlist");
+  };
   const focusCommunityPost = (name: string) => {
     const post = Array.from(
       document.querySelectorAll<HTMLElement>(".concept-post"),
@@ -518,12 +530,7 @@ export function InstrumentDetail({
           </div>
           <div className="concept-actions">
             <button
-              onClick={() => {
-                setWatching(!watching);
-                onToast(
-                  watching ? "Removed from watchlist" : "Added to watchlist",
-                );
-              }}
+              onClick={toggleWatching}
             >
               <Star size={15} fill={watching ? "currentColor" : "none"} />
               {watching ? "Watching" : "Watchlist"}

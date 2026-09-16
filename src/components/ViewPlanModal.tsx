@@ -3,6 +3,7 @@ import { Check, X } from 'lucide-react';
 import type { UserProfile } from '../types';
 import { LEVELS, PREMIUM_FEATURES } from '../features/rewards/economy';
 import { useRewards } from '../features/rewards/RewardProvider';
+import { tierMatrix } from '../features/market/tier-access';
 
 interface ViewPlanModalProps {
   isOpen: boolean;
@@ -21,6 +22,19 @@ export const ViewPlanModal: React.FC<ViewPlanModalProps> = ({ isOpen, onClose })
     <header className="flex items-start justify-between gap-3 bg-[#5338ec] p-6 text-white"><div><p className="text-xs font-bold uppercase tracking-widest text-white/70">Beta membership</p><h2 id="member-plan-title" className="mt-1 text-2xl font-bold">Four levels. More research access.</h2></div><button autoFocus onClick={onClose} aria-label="Close member levels" className="rounded-lg p-2 hover:bg-white/10"><X className="h-5 w-5" /></button></header>
     <div className="space-y-5 p-6">
       <div className="rounded-xl bg-purple-50 p-4"><p className="font-semibold text-[#5338ec]">LV{snapshot.level.level} {snapshot.level.name} · {snapshot.activePoints} active Points</p><p className="mt-1 text-xs text-slate-600">All Point grants expire individually after 90 days, including conversions. Level benefits follow your current active Points.</p></div>
+      <section className="overflow-hidden rounded-xl border border-slate-200">
+        <div className="border-b border-slate-200 bg-slate-50 p-4"><h3 className="font-bold text-slate-900">Market intelligence access</h3><p className="mt-1 text-xs text-slate-500">Your level determines the depth of historical data, analysis, automation, and export access.</p></div>
+        <div className="overflow-x-auto">
+          <table className="min-w-[720px] w-full text-left text-xs">
+            <thead className="border-b border-slate-200 bg-white text-[10px] uppercase tracking-wide text-slate-500">
+              <tr><th className="px-4 py-3 font-semibold">Capability</th>{[1, 2, 3, 4].map(level => <th key={level} className={`px-3 py-3 text-center font-semibold ${snapshot.level.level === level ? 'text-[#5338ec]' : ''}`}>Tier {level}{snapshot.level.level === level ? ' · Current' : ''}</th>)}</tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {tierMatrix.map(row => <tr key={row.feature} className="odd:bg-white even:bg-slate-50/40"><th className="whitespace-nowrap px-4 py-2.5 font-semibold text-slate-700">{row.feature}</th>{row.values.map((value, index) => <td key={`${row.feature}-${index}`} className={`px-3 py-2.5 text-center font-medium ${index + 1 === snapshot.level.level ? 'bg-violet-50 text-[#5338ec]' : value === '—' ? 'text-slate-300' : 'text-slate-600'}`}>{value}</td>)}</tr>)}
+            </tbody>
+          </table>
+        </div>
+      </section>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{LEVELS.map(level => <section key={level.level} className={`rounded-xl border p-4 ${snapshot.level.level === level.level ? 'border-[#5338ec] bg-purple-50' : 'border-slate-200'}`}>
         <p className="text-xs font-bold text-[#5338ec]">LV{level.level}{snapshot.level.level === level.level ? ' · CURRENT' : ''}</p><h3 className="mt-1 text-lg font-bold">{level.name}</h3><p className="mt-3 text-sm font-semibold">{level.minPoints}+ active Points</p>
         <p className="mt-3 text-sm font-semibold text-[#5338ec]">{['Full Credit price', '20% Credit discount', '50% Credit discount', 'All premium features included'][level.level - 1]}</p>

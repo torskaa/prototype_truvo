@@ -28,6 +28,7 @@ import {
   CheckCircle2,
   UserCheck,
   Sparkles,
+  Lock,
 } from 'lucide-react';
 import { EarningRewardData } from './EarningRewardModal';
 import { HowItWorksModal } from './dashboard/HowItWorksModal';
@@ -631,6 +632,10 @@ export const ReferenceDashboard: React.FC<ReferenceDashboardProps> = ({
   const [draggedRowIndex, setDraggedRowIndex] = useState<number | null>(null);
 
   const handleEnterCustomizeMode = () => {
+    if (user.tierLevel < 3) {
+      onShowToast?.('Custom dashboards start at Level 3.');
+      return;
+    }
     setOriginalRows(JSON.parse(JSON.stringify(rows)));
     setIsCustomizeMode(true);
     const hideRules = localStorage.getItem('marketsyde_hide_rules_modal');
@@ -843,7 +848,7 @@ export const ReferenceDashboard: React.FC<ReferenceDashboardProps> = ({
               className="px-3 py-1.5 rounded-xl border border-indigo-100/90 bg-white hover:bg-indigo-50 text-[#5945F1] flex items-center gap-2 shadow-2xs transition-all cursor-pointer hover:border-indigo-300 font-bold text-xs"
               title="Customize dashboard widgets"
             >
-              <Pencil className="w-3.5 h-3.5 stroke-[2]" />
+              {user.tierLevel < 3 ? <Lock className="w-3.5 h-3.5 stroke-[2]" /> : <Pencil className="w-3.5 h-3.5 stroke-[2]" />}
               <span className="hidden sm:inline">Customize</span>
             </button>
           </div>

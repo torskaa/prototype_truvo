@@ -665,6 +665,7 @@ function Application() {
         isOpen={isBrokerComparisonOpen}
         onClose={() => setIsBrokerComparisonOpen(false)}
         brokers={brokers}
+        tierLevel={snapshot.level.level}
         onConnectBroker={(b) => {
           setIsBrokerComparisonOpen(false);
           setSelectedBrokerForConnect(b);
