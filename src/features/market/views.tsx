@@ -419,7 +419,7 @@ function InstrumentTable({ data, market, open, watchlist, toggleWatch, openBroke
      <tr key={i.symbol} className="group" onClick={() => open(i)}>
       {toggleWatch && <td><button aria-label={`${watchlist?.includes(i.symbol) ? 'Remove' : 'Add'} ${i.symbol} ${watchlist?.includes(i.symbol) ? 'from' : 'to'} watchlist`} onClick={event => { event.stopPropagation(); toggleWatch(i.symbol); }} className={`grid size-7 place-items-center rounded-lg border ${watchlist?.includes(i.symbol) ? 'border-violet-200 bg-violet-50 text-violet-700' : 'border-border text-slate-400 hover:bg-slate-50'}`}><Star className={`size-3.5 ${watchlist?.includes(i.symbol) ? 'fill-violet-600' : ''}`} /></button></td>}
       <td><span className="instrument-logo" aria-label={`${i.name} logo`}>{i.symbol.slice(0, 2).toUpperCase()}</span></td>
-      <td><b className="text-slate-900">{market === 'Crypto' ? i.symbol.split('/')[0] : i.symbol}</b></td>
+      <td><b className="text-slate-900">{i.market === 'Crypto' ? i.symbol.split('/')[0] : i.symbol}</b></td>
       <td className="mono"><div className="flex items-center gap-2"><span>{i.price.toLocaleString()}</span>{openBrokerAccess && <button type="button" className={`secondary px-2 py-1 text-[9px] ${i.signal === 'LONG' ? 'text-emerald-700' : 'text-rose-700'}`} onClick={event => { event.stopPropagation(); openBrokerAccess(); }}>{i.signal === 'LONG' ? 'Buy' : 'Sell'}</button>}</div></td>
       <td className={i.change >= 0 ? 'up' : 'down'}>{i.change > 0 ? '+' : ''}{i.change}%</td>
       <td className={i.return1m >= 0 ? 'up' : 'down'}>{i.return1m}%</td>

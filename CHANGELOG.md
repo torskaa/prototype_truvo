@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.47] - 2026-09-16
+
+### Fixed
+
+- Crypto instruments now display base symbols in mixed-market screener results as well as Crypto-filtered results.
+
 ## [1.5.46] - 2026-09-16
 
 ### Fixed
