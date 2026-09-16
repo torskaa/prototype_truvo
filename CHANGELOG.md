@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.11] - 2026-09-16
+
+### Changed
+
+- Applied the visualization access matrix: Table from Level 1, Heatmap from Level 2, Scatter/Correlation/Cross-market comparison from Level 3, and Advanced/custom visualization from Level 4.
+- Added locked visualization states and tier indicators so restricted views cannot render below their required access level.
+
 ## [1.5.10] - 2026-09-16
 
 ### Changed

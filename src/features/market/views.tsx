@@ -185,7 +185,7 @@ const flowMultipliers: Record<FlowPeriod, number> = { '1D': 1, '1W': 4.8, '1M': 
 
 const flowMarketName = (instrument: Instrument) => instrument.market === 'US Stocks' || instrument.market === 'Stocks' ? 'Stocks' : instrument.market === 'Commodity' ? 'Commodities' : instrument.market;
 
-function VolumeFlowPanel({ currentMarket, currentResults }: { currentMarket: MarketFilter; currentResults: Instrument[] }) {
+function VolumeFlowPanel({ currentMarket, currentResults, userTierLevel = 1 }: { currentMarket: MarketFilter; currentResults: Instrument[]; userTierLevel?: number }) {
  const [period, setPeriod] = useState<FlowPeriod>('1D');
  const [scope, setScope] = useState<FlowScope>('Market');
  const defaultMarket = currentMarket === 'Indices' ? 'Indices' : currentMarket === 'All' ? 'Stocks' : flowMarketName(currentResults[0] ?? instruments[0]) as (typeof flowMarkets)[number];
@@ -195,6 +195,7 @@ function VolumeFlowPanel({ currentMarket, currentResults }: { currentMarket: Mar
  const sectorRows = selectedMarket === 'Indices' ? marketIndices.flatMap(index => index.sectors.map(sector => ({ label: sector.sector, value: index.price * Math.abs(sector.change) / 100 * flowMultipliers[period] }))).reduce<Record<string, number>>((rows, row) => { rows[row.label] = (rows[row.label] ?? 0) + row.value; return rows; }, {}) : selectedInstruments.reduce<Record<string, number>>((rows, instrument) => { const sector = instrument.subSector ?? instrument.sector; rows[sector] = (rows[sector] ?? 0) + instrument.volume * instrument.rvol * flowMultipliers[period]; return rows; }, {});
  const rows = scope === 'Market' ? marketRows : Object.entries(sectorRows).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
  const max = Math.max(...rows.map(row => row.value), 1);
+ if (userTierLevel < 3) return <div className="panel flex min-h-48 flex-col items-center justify-center gap-2 p-4 text-center"><Lock className="size-5 text-violet-500" /><b className="text-xs text-slate-800">Cross-market comparison requires Level 3</b><p className="max-w-xs text-[10px] text-slate-500">Unlock cross-market activity comparisons when your account reaches the Intermediate tier.</p></div>;
  return <div className="panel p-3"><div className="flex items-start justify-between gap-2"><div><b className="text-sm text-slate-900">Market × Sector comparison</b><p className="sub">Relative activity using the current scanner filter</p></div><span className="text-[10px] text-slate-400">{currentMarket}</span></div><div className="mt-2 flex flex-wrap gap-2"><div className="seg">{(['1D', '1W', '1M', '1Y'] as FlowPeriod[]).map(item => <button key={item} onClick={() => setPeriod(item)} className={period === item ? 'active' : ''}>{item}</button>)}</div><div className="seg">{(['Market', 'Sector'] as FlowScope[]).map(item => <button key={item} onClick={() => setScope(item)} className={scope === item ? 'active' : ''}>{item}</button>)}</div></div>{scope === 'Sector' && currentMarket === 'All' && <select aria-label="Comparison market" value={selectedMarket} onChange={event => setSelectedMarket(event.target.value as (typeof flowMarkets)[number])} className="mt-2 w-full rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-600">{flowMarkets.map(name => <option key={name}>{name}</option>)}</select>}<div className="mt-3 space-y-2">{rows.slice(0, 6).map(row => <div key={row.label}><div className="mb-1 flex items-center justify-between gap-2 text-[10px]"><span className="truncate font-medium text-slate-700">{row.label}</span><span className="font-mono text-slate-500">{row.value.toFixed(1)}M</span></div><div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-violet-500 transition-all duration-300" style={{ width: `${Math.max(4, row.value / max * 100)}%` }} /></div></div>)}</div><p className="mt-2 text-[9px] leading-relaxed text-slate-400">Relative activity compares participation; it is not a capital-flow or trade recommendation.</p></div>;
 }
 
@@ -203,6 +204,29 @@ const marketFilters = ['All', 'Stocks', 'Crypto', 'Forex', 'Commodities', 'Indic
 type MarketFilter = (typeof marketFilters)[number];
 
 const marketFilterKey: Partial<Record<MarketFilter, string[]>> = { Stocks: ['US Stocks', 'Stocks'], Crypto: ['Crypto'], Forex: ['Forex'], Commodities: ['Commodity'] };
+
+const visualizationRequiredTier: Record<Visualization, number> = {
+ Table: 1,
+ Heatmap: 2,
+ Scatter: 3,
+ Correlation: 3,
+ 'Cross-market': 3,
+ Custom: 4,
+};
+
+const visualizationLabels: Record<Visualization, string> = {
+ Table: 'Table',
+ Heatmap: 'Heatmap',
+ Scatter: 'Scatter',
+ Correlation: 'Correlation',
+ 'Cross-market': 'Cross-market comparison',
+ Custom: 'Advanced/custom visualization',
+};
+
+function VisualizationTierLock({ visualization, currentTier }: { visualization: Visualization; currentTier: number }) {
+ const requiredTier = visualizationRequiredTier[visualization];
+ return <div className="flex min-h-80 flex-col items-center justify-center gap-3 p-6 text-center"><Lock className="size-7 text-violet-500" /><h2 className="font-semibold text-slate-800">{visualizationLabels[visualization]} is locked</h2><p className="max-w-md text-xs text-slate-500">This visualization is available from Level {requiredTier}. Your current access is Level {currentTier}.</p></div>;
+}
 
 const instrumentSubSector = (instrument: Instrument) => instrument.subSector ?? 'Unclassified';
 
@@ -245,7 +269,7 @@ const customFilterOptions = (market: MarketFilter): CustomFilterOption[] => {
  return [...taxonomy, ...metricFilters];
 };
 
-function MarketHighlights({ openInstrument, market, currentResults }: { openInstrument: (instrument: Instrument) => void; market: MarketFilter; currentResults: Instrument[] }) {
+function MarketHighlights({ openInstrument, market, currentResults, userTierLevel }: { openInstrument: (instrument: Instrument) => void; market: MarketFilter; currentResults: Instrument[]; userTierLevel: number }) {
  const [duration, setDuration] = useState('24H');
  const durations = ['1H', '6H', '12H', '24H', '1W', '1M', '6M', '1Y'];
  const topMovers = [...instruments].sort((a, b) => Math.abs(b.change) - Math.abs(a.change)).slice(0, 3);
@@ -264,7 +288,7 @@ function MarketHighlights({ openInstrument, market, currentResults }: { openInst
   </div>
   <div className="grid grid-cols-[minmax(0,1fr)_340px] gap-3 max-xl:grid-cols-1">
    <div className="panel p-4"><div className="panel-head"><div><b className="text-sm text-slate-900">Today’s CFD briefs</b><p>Data-linked highlights from movers, breadth, and participation.</p></div><span className="text-[10px] text-slate-400">Independent of sponsorship</span></div><div className="mt-3 grid gap-2 md:grid-cols-3">{topMovers.map(instrument => <button key={instrument.symbol} onClick={() => openInstrument(instrument)} className="rounded-xl border border-border p-3 text-left transition hover:border-violet-300 hover:bg-violet-50/40"><span className="text-[9px] font-semibold uppercase tracking-wider text-violet-600">{instrument.change >= 0 ? 'Momentum brief' : 'Risk brief'}</span><b className="mt-1 block text-sm text-slate-900">{instrument.symbol} CFD</b><p className="mt-1 line-clamp-2 text-[10px] text-slate-500">{instrument.name} is showing {instrument.change >= 0 ? 'positive' : 'negative'} movement with {instrument.rvol.toFixed(1)}× relative activity.</p><span className={`mt-2 block text-xs font-semibold ${instrument.change >= 0 ? 'up' : 'down'}`}>{instrument.change > 0 ? '+' : ''}{instrument.change.toFixed(2)}% · Open details</span></button>)}</div></div>
-   <VolumeFlowPanel currentMarket={market} currentResults={currentResults} />
+   <VolumeFlowPanel currentMarket={market} currentResults={currentResults} userTierLevel={userTierLevel} />
   </div>
  </section>;
 }
@@ -274,7 +298,7 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
  const { hasAccess, snapshot } = useRewards();
  const scatterUnlocked = hasAccess('advancedScreener');
  const precisionUnlocked = hasAccess('signalPrecision');
- const views: Visualization[] = ['Table', 'Heatmap', 'Scatter', 'Correlation'];
+ const views: Visualization[] = ['Table', 'Heatmap', 'Scatter', 'Correlation', 'Cross-market', 'Custom'];
  const [market, setMarket] = useState<MarketFilter>('All');
  const [primary, setPrimary] = useState('All');
  const [sector, setSector] = useState('All');
@@ -317,7 +341,7 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
  return (
   <>
    <PageHead eyebrow="Discover → Explain → Monitor" title="Instrument Analysis" desc="Review market highlights, Fear & Greed, derivatives activity, and 24-hour changes before selecting an instrument." action={<button onClick={() => toast('Screen saved')} className="secondary">Save screen</button>} />
-   <MarketHighlights openInstrument={openInstrument} market={market} currentResults={currentResults} />
+   <MarketHighlights openInstrument={openInstrument} market={market} currentResults={currentResults} userTierLevel={snapshot.level.level} />
    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
     <div className="flex flex-wrap items-center gap-2">
     <div className="seg">{marketFilters.map(m => <button key={m} onClick={() => { setMarket(m); setPrimary('All'); setSector('All'); setRegion('All'); setCountry('All'); setSubSector('All'); track('market_viewed', { market: m }); }} className={market === m ? 'active' : ''}>{m}</button>)}</div>
@@ -358,7 +382,7 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
     }}><Download />Export CSV</button></div>
    </div>
    <div className="panel mt-3 min-h-95">
-    {viz === 'Scatter' && !scatterUnlocked ? <div className="flex min-h-80 flex-col items-center justify-center gap-3 p-6 text-center"><Lock className="size-7 text-violet-500" /><h2 className="font-semibold text-slate-800">Advanced scatter research</h2><p className="max-w-md text-xs text-slate-500">Compare three dimensions with the existing scatter tool. Table, heatmap, exports, and guided research remain free.</p><button className="primary" onClick={() => requestUnlock('advancedScreener')}>Choose credit unlock</button></div> : market === 'Indices'
+    {snapshot.level.level < visualizationRequiredTier[viz] ? <VisualizationTierLock visualization={viz} currentTier={snapshot.level.level} /> : viz === 'Scatter' && !scatterUnlocked ? <div className="flex min-h-80 flex-col items-center justify-center gap-3 p-6 text-center"><Lock className="size-7 text-violet-500" /><h2 className="font-semibold text-slate-800">Advanced scatter research</h2><p className="max-w-md text-xs text-slate-500">Compare three dimensions with the existing scatter tool. Table, heatmap, exports, and guided research remain free.</p><button className="primary" onClick={() => requestUnlock('advancedScreener')}>Choose credit unlock</button></div> : viz === 'Cross-market' ? <VolumeFlowPanel currentMarket={market} currentResults={currentResults} userTierLevel={snapshot.level.level} /> : viz === 'Custom' ? <div className="flex min-h-80 flex-col items-center justify-center gap-3 p-6 text-center"><b className="text-sm text-slate-900">Advanced custom visualization</b><p className="max-w-md text-xs text-slate-500">Tier 4 unlocks custom axes, saved layouts, and advanced visualization controls for the active screener results.</p><div className="flex flex-wrap justify-center gap-2 text-[10px] text-slate-500"><span className="rounded-lg bg-slate-100 px-2 py-1">{currentResults.length} results</span><span className="rounded-lg bg-slate-100 px-2 py-1">{rules.length} filters</span><span className="rounded-lg bg-violet-50 px-2 py-1 text-violet-700">{market} market</span></div></div> : market === 'Indices'
     ? <>{viz === 'Table' && <IndicesPanel data={filteredIndices} open={openIndex} />}{viz === 'Heatmap' && <IndexHeatmap data={filteredIndices} open={openIndex} />}{viz === 'Scatter' && <IndexScatter data={filteredIndices} open={openIndex} />}{viz === 'Correlation' && <Correlation names={filteredIndices.map(index => index.symbol)} instruments={filteredIndices.map(indexAsInstrument)} recentTrades={recentTrades} userTierLevel={snapshot.level.level} precisionUnlocked={precisionUnlocked} requestPrecisionUnlock={() => requestUnlock('signalPrecision')} brokers={brokers} onToast={toast} onOpenBrokerAccess={openBrokerAccess} />}</>
      : <>
       {viz === 'Table' && <InstrumentTable data={filtered} market={market} open={openInstrument} watchlist={watchlist} toggleWatch={toggleWatch} openBrokerAccess={openBrokerAccess} />}

@@ -1,6 +1,6 @@
 export type Tier = 'GUEST' | 'BASIC' | 'INTERMEDIATE' | 'PREMIUM';
 export type View = 'dashboard' | 'screener' | 'flow' | 'instrument' | 'signals' | 'advisors' | 'watchlist' | 'alerts' | 'portfolio';
-export type Visualization = 'Table' | 'Heatmap' | 'Scatter' | 'Correlation' | 'Flow';
+export type Visualization = 'Table' | 'Heatmap' | 'Scatter' | 'Correlation' | 'Cross-market' | 'Custom';
 export type FxCategory = 'Major' | 'Minor' | 'Exotic';
 export type InstrumentMetric = 'price' | 'change' | 'return1m' | 'volume' | 'rvol' | 'rsi' | 'marketCap' | 'sentiment' | 'pe' | 'yield';
 export type Instrument = { symbol:string; name:string; market:string; sector:string; primaryMarket?:string; region?:string; country?:string; subSector?:string; price:number; change:number; volume:number; rvol:number; rsi:number; return1m:number; marketCap:number; sentiment:number; signal:'LONG'|'WATCH'|'NEUTRAL'; confidence:number; fxCategory?:FxCategory; pe?:number; yield?:number };
