@@ -285,7 +285,7 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
  const { hasAccess, snapshot } = useRewards();
  const scatterUnlocked = hasAccess('advancedScreener');
  const precisionUnlocked = hasAccess('signalPrecision');
- const views: Visualization[] = ['Table', 'Heatmap', 'Scatter', 'Correlation', 'Cross-market', 'Custom'];
+ const views: Visualization[] = ['Table', 'Heatmap', 'Scatter', 'Correlation'];
  const [market, setMarket] = useState<MarketFilter>('All');
  const [primary, setPrimary] = useState('All');
  const [sector, setSector] = useState('All');

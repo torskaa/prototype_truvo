@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.14] - 2026-09-16
+
+### Changed
+
+- Removed the Cross-market comparison and Advanced/custom visualization choices from the screener selector.
+
 ## [1.5.13] - 2026-09-16
 
 ### Changed
