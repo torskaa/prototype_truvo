@@ -3642,9 +3642,18 @@ function Forecast({
                 onClick={() => onCommunityScenario?.(scenario.author)}
                 className={`absolute right-3 ${position} max-w-36 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left text-[9px] shadow-sm transition hover:-translate-x-1 hover:border-violet-300`}
               >
-                <b className={`block truncate ${color}`}>{scenario.author}</b>
+                <b className={`block truncate ${color}`}>
+                  {scenario.author} · {scenario.voteSide === "Bullish" ? "Buy" : "Sell"} prediction
+                </b>
                 <span className="mt-0.5 block text-[8px] font-semibold text-slate-500">
-                  Vote: Agree {scenario.communityVote}% · Disagree {100 - scenario.communityVote}% · {scenario.voteSide === "Bullish" ? "Long" : "Short"}
+                  Vote:{" "}
+                  <span className="text-emerald-600">Agree {scenario.communityVote}%</span>
+                  {" · "}
+                  <span className="text-rose-600">Disagree {100 - scenario.communityVote}%</span>
+                  {" · "}
+                  <span className={scenario.voteSide === "Bullish" ? "text-emerald-600" : "text-rose-600"}>
+                    {scenario.voteSide === "Bullish" ? "Long" : "Short"}
+                  </span>
                 </span>
               </button>
               );

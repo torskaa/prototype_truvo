@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.31] - 2026-09-16
+
+### Changed
+
+- Added dynamic vote colors and Buy/Sell prediction labels to Forecast contributor callouts.
+
 ## [1.5.30] - 2026-09-16
 
 ### Changed
