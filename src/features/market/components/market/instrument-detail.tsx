@@ -1453,7 +1453,7 @@ function LegacyInstrumentDetail({
             <Analysis instrument={instrument} kind={kind} />
           )}
           {tab === "Forecast" && (
-            <Forecast instrument={instrument} kind={kind} onToast={onToast} />
+            <Forecast instrument={instrument} kind={kind} />
           )}
           {tab === "Products" && (
             <ProductPanel
@@ -3250,13 +3250,11 @@ function Forecast({
   kind,
   onCommunityScenario,
   onConnectTrade,
-  onToast,
 }: {
   instrument: Instrument;
   kind: string;
   onCommunityScenario?: (name: string) => void;
   onConnectTrade?: () => void;
-  onToast: (message: string) => void;
 }) {
   const forecast = instrument.return1m * 1.35;
   const today = new Date().toISOString().slice(0, 10);
@@ -3270,7 +3268,13 @@ function Forecast({
       initials: "DM",
       bias: "Bullish pullback",
       target: `+${Math.max(6, instrument.return1m * 0.9).toFixed(1)}%`,
-      confidence: 76,
+      communityVote: 76,
+      voteSide: "Bullish",
+      voteCount: 128,
+      horizon: "30D",
+      entry: "Controlled pullback",
+      invalidation: "Below recent support",
+      catalyst: "Participation and volume confirmation",
       summary:
         "Participation remains constructive; confirmation is expected around the next controlled pullback.",
     },
@@ -3279,7 +3283,13 @@ function Forecast({
       initials: "CL",
       bias: "Constructive trend",
       target: `+${Math.max(4, instrument.return1m * 0.65).toFixed(1)}%`,
-      confidence: 69,
+      communityVote: 69,
+      voteSide: "Bullish",
+      voteCount: 94,
+      horizon: "30D",
+      entry: "Current market range",
+      invalidation: "Below trend support",
+      catalyst: `${instrument.sector} breadth expansion`,
       summary: `Volume and broader ${instrument.sector.toLowerCase()} breadth support a continuation scenario.`,
     },
     {
@@ -3287,7 +3297,13 @@ function Forecast({
       initials: "AR",
       bias: "Measured upside",
       target: "+6.4%",
-      confidence: 72,
+      communityVote: 72,
+      voteSide: "Bullish",
+      voteCount: 113,
+      horizon: "30D",
+      entry: "On confirmed strength",
+      invalidation: "Event volatility break",
+      catalyst: "Steady demand and improving breadth",
       summary:
         "Steady demand and improving market breadth support upside, with event volatility kept in view.",
     },
@@ -3296,7 +3312,13 @@ function Forecast({
       initials: "LP",
       bias: "Range breakout",
       target: "+3.1%",
-      confidence: 61,
+      communityVote: 61,
+      voteSide: "Bullish",
+      voteCount: 81,
+      horizon: "30D",
+      entry: "Range breakout close",
+      invalidation: "Failed range expansion",
+      catalyst: "Participation confirms a clean break",
       summary:
         "Consolidation remains the base case until participation confirms a clean break from the current range.",
     },
@@ -3305,7 +3327,13 @@ function Forecast({
       initials: "SM",
       bias: "Risk retest",
       target: "-5.8%",
-      confidence: 58,
+      communityVote: 58,
+      voteSide: "Bearish",
+      voteCount: 67,
+      horizon: "30D",
+      entry: "Weakness below current range",
+      invalidation: "Recovery above resistance",
+      catalyst: "Valuation sensitivity and event risk",
       summary:
         "Valuation sensitivity creates a downside retest scenario before a potential longer-term trend recovery.",
     },
@@ -3603,29 +3631,41 @@ function Forecast({
                   <span className="text-[8px] uppercase tracking-wide text-slate-400">
                     Scenario target
                   </span>
-                  <b className="mt-1 block text-sm text-emerald-600">
+                  <b className={`mt-1 block text-sm ${scenario.target.startsWith("-") ? "text-rose-600" : "text-emerald-600"}`}>
                     {scenario.target}
                   </b>
                 </div>
                 <div className="rounded-lg bg-slate-50 p-3">
                   <span className="text-[8px] uppercase tracking-wide text-slate-400">
-                    Confidence
+                    Community vote
                   </span>
                   <b className="mt-1 block text-sm text-slate-900">
-                    {scenario.confidence}%
+                    <span className={scenario.voteSide === "Bullish" ? "text-emerald-600" : "text-rose-600"}>
+                      {scenario.communityVote}% {scenario.voteSide}
+                    </span>
                   </b>
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onToast(`AI signal confidence evaluation unlocked for ${scenario.author}`);
-                    }}
-                    className="mt-2 rounded border border-violet-200 px-2 py-1 text-[8px] font-semibold text-violet-600"
-                  >
-                    Evaluate with AI · unlock credit
-                  </button>
+                  <span className="mt-2 block text-[8px] text-slate-500">
+                    {scenario.voteCount} community votes
+                  </span>
                 </div>
               </div>
+              <div className="mt-3 grid grid-cols-3 gap-2 rounded-lg border border-slate-100 bg-slate-50/70 p-3">
+                <div>
+                  <span className="text-[8px] uppercase tracking-wide text-slate-400">Horizon</span>
+                  <b className="mt-1 block text-[10px] text-slate-800">{scenario.horizon}</b>
+                </div>
+                <div>
+                  <span className="text-[8px] uppercase tracking-wide text-slate-400">Entry</span>
+                  <b className="mt-1 block text-[10px] text-slate-800">{scenario.entry}</b>
+                </div>
+                <div>
+                  <span className="text-[8px] uppercase tracking-wide text-slate-400">Invalidation</span>
+                  <b className="mt-1 block text-[10px] text-slate-800">{scenario.invalidation}</b>
+                </div>
+              </div>
+              <p className="mt-3 text-[9px] text-slate-500">
+                <span className="font-semibold text-slate-700">Catalyst:</span> {scenario.catalyst}
+              </p>
               <button
                 type="button"
                 onClick={(event) => {
@@ -3659,10 +3699,15 @@ function Forecast({
               </div>
               <button type="button" className="secondary" onClick={() => setSelectedScenario(null)}>Close</button>
             </div>
-            <div className="mt-5 grid grid-cols-3 gap-2">
+            <div className="mt-5 grid grid-cols-4 gap-2">
               <div className="rounded-lg bg-slate-50 p-3"><span className="label">Target</span><b className="mt-1 block text-sm text-emerald-600">{selectedScenario.target}</b></div>
-              <div className="rounded-lg bg-slate-50 p-3"><span className="label">Confidence</span><b className="mt-1 block text-sm text-slate-900">{selectedScenario.confidence}%</b></div>
-              <div className="rounded-lg bg-slate-50 p-3"><span className="label">Horizon</span><b className="mt-1 block text-sm text-slate-900">1M</b></div>
+              <div className="rounded-lg bg-slate-50 p-3"><span className="label">Community vote</span><b className="mt-1 block text-sm text-slate-900">{selectedScenario.communityVote}% {selectedScenario.voteSide}</b><small className="mt-1 block text-[9px] text-slate-500">{selectedScenario.voteCount} votes</small></div>
+              <div className="rounded-lg bg-slate-50 p-3"><span className="label">Horizon</span><b className="mt-1 block text-sm text-slate-900">{selectedScenario.horizon}</b></div>
+              <div className="rounded-lg bg-slate-50 p-3"><span className="label">Entry plan</span><b className="mt-1 block text-[10px] text-slate-900">{selectedScenario.entry}</b></div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="rounded-lg bg-slate-50 p-3"><span className="label">Invalidation</span><b className="mt-1 block text-[10px] text-slate-900">{selectedScenario.invalidation}</b></div>
+              <div className="rounded-lg bg-slate-50 p-3"><span className="label">Catalyst</span><b className="mt-1 block text-[10px] text-slate-900">{selectedScenario.catalyst}</b></div>
             </div>
             <p className="mt-4 rounded-xl bg-violet-50 p-4 text-sm leading-relaxed text-slate-700">{selectedScenario.summary}</p>
             <div className="mt-4 flex flex-wrap justify-end gap-2">

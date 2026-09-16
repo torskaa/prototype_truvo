@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.24] - 2026-09-16
+
+### Changed
+
+- Expanded community forecast cards with scenario details and replaced confidence with community vote results.
+
 ## [1.5.23] - 2026-09-16
 
 ### Removed
