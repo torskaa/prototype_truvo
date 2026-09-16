@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.13] - 2026-09-16
+
+### Changed
+
+- Locked market duration, instrument performance, cross-market period, and seasonal historical controls to the shared Level 1–4 access rules.
+- Added lock indicators and upgrade guidance when a selected historical range exceeds the current level.
+
 ## [1.5.12] - 2026-09-16
 
 ### Changed

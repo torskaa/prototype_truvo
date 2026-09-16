@@ -39,6 +39,7 @@ import {
   clampSignalConfidence,
   signalTierForConfidence,
 } from "@market/signal-access";
+import { historicalTierForTimeframe } from "@market/tier-access";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -625,6 +626,8 @@ export function InstrumentDetail({
                 instrument={instrument}
                 kind={kind}
                 onChart={onChart}
+                tierLevel={snapshot.level.level}
+                onToast={onToast}
                 chartOpen={chartOpen}
                 chartContent={chartContent}
                 showLinkedTags={showLinkedTags}
@@ -674,7 +677,11 @@ export function InstrumentDetail({
           )}
           {tab === "Technicals" && <TechnicalSummary instrument={instrument} />}
           {tab === "Market Data" && (
-            <MarketStats instrument={instrument} kind={kind} />
+            <MarketStats
+              instrument={instrument}
+              kind={kind}
+              tierLevel={snapshot.level.level}
+            />
           )}
           {tab === "Analysis" && (
             <Analysis instrument={instrument} kind={kind} />
@@ -1155,6 +1162,7 @@ function LegacyInstrumentDetail({
   onToast: (message: string) => void;
 }) {
   const kind = assetClass(instrument);
+  const { snapshot } = useRewards();
   const products = availableProducts(instrument);
   const [tab, setTab] = useState<DetailTab>("Overview");
   const [product, setProduct] = useState<ProductType>(products[0]);
@@ -1277,7 +1285,7 @@ function LegacyInstrumentDetail({
               <MessageCircle />
               {insightsOpen ? "Hide insights" : "Show insights"}
             </button>
-            <button onClick={() => !chartOpen && onChart()} className="primary">
+            <button onClick={onChart} className="primary">
               <LineChart />
               Advanced chart
             </button>
@@ -1377,12 +1385,18 @@ function LegacyInstrumentDetail({
               instrument={instrument}
               kind={kind}
               onChart={onChart}
+              tierLevel={snapshot.level.level}
+              onToast={onToast}
               onNews={() => setTab("News")}
             />
           )}
           {tab === "Technicals" && <TechnicalSummary instrument={instrument} />}
           {tab === "Market Data" && (
-            <MarketStats instrument={instrument} kind={kind} />
+            <MarketStats
+              instrument={instrument}
+              kind={kind}
+              tierLevel={snapshot.level.level}
+            />
           )}
           {tab === "News" && (
             <News
@@ -1407,7 +1421,7 @@ function LegacyInstrumentDetail({
             <Analysis instrument={instrument} kind={kind} />
           )}
           {tab === "Forecast" && (
-            <Forecast instrument={instrument} kind={kind} />
+            <Forecast instrument={instrument} kind={kind} onToast={onToast} />
           )}
           {tab === "Products" && (
             <ProductPanel
@@ -1552,11 +1566,15 @@ function AssetOverviewLayout({
   instrument,
   kind,
   onChart,
+  tierLevel = 1,
+  onToast = () => undefined,
   onNews,
 }: {
   instrument: Instrument;
   kind: string;
   onChart: () => void;
+  tierLevel?: number;
+  onToast?: (message: string) => void;
   onNews: () => void;
 }) {
   return (
@@ -1576,7 +1594,13 @@ function AssetOverviewLayout({
             Overview, chart, and evidence
           </span>
         </div>
-        <Overview instrument={instrument} kind={kind} onChart={onChart} />
+        <Overview
+          instrument={instrument}
+          kind={kind}
+          onChart={onChart}
+          tierLevel={tierLevel}
+          onToast={onToast}
+        />
       </section>
       <CommunityOverviewCard instrument={instrument} />
     </div>
@@ -2245,6 +2269,8 @@ function Overview({
   instrument,
   kind,
   onChart,
+  tierLevel = 1,
+  onToast = () => undefined,
   chartOpen = false,
   chartContent = null,
   showLinkedTags = true,
@@ -2254,6 +2280,8 @@ function Overview({
   instrument: Instrument;
   kind: string;
   onChart: () => void;
+  tierLevel?: number;
+  onToast?: (message: string) => void;
   chartOpen?: boolean;
   chartContent?: ReactNode;
   showLinkedTags?: boolean;
@@ -2315,30 +2343,68 @@ function Overview({
                   value={compareRange}
                   onChange={(event) => {
                     const nextRange = event.target.value as CompareRange;
+                    const requiredTier = historicalTierForTimeframe(
+                      nextRange === "1d"
+                        ? "1D"
+                        : ["3d", "7d", "14d"].includes(nextRange)
+                          ? "1W"
+                          : ["1m", "3m", "6m"].includes(nextRange)
+                            ? "1M"
+                            : "1Y",
+                    );
+                    if (requiredTier > tierLevel) {
+                      onToast(`Historical data for ${nextRange} starts at Level ${requiredTier}.`);
+                      return;
+                    }
                     setCompareRange(nextRange);
                     const nextPeriod = rangeToPeriod[nextRange];
                     if (nextPeriod) setPeriod(nextPeriod);
                   }}
                   className="rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] text-slate-600"
                 >
-                  {compareRanges.map((item) => (
-                    <option key={item}>{item}</option>
-                  ))}
+                  {compareRanges.map((item) => {
+                    const requiredTier = historicalTierForTimeframe(
+                      item === "1d"
+                        ? "1D"
+                        : ["3d", "7d", "14d"].includes(item)
+                          ? "1W"
+                          : ["1m", "3m", "6m"].includes(item)
+                            ? "1M"
+                            : "1Y",
+                    );
+                    return (
+                      <option key={item} disabled={requiredTier > tierLevel}>
+                        {item}
+                      </option>
+                    );
+                  })}
                 </select>
                 <div className="seg">
                   {(["1D", "1W", "1M", "1Y"] as PerformancePeriod[]).map(
-                    (item) => (
-                      <button
-                        key={item}
-                        onClick={() => {
-                          setPeriod(item);
-                          setCompareRange(periodToRange[item]);
-                        }}
-                        className={period === item ? "active" : ""}
-                      >
-                        {item}
-                      </button>
-                    ),
+                    (item) => {
+                      const requiredTier = historicalTierForTimeframe(item);
+                      const locked = requiredTier > tierLevel;
+                      return (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => {
+                            if (locked) {
+                              onToast(`${item} historical data starts at Level ${requiredTier}.`);
+                              return;
+                            }
+                            setPeriod(item);
+                            setCompareRange(periodToRange[item]);
+                          }}
+                          aria-disabled={locked}
+                          title={locked ? `Requires Level ${requiredTier}` : `Use ${item} performance`}
+                          className={`${period === item ? "active" : ""} ${locked ? "cursor-not-allowed opacity-50" : ""}`}
+                        >
+                          {item}
+                          {locked && <Lock className="ml-1 inline size-2.5" />}
+                        </button>
+                      );
+                    },
                   )}
                 </div>
               </>
@@ -2712,9 +2778,11 @@ function fallbackDetailData(instrument: Instrument): InstrumentDetailData {
 function MarketStats({
   instrument,
   kind,
+  tierLevel,
 }: {
   instrument: Instrument;
   kind: string;
+  tierLevel: number;
 }) {
   const detail =
     instrumentDetailData[instrument.symbol] ?? fallbackDetailData(instrument);
@@ -2760,7 +2828,10 @@ function MarketStats({
         </div>
       </section>
       <FinancialFactors factors={detail.factors} />
-      <SeasonalPerformance instrument={instrument} />
+      <SeasonalPerformance
+        instrument={instrument}
+        tierLevel={tierLevel}
+      />
     </div>
   );
 }
@@ -2785,11 +2856,28 @@ function FinancialFactors({
   );
 }
 
-function SeasonalPerformance({ instrument }: { instrument: Instrument }) {
+function SeasonalPerformance({
+  instrument,
+  tierLevel,
+}: {
+  instrument: Instrument;
+  tierLevel: number;
+}) {
   const [year, setYear] = useState("All years");
   const [dateRange, setDateRange] = useState<"1Y" | "3Y" | "5Y" | "All">("All");
   const [scale, setScale] = useState<"Monthly" | "Quarterly">("Monthly");
   const [mode, setMode] = useState<"Table" | "Chart">("Table");
+  if (tierLevel < 4) {
+    return (
+      <section className="panel flex min-h-48 flex-col items-center justify-center gap-2 p-5 text-center">
+        <Lock className="size-5 text-violet-500" />
+        <b className="text-xs text-slate-800">Seasonal performance requires Level 4</b>
+        <p className="max-w-sm text-[10px] text-slate-500">
+          Year-plus historical analysis is available with Elite access.
+        </p>
+      </section>
+    );
+  }
   const months = [
     "Jan",
     "Feb",
