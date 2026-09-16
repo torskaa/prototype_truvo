@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.38] - 2026-09-16
+
+### Changed
+
+- Added Level 3–4 precision Entry, Risk, and Target spots to community strategies, with locked guidance for lower tiers.
+
 ## [1.5.37] - 2026-09-16
 
 ### Changed

@@ -3344,6 +3344,7 @@ function Forecast({
       possibility: "High",
       voteSide: "Bullish",
       voteCount: 128,
+      riskPercent: 3.5,
       horizon: "30D",
       entry: "Controlled pullback",
       invalidation: "Below recent support",
@@ -3364,6 +3365,7 @@ function Forecast({
       possibility: "Moderate",
       voteSide: "Bullish",
       voteCount: 94,
+      riskPercent: 4,
       horizon: "30D",
       entry: "Current market range",
       invalidation: "Below trend support",
@@ -3382,6 +3384,7 @@ function Forecast({
       possibility: "Moderate",
       voteSide: "Bullish",
       voteCount: 113,
+      riskPercent: 4.2,
       horizon: "30D",
       entry: "On confirmed strength",
       invalidation: "Event volatility break",
@@ -3402,6 +3405,7 @@ function Forecast({
       possibility: "Balanced",
       voteSide: "Bullish",
       voteCount: 81,
+      riskPercent: 2.8,
       horizon: "30D",
       entry: "Range breakout close",
       invalidation: "Failed range expansion",
@@ -3422,6 +3426,7 @@ function Forecast({
       possibility: "Risk-weighted",
       voteSide: "Bearish",
       voteCount: 67,
+      riskPercent: 5.5,
       horizon: "30D",
       entry: "Weakness below current range",
       invalidation: "Recovery above resistance",
@@ -3433,6 +3438,23 @@ function Forecast({
         "Valuation sensitivity creates a downside retest scenario before a potential longer-term trend recovery.",
     },
   ];
+  const formatScenarioPrice = (value: number) =>
+    assetClass(instrument) === "Forex" || value < 1
+      ? value.toFixed(4)
+      : value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const precisionFor = (scenario: (typeof communityScenarios)[number]) => {
+    const targetPercent = Number.parseFloat(scenario.target);
+    const entry = instrument.price;
+    const target = entry * (1 + targetPercent / 100);
+    const risk = entry * (scenario.voteSide === "Bullish"
+      ? 1 - scenario.riskPercent / 100
+      : 1 + scenario.riskPercent / 100);
+    return {
+      entry: formatScenarioPrice(entry),
+      risk: formatScenarioPrice(risk),
+      target: formatScenarioPrice(target),
+    };
+  };
   return (
     <div className="space-y-4">
       <section className="panel p-5">
@@ -3651,6 +3673,13 @@ function Forecast({
                   <>
                     <span className="mt-0.5 block truncate font-semibold text-slate-500">Strategy · {scenario.movement}</span>
                     <span className="block truncate text-slate-500">Entry · {scenario.entry} · Target {scenario.target}</span>
+                    {tierLevel >= 3 ? (
+                      <span className="block truncate font-semibold text-violet-600">
+                        Precision · Entry {precisionFor(scenario).entry} · Risk {precisionFor(scenario).risk} · Target {precisionFor(scenario).target}
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-slate-400"><Lock className="size-2.5" /> Precision spots require Level 3</span>
+                    )}
                     <span className="block truncate font-semibold text-slate-500">Possibility · {scenario.possibility} · {scenario.communityVote}% · {scenario.voteSide === "Bullish" ? "Long" : "Short"}</span>
                     <span className="block truncate text-slate-400">Technical tools · {scenario.technicalTools}</span>
                     <span className="block max-w-44 truncate text-slate-400" title={scenario.writerOpinion}>Writer opinion · {scenario.writerOpinion}</span>
@@ -3784,6 +3813,15 @@ function Forecast({
               <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50/70 p-3">
                 <span className="text-[8px] uppercase tracking-wide text-slate-400">Strategy movement</span>
                 <b className="mt-1 block text-[10px] text-slate-800">{scenario.movement}</b>
+                {tierLevel >= 3 ? (
+                  <div className="mt-2 grid grid-cols-3 gap-2 border-t border-slate-200 pt-2">
+                    <span className="text-[8px] text-slate-500">Entry<b className="mt-0.5 block text-[10px] text-violet-700">{precisionFor(scenario).entry}</b></span>
+                    <span className="text-[8px] text-slate-500">Risk<b className="mt-0.5 block text-[10px] text-rose-600">{precisionFor(scenario).risk}</b></span>
+                    <span className="text-[8px] text-slate-500">Target<b className="mt-0.5 block text-[10px] text-emerald-600">{precisionFor(scenario).target}</b></span>
+                  </div>
+                ) : (
+                  <span className="mt-2 flex items-center gap-1 border-t border-slate-200 pt-2 text-[8px] font-semibold text-slate-400"><Lock className="size-2.5" /> Precision spots require Level 3</span>
+                )}
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2 rounded-lg border border-slate-100 bg-slate-50/70 p-3">
                 <div>
