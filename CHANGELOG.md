@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.21] - 2026-09-16
+
+### Fixed
+
+- Fixed the market workspace blank-page crash by keeping the selected instrument title in the `InstrumentDetail` component scope.
+
 ## [1.5.20] - 2026-09-16
 
 ### Fixed

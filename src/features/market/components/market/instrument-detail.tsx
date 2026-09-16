@@ -250,9 +250,6 @@ function assetClass(instrument: Instrument) {
 
 function availableProducts(instrument: Instrument): ProductType[] {
   const kind = assetClass(instrument);
-  const instrumentTitle = instrument.name.includes("Basket")
-    ? `${instrument.symbol} · ${instrument.name}`
-    : instrument.name;
   if (kind === "Crypto") return ["Spot", "Perpetual", "CFD"];
   if (kind === "Forex") return ["FX spot", "CFD", "Future"];
   if (kind === "Commodity") return ["Spot", "CFD", "Future"];
@@ -428,6 +425,9 @@ export function InstrumentDetail({
   const products = availableProducts(instrument);
   const [newsFilter, setNewsFilter] = useState("All news");
   const kind = assetClass(instrument);
+  const instrumentTitle = instrument.name.includes("Basket")
+    ? `${instrument.symbol} · ${instrument.name}`
+    : instrument.name;
   const news = instrumentNews(instrument);
   const taggedNews = news.map((item, index) => ({
     ...item,
