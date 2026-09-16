@@ -3645,14 +3645,19 @@ function Forecast({
                 <b className={`block truncate ${color}`}>
                   {scenario.author} · {scenario.voteSide === "Bullish" ? "Buy" : "Sell"} prediction
                 </b>
-                <span className="mt-0.5 block text-[8px] font-semibold text-slate-500">
-                  Vote:{" "}
-                  <span className="text-emerald-600">Agree {scenario.communityVote}%</span>
-                  {" · "}
-                  <span className="text-rose-600">Disagree {100 - scenario.communityVote}%</span>
-                  {" · "}
-                  <span className={scenario.voteSide === "Bullish" ? "text-emerald-600" : "text-rose-600"}>
-                    {scenario.voteSide === "Bullish" ? "Long" : "Short"}
+                <span className="mt-0.5 flex items-center gap-1.5 text-[8px] font-semibold text-slate-500">
+                  <span className="inline-flex items-center gap-0.5 text-emerald-600" title={`Agree ${scenario.communityVote}%`}>
+                    <ThumbsUp className="size-2.5" />{scenario.communityVote}%
+                  </span>
+                  <span className="inline-flex items-center gap-0.5 text-rose-600" title={`Disagree ${100 - scenario.communityVote}%`}>
+                    <ThumbsDown className="size-2.5" />{100 - scenario.communityVote}%
+                  </span>
+                  <span
+                    className={`inline-flex items-center gap-0.5 ${scenario.voteSide === "Bullish" ? "text-emerald-600" : "text-rose-600"}`}
+                    title={scenario.voteSide === "Bullish" ? "Long / Buy" : "Short / Sell"}
+                  >
+                    {scenario.voteSide === "Bullish" ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
+                    {scenario.voteSide === "Bullish" ? "L" : "S"}
                   </span>
                 </span>
               </button>

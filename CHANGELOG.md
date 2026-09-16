@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.32] - 2026-09-16
+
+### Changed
+
+- Replaced the verbose Forecast vote text with compact accessible vote and direction icons.
+
 ## [1.5.31] - 2026-09-16
 
 ### Changed
