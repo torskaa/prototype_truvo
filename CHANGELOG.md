@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.0] - 2026-09-16
+
+### Changed
+
+- Synchronized screener scatter hover cards with instrument signal details, including action, target/entry/stop values, product coverage, risk/reward, and tier gating.
+
 ## [1.4.99] - 2026-09-16
 
 ### Changed
