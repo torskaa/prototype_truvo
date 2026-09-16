@@ -4273,12 +4273,8 @@ function ProductsAndBrokersTable({
               )}
               <th className="px-5 py-3">Product</th>
               <th className="px-4 py-3">Broker</th>
-              <th className="px-4 py-3">Category</th>
-              <th className="px-4 py-3">Venue</th>
               <th className="px-4 py-3">Spread</th>
               <th className="px-4 py-3">Minimum</th>
-              <th className="px-4 py-3">Platform</th>
-              <th className="px-4 py-3">Access</th>
               <th className="px-5 py-3 text-right">Action</th>
             </tr>
           </thead>
@@ -4295,7 +4291,7 @@ function ProductsAndBrokersTable({
                 }}
               >
                 <td className="w-[11%] px-2 py-3 font-semibold text-violet-700">
-                  {product}
+                  {instrument.symbol} · {product}
                 </td>
                 <td
                   className="relative w-[18%] px-2 py-3 font-semibold text-slate-900"
@@ -4330,20 +4326,8 @@ function ProductsAndBrokersTable({
                     </dl>
                   </div>
                 </td>
-                <td className="w-[14%] px-2 py-3 text-slate-500">
-                  {productCategories[product]}
-                </td>
-                <td className="w-[16%] px-2 py-3 text-slate-500">{broker.venue}</td>
                 <td className="w-[9%] px-2 py-3 text-slate-600">{broker.spread}</td>
                 <td className="w-[8%] px-2 py-3 text-slate-600">{broker.minimum}</td>
-                <td className="w-[12%] px-2 py-3 text-slate-600">{broker.platform}</td>
-                <td className="w-[10%] px-2 py-3">
-                  <span
-                    className={`badge ${broker.status === "Available" ? "positive" : ""}`}
-                  >
-                    {broker.status}
-                  </span>
-                </td>
                 <td className="w-[10%] px-2 py-3 text-right">
                   <button
                     onClick={(event) => {
@@ -4407,23 +4391,13 @@ function CryptoBrokerRows({
             {row.pair}
           </td>
           <td className="w-[11%] px-2 py-3 font-semibold text-violet-700">
-            {row.product}
+            {row.pair} · {row.product}
           </td>
           <td className="w-[18%] px-2 py-3 font-semibold text-slate-900">
             {row.broker}
           </td>
-          <td className="w-[14%] px-2 py-3 text-slate-500">
-            Digital assets
-          </td>
-          <td className="w-[16%] px-2 py-3 text-slate-500">
-            Digital asset venue demo
-          </td>
           <td className="w-[9%] px-2 py-3 text-slate-600">From 0.04%</td>
           <td className="w-[8%] px-2 py-3 text-slate-600">$10</td>
-          <td className="w-[12%] px-2 py-3 text-slate-600">API + web</td>
-          <td className="w-[10%] px-2 py-3">
-            <span className="badge">Requires account</span>
-          </td>
           <td className="w-[10%] px-2 py-3 text-right">
             <button
               onClick={(event) => {

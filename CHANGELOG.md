@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.42] - 2026-09-16
+
+### Changed
+
+- Simplified the CFD table columns and made each Product value include the selected symbol.
+
 ## [1.5.41] - 2026-09-16
 
 ### Changed
