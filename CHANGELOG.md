@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.98] - 2026-09-16
+
+### Changed
+
+- Added signal direction, confidence, and confidence-tier access information to screener scatter-point details.
+
 ## [1.4.97] - 2026-09-16
 
 ### Changed

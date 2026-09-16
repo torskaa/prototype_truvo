@@ -9,6 +9,7 @@ import type { FilterRule, Instrument, IndexStatus, InstrumentMetric, MarketIndex
 import type { Broker } from '../../types';
 import { useMarketEngagement } from './MarketEngagement';
 import { useRewards } from '../rewards/RewardProvider';
+import { signalTierForConfidence } from './signal-access';
 
 function IndexHeatmap({ data, open }: { data: MarketIndex[]; open: (index: MarketIndex) => void }) {
  const options = metricOptions.Indices;
@@ -641,11 +642,12 @@ function ScatterView({ data, market, open, brokers }: { data: Instrument[]; mark
  );
 }
 
-function ScatterTooltip({ active, payload, xOption, yOption, sizeOption, brokers }: { active?: boolean; payload?: Array<{ payload?: { symbol?: string; name?: string; xValue?: number; yValue?: number; sizeValue?: number } }>; xOption: MetricOption; yOption: MetricOption; sizeOption: MetricOption; brokers: Broker[] }) {
+function ScatterTooltip({ active, payload, xOption, yOption, sizeOption, brokers }: { active?: boolean; payload?: Array<{ payload?: { symbol?: string; name?: string; signal?: Instrument['signal']; confidence?: number; xValue?: number; yValue?: number; sizeValue?: number } }>; xOption: MetricOption; yOption: MetricOption; sizeOption: MetricOption; brokers: Broker[] }) {
  if (!active || !payload?.[0]?.payload) return null;
  const point = payload[0].payload;
  const offer = symbolOffer(point.symbol ?? '', brokers);
- return <div className="rounded-lg border border-border bg-white p-3 text-[10px] shadow-lg"><b className="block text-xs text-slate-900">{point.symbol}</b><span className="mt-0.5 block text-[10px] text-slate-500">{point.name}</span>{offer && <span className="mt-2 block rounded bg-violet-50 px-2 py-1 text-[9px] font-semibold text-violet-700">{offer.broker.name} · {offer.campaign} · 7d access</span>}<div className="mt-2 space-y-1 text-slate-600"><div>{xOption.label}: <b>{formatMetric(point.xValue ?? 0, xOption)}</b></div><div>{yOption.label}: <b>{formatMetric(point.yValue ?? 0, yOption)}</b></div><div>{sizeOption.label}: <b>{formatMetric(point.sizeValue ?? 0, sizeOption)}</b></div></div></div>;
+ const signalTier = signalTierForConfidence(point.confidence ?? 0);
+ return <div className="rounded-lg border border-border bg-white p-3 text-[10px] shadow-lg"><b className="block text-xs text-slate-900">{point.symbol}</b><span className="mt-0.5 block text-[10px] text-slate-500">{point.name}</span><div className="mt-2 flex items-center justify-between gap-3 rounded bg-violet-50 px-2 py-1 text-[9px] font-semibold text-violet-700"><span>{point.signal ?? 'NEUTRAL'} · {point.confidence ?? 0}% confidence</span><span>Level {signalTier}</span></div>{offer && <span className="mt-2 block rounded bg-violet-50 px-2 py-1 text-[9px] font-semibold text-violet-700">{offer.broker.name} · {offer.campaign} · 7d access</span>}<div className="mt-2 space-y-1 text-slate-600"><div>{xOption.label}: <b>{formatMetric(point.xValue ?? 0, xOption)}</b></div><div>{yOption.label}: <b>{formatMetric(point.yValue ?? 0, yOption)}</b></div><div>{sizeOption.label}: <b>{formatMetric(point.sizeValue ?? 0, sizeOption)}</b></div></div></div>;
 }
 
 function Correlation({ names, precisionUnlocked, requestPrecisionUnlock, brokers }: { names: string[]; precisionUnlocked: boolean; requestPrecisionUnlock: () => void; brokers: Broker[] }) {
