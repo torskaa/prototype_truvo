@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { MarketSignal, Broker, UserProfile } from '../types';
 import { REFERENCE_SIGNALS } from '../data/signalsReferenceData';
+import { signalTierForConfidence, withSignalAccessTier } from '../features/market/signal-access';
 import {
   Search,
   SlidersHorizontal,
@@ -65,10 +66,14 @@ export const TradingSignalsPage: React.FC<TradingSignalsPageProps> = ({
   const allAvailableSignals = useMemo(() => {
     const map = new Map<string, MarketSignal>();
     // Priority: reference signals first so the exact 16 from the mockup are present
-    REFERENCE_SIGNALS.forEach((sig) => map.set(sig.ticker + (sig.minLevel || ''), sig));
+    REFERENCE_SIGNALS.forEach((sig) => {
+      const normalized = withSignalAccessTier(sig);
+      map.set(normalized.ticker + normalized.minLevel, normalized);
+    });
     initialSignals.forEach((sig) => {
-      if (!map.has(sig.ticker + (sig.minLevel || ''))) {
-        map.set(sig.ticker + (sig.minLevel || ''), sig);
+      const normalized = withSignalAccessTier(sig);
+      if (!map.has(normalized.ticker + normalized.minLevel)) {
+        map.set(normalized.ticker + normalized.minLevel, normalized);
       }
     });
     return Array.from(map.values());
@@ -1023,7 +1028,8 @@ const SignalCard: React.FC<SignalCardProps> = ({
   onUpgradePrompt,
   renderAssetIcon,
 }) => {
-  const isLocked = Boolean(signal.minLevel && signal.minLevel > userTierLevel);
+  const requiredTier = signalTierForConfidence(signal.confidence);
+  const isLocked = requiredTier > userTierLevel;
   const isBuy = signal.action === 'BUY';
 
   // Format price helper
@@ -1091,6 +1097,9 @@ const SignalCard: React.FC<SignalCardProps> = ({
             <div className="text-[11px] text-slate-400 font-medium mt-0.5">
               Confidence
             </div>
+            <div className="text-[10px] text-slate-500 font-semibold mt-1">
+              Level {requiredTier} access
+            </div>
           </div>
         </div>
 
@@ -1114,7 +1123,7 @@ const SignalCard: React.FC<SignalCardProps> = ({
           >
             <Gem className="w-3.5 h-3.5 text-[#5030e5]" />
             <span>
-              {signal.minLevel === 4 ? 'Level 4' : `Level ${signal.minLevel || 2} and Above`}
+              {requiredTier === 4 ? 'Level 4' : `Level ${requiredTier} and Above`}
             </span>
           </button>
         ) : (

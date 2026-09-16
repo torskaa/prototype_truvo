@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.97] - 2026-09-16
+
+### Changed
+
+- Applied the 70%–74%, 75%–79%, 80%–89%, and 90%+ confidence tiers consistently to the Trading Signals page.
+- Expanded instrument-detail signals so every available market product receives its own monitored setup.
+
 ## [1.4.96] - 2026-09-16
 
 ### Changed

@@ -36,6 +36,10 @@ import { useMarketEngagement } from "@market/MarketEngagement";
 import { useRewards } from "../../../rewards/RewardProvider";
 import { instrumentDetailData, marketIndices } from "@market/data/mock-market";
 import {
+  clampSignalConfidence,
+  signalTierForConfidence,
+} from "@market/signal-access";
+import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
@@ -318,8 +322,6 @@ const marketTagTopics = [
   "SECTOR",
   "RISK",
 ] as const;
-const signalTierForConfidence = (confidence: number) =>
-  confidence >= 90 ? 4 : confidence >= 80 ? 3 : confidence >= 75 ? 2 : 1;
 const rangeReturnMultiplier: Record<CompareRange, number> = {
   "1d": 1,
   "3d": 1.35,
@@ -411,6 +413,7 @@ export function InstrumentDetail({
   const [product, setProduct] = useState<ProductType>(
     availableProducts(instrument)[0],
   );
+  const products = availableProducts(instrument);
   const [newsFilter, setNewsFilter] = useState("All news");
   const kind = assetClass(instrument);
   const news = instrumentNews(instrument);
@@ -696,21 +699,30 @@ export function InstrumentDetail({
         <aside className="concept-trading-signal concept-card" aria-label="Trading signal">
           <div className="concept-section-title"><TrendingUp size={20} /><div><h2>Trading signals</h2><p>Monitored setups for {instrument.symbol}</p></div></div>
           <div className="concept-signal-list">
-            {[
-              { label: "CURRENT SIGNAL", tag: "RISK", signal: instrument.signal, confidence: instrument.confidence, period: "30m", validity: "valid for 12m", action: instrument.signal === "LONG" ? "Buy" : "Sell" },
-              { label: "MOMENTUM SETUP", tag: "TECHNICAL", signal: "LONG", confidence: Math.max(68, instrument.confidence - 6), period: "1h", validity: "valid for 28m", action: "Buy" },
-            ].map((entry) => {
+            {products.map((productName, productIndex) => {
+              const confidence = clampSignalConfidence(
+                instrument.confidence + (productIndex === 0 ? 0 : productIndex === 1 ? -3 : 2),
+              );
+              const entry = {
+                label: productIndex === 0 ? "CURRENT SIGNAL" : "PRODUCT SETUP",
+                tag: productIndex === 0 ? "RISK" : "TECHNICAL",
+                signal: instrument.signal,
+                confidence,
+                period: productIndex === 0 ? "30m" : productIndex === 1 ? "1h" : "4h",
+                validity: productIndex === 0 ? "valid for 12m" : productIndex === 1 ? "valid for 28m" : "valid for 45m",
+                action: instrument.signal === "LONG" ? "Buy" : "Sell",
+              };
               const signalTier = signalTierForConfidence(entry.confidence);
               const signalDetailsLocked =
                 !hasAccess("signalPrecision") &&
                 snapshot.level.level < signalTier;
               return (
-              <div className="concept-signal-item" key={entry.label}>
+              <div className="concept-signal-item" key={`${entry.label}-${productName}`}>
                 <div className="concept-signal-item-head"><span className="concept-signal-logo">{instrument.symbol.slice(0, 1)}</span><b>{instrument.symbol}</b><strong>{entry.confidence}%<small>Confidence</small></strong></div>
-                <a className="concept-signal-tag" href={`/?view=instrument&symbol=${encodeURIComponent(instrument.symbol)}&mode=chart#chart-${instrument.symbol}-${entry.tag}`}>#{instrument.symbol}_{entry.tag}</a>
+                <a className="concept-signal-tag" href={`/?view=instrument&symbol=${encodeURIComponent(instrument.symbol)}&mode=chart#chart-${instrument.symbol}-${entry.tag}-${productName}`}>#{instrument.symbol}_{productName}_{entry.tag}</a>
                 <button type="button" className={`concept-signal-levels ${signalDetailsLocked ? "concept-locked-detail" : ""}`} onClick={() => signalDetailsLocked && requestUnlock("signalPrecision")} aria-label={signalDetailsLocked ? "Unlock signal details with Credits" : undefined}><div><span>Target</span><b>{displayValue(instrument)}</b></div><div><span>Entry</span><b>{displayValue(instrument)}</b></div><div><span>Stop</span><b>{displayValue(instrument)}</b></div>{signalDetailsLocked && <span className="concept-lock-label"><Lock size={11} /> Unlock with Credits</span>}</button>
                 <div className="concept-trading-signal-row"><span>Risk/Reward</span><b>1:1.5</b></div>
-                <div className="concept-signal-meta"><span>{entry.period} period</span><span>{entry.validity}</span><span>Level {signalTier} access</span></div>
+                <div className="concept-signal-meta"><span>{productName}</span><span>{entry.period} period</span><span>{entry.validity}</span><span>Level {signalTier} access</span></div>
                 <div className="concept-signal-action">
                   <button className="concept-primary" onClick={() => setTab("Products & Brokers")}>{entry.action} <ArrowRight size={14} /></button>
                   <div className="concept-broker-popover" role="tooltip">
