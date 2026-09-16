@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.99] - 2026-09-16
+
+### Changed
+
+- Locked scatter-point metric and broker details when the hovered signal requires a higher confidence access level than the user’s current level.
+
 ## [1.4.98] - 2026-09-16
 
 ### Changed

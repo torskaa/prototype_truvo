@@ -271,7 +271,7 @@ function MarketHighlights({ openInstrument, market, currentResults }: { openInst
 
 function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument, openIndex, watchlist, toggleWatch, toast }: { tier: Tier; rules: FilterRule[]; setRules: (r: FilterRule[]) => void; results: Instrument[]; viz: Visualization; setViz: (v: Visualization) => void; openInstrument: (i: Instrument) => void; openIndex: (index: MarketIndex) => void; watchlist: string[]; toggleWatch: (symbol: string) => void; toast: (s: string) => void }) {
  const { requestQuest, requestUnlock, openBrokerAccess, compare, brokers } = useMarketEngagement();
- const { hasAccess } = useRewards();
+ const { hasAccess, snapshot } = useRewards();
  const scatterUnlocked = hasAccess('advancedScreener');
  const precisionUnlocked = hasAccess('signalPrecision');
  const views: Visualization[] = ['Table', 'Heatmap', 'Scatter', 'Correlation'];
@@ -363,7 +363,7 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
      : <>
       {viz === 'Table' && <InstrumentTable data={filtered} market={market} open={openInstrument} watchlist={watchlist} toggleWatch={toggleWatch} openBrokerAccess={openBrokerAccess} />}
       {viz === 'Heatmap' && <Heatmap data={filtered} market={market} open={openInstrument} brokers={brokers} />}
-      {viz === 'Scatter' && <ScatterView data={filtered} market={market} open={openInstrument} brokers={brokers} />}
+      {viz === 'Scatter' && <ScatterView data={filtered} market={market} open={openInstrument} brokers={brokers} userTierLevel={snapshot.level.level} precisionUnlocked={precisionUnlocked} />}
       {viz === 'Correlation' && <Correlation names={filtered.map(instrument => instrument.symbol)} precisionUnlocked={precisionUnlocked} requestPrecisionUnlock={() => requestUnlock('signalPrecision')} brokers={brokers} />}
      </>}
    </div>
@@ -604,7 +604,7 @@ function HeatmapTooltip({ instrument, offer }: { instrument: Instrument; offer?:
  return <div className="pointer-events-none absolute right-2 top-2 z-20 w-52 rounded-lg border border-border bg-white/95 p-3 text-left shadow-xl"><b className="block text-xs text-slate-900">{instrument.name} ({instrument.symbol})</b><p className="mt-1 text-[9px] text-slate-500">{instrument.sector} · {instrument.subSector ?? 'Unclassified'}</p><p className="text-[9px] text-slate-500">{instrument.primaryMarket ?? 'Exchange unavailable'} · {instrument.country ?? 'Country unavailable'}</p>{offer && <p className="mt-2 rounded bg-violet-50 px-2 py-1 text-[9px] font-semibold text-violet-700">{offer.broker.name} · {offer.campaign} · 7d access</p>}<div className="mt-2 space-y-1 border-t border-border pt-2">{rows.map(([label, value]) => <div className="flex justify-between gap-2 text-[9px]" key={label}><span className="text-slate-400">{label}</span><b className="text-slate-700">{value}</b></div>)}</div></div>;
 }
 
-function ScatterView({ data, market, open, brokers }: { data: Instrument[]; market: MarketFilter; open: (i: Instrument) => void; brokers: Broker[] }) {
+function ScatterView({ data, market, open, brokers, userTierLevel, precisionUnlocked }: { data: Instrument[]; market: MarketFilter; open: (i: Instrument) => void; brokers: Broker[]; userTierLevel: number; precisionUnlocked: boolean }) {
  const options = metricOptions[market];
  const defaultX = options.find(option => option.key === 'rsi')?.key ?? options[0].key;
  const defaultY = options.find(option => option.key === 'return1m')?.key ?? options.find(option => option.key === 'change')?.key ?? options[1]?.key ?? options[0].key;
@@ -634,7 +634,7 @@ function ScatterView({ data, market, open, brokers }: { data: Instrument[]; mark
      <XAxis type="number" dataKey="xValue" name={xOption.label} unit={xOption.unit === 'quote' ? '' : xOption.unit} stroke="#94a3b8" fontSize={10} />
      <YAxis type="number" dataKey="yValue" name={yOption.label} unit={yOption.unit === 'quote' ? '' : yOption.unit} stroke="#94a3b8" fontSize={10} />
      <ZAxis type="number" dataKey="sizeValue" range={[80, 720]} />
-    <Tooltip cursor={{ stroke: '#7c3aed55' }} content={<ScatterTooltip xOption={xOption} yOption={yOption} sizeOption={sizeOption} brokers={brokers} />} />
+    <Tooltip cursor={{ stroke: '#7c3aed55' }} content={<ScatterTooltip xOption={xOption} yOption={yOption} sizeOption={sizeOption} brokers={brokers} userTierLevel={userTierLevel} precisionUnlocked={precisionUnlocked} />} />
      <Scatter data={points} onClick={point => open(point as unknown as Instrument)}>{points.map(instrument => <Cell key={instrument.symbol} fill={instrument.change >= 0 ? '#7c3aed' : '#ef4444'} />)}</Scatter>
     </ScatterChart>
    </ResponsiveContainer>
@@ -642,12 +642,13 @@ function ScatterView({ data, market, open, brokers }: { data: Instrument[]; mark
  );
 }
 
-function ScatterTooltip({ active, payload, xOption, yOption, sizeOption, brokers }: { active?: boolean; payload?: Array<{ payload?: { symbol?: string; name?: string; signal?: Instrument['signal']; confidence?: number; xValue?: number; yValue?: number; sizeValue?: number } }>; xOption: MetricOption; yOption: MetricOption; sizeOption: MetricOption; brokers: Broker[] }) {
+function ScatterTooltip({ active, payload, xOption, yOption, sizeOption, brokers, userTierLevel, precisionUnlocked }: { active?: boolean; payload?: Array<{ payload?: { symbol?: string; name?: string; signal?: Instrument['signal']; confidence?: number; xValue?: number; yValue?: number; sizeValue?: number } }>; xOption: MetricOption; yOption: MetricOption; sizeOption: MetricOption; brokers: Broker[]; userTierLevel: number; precisionUnlocked: boolean }) {
  if (!active || !payload?.[0]?.payload) return null;
  const point = payload[0].payload;
  const offer = symbolOffer(point.symbol ?? '', brokers);
  const signalTier = signalTierForConfidence(point.confidence ?? 0);
- return <div className="rounded-lg border border-border bg-white p-3 text-[10px] shadow-lg"><b className="block text-xs text-slate-900">{point.symbol}</b><span className="mt-0.5 block text-[10px] text-slate-500">{point.name}</span><div className="mt-2 flex items-center justify-between gap-3 rounded bg-violet-50 px-2 py-1 text-[9px] font-semibold text-violet-700"><span>{point.signal ?? 'NEUTRAL'} · {point.confidence ?? 0}% confidence</span><span>Level {signalTier}</span></div>{offer && <span className="mt-2 block rounded bg-violet-50 px-2 py-1 text-[9px] font-semibold text-violet-700">{offer.broker.name} · {offer.campaign} · 7d access</span>}<div className="mt-2 space-y-1 text-slate-600"><div>{xOption.label}: <b>{formatMetric(point.xValue ?? 0, xOption)}</b></div><div>{yOption.label}: <b>{formatMetric(point.yValue ?? 0, yOption)}</b></div><div>{sizeOption.label}: <b>{formatMetric(point.sizeValue ?? 0, sizeOption)}</b></div></div></div>;
+ const detailsLocked = !precisionUnlocked && userTierLevel < signalTier;
+ return <div className="rounded-lg border border-border bg-white p-3 text-[10px] shadow-lg"><b className="block text-xs text-slate-900">{point.symbol}</b><span className="mt-0.5 block text-[10px] text-slate-500">{point.name}</span><div className="mt-2 flex items-center justify-between gap-3 rounded bg-violet-50 px-2 py-1 text-[9px] font-semibold text-violet-700"><span>{point.signal ?? 'NEUTRAL'} · {point.confidence ?? 0}% confidence</span><span>Level {signalTier}</span></div>{detailsLocked ? <div className="mt-2 rounded border border-violet-100 bg-violet-50/60 px-2 py-2 text-[9px] font-semibold text-violet-700">Signal details require Level {signalTier} access.</div> : <>{offer && <span className="mt-2 block rounded bg-violet-50 px-2 py-1 text-[9px] font-semibold text-violet-700">{offer.broker.name} · {offer.campaign} · 7d access</span>}<div className="mt-2 space-y-1 text-slate-600"><div>{xOption.label}: <b>{formatMetric(point.xValue ?? 0, xOption)}</b></div><div>{yOption.label}: <b>{formatMetric(point.yValue ?? 0, yOption)}</b></div><div>{sizeOption.label}: <b>{formatMetric(point.sizeValue ?? 0, sizeOption)}</b></div></div></>}</div>;
 }
 
 function Correlation({ names, precisionUnlocked, requestPrecisionUnlock, brokers }: { names: string[]; precisionUnlocked: boolean; requestPrecisionUnlock: () => void; brokers: Broker[] }) {
