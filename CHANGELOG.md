@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.41] - 2026-09-16
+
+### Changed
+
+- Restored the Products & Brokers selector and comparison table layout while limiting the rendered product options and data to CFD only.
+
 ## [1.5.40] - 2026-09-16
 
 ### Changed
