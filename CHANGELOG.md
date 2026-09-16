@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.44] - 2026-09-16
+
+### Changed
+
+- Simplified CFD table Product cells to show only the selected symbol.
+
 ## [1.5.43] - 2026-09-16
 
 ### Changed

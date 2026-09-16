@@ -4312,7 +4312,7 @@ function ProductsAndBrokersTable({
                 }}
               >
                 <td className="w-[11%] px-2 py-3 font-semibold text-violet-700">
-                  {instrument.symbol} · {product}
+                  {instrument.symbol}
                 </td>
                 <td
                   className="relative w-[18%] px-2 py-3 font-semibold text-slate-900"
@@ -4412,7 +4412,7 @@ function CryptoBrokerRows({
             {row.pair}
           </td>
           <td className="w-[11%] px-2 py-3 font-semibold text-violet-700">
-            {row.pair} · {row.product}
+            {row.pair}
           </td>
           <td className="w-[18%] px-2 py-3 font-semibold text-slate-900">
             {row.broker}
