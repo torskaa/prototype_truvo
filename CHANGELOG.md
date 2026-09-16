@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.34] - 2026-09-16
+
+### Changed
+
+- Connected Forecast scenario lines to their detail callouts so hovering a line reveals the associated strategy and writer details.
+
 ## [1.5.33] - 2026-09-16
 
 ### Changed

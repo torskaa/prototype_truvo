@@ -3367,6 +3367,7 @@ function Forecast({
   const [fromDate, setFromDate] = useState(monthAgo);
   const [toDate, setToDate] = useState(today);
   const [selectedScenario, setSelectedScenario] = useState<(typeof communityScenarios)[number] | null>(null);
+  const [hoveredScenario, setHoveredScenario] = useState<string | null>(null);
   const communityScenarios = [
     {
       author: "Daniel Markson",
@@ -3563,6 +3564,8 @@ function Forecast({
                 stroke="#34d399"
                 strokeWidth="3"
                 strokeDasharray="7 5"
+                className="cursor-pointer"
+                onMouseEnter={() => setHoveredScenario(communityScenarios[0].author)}
               />
               <path
                 d="M472 118 C565 116 654 102 770 82"
@@ -3570,6 +3573,8 @@ function Forecast({
                 stroke="#22d3ee"
                 strokeWidth="3"
                 strokeDasharray="7 5"
+                className="cursor-pointer"
+                onMouseEnter={() => setHoveredScenario(communityScenarios[1].author)}
               />
               <path
                 d="M472 118 C570 120 660 112 770 126"
@@ -3577,6 +3582,8 @@ function Forecast({
                 stroke="#f59e0b"
                 strokeWidth="2.5"
                 strokeDasharray="6 5"
+                className="cursor-pointer"
+                onMouseEnter={() => setHoveredScenario(communityScenarios[2].author)}
               />
               <path
                 d="M472 118 C570 132 660 146 770 160"
@@ -3584,6 +3591,8 @@ function Forecast({
                 stroke="#3b82f6"
                 strokeWidth="2.5"
                 strokeDasharray="6 5"
+                className="cursor-pointer"
+                onMouseEnter={() => setHoveredScenario(communityScenarios[3].author)}
               />
               <path
                 d="M472 118 C570 145 660 178 770 196"
@@ -3591,6 +3600,8 @@ function Forecast({
                 stroke="#f43f5e"
                 strokeWidth="2.5"
                 strokeDasharray="6 5"
+                className="cursor-pointer"
+                onMouseEnter={() => setHoveredScenario(communityScenarios[4].author)}
               />
               <circle
                 cx="472"
@@ -3659,23 +3670,22 @@ function Forecast({
               <button
                 key={scenario.author}
                 onClick={() => onCommunityScenario?.(scenario.author)}
-                className={`absolute right-3 ${position} max-w-48 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left text-[8px] shadow-sm transition hover:-translate-x-1 hover:border-violet-300`}
+                onMouseEnter={() => setHoveredScenario(scenario.author)}
+                className={`absolute right-3 ${position} max-w-48 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-left text-[8px] shadow-sm transition hover:-translate-x-1 hover:border-violet-300 ${hoveredScenario === scenario.author ? "z-30 ring-2 ring-violet-200" : "opacity-75"}`}
               >
                 <b className={`block truncate ${color}`}>
                   {scenario.author} · {scenario.voteSide === "Bullish" ? "Buy" : "Sell"} prediction
                 </b>
-                <span className="mt-0.5 block truncate font-semibold text-slate-500" title={scenario.movement}>
-                  Strategy · {scenario.movement}
-                </span>
-                <span className="block truncate text-slate-500" title={`Entry ${scenario.entry} · Target ${scenario.target}`}>
-                  Entry · {scenario.entry} · Target {scenario.target}
-                </span>
-                <span className="block truncate font-semibold text-slate-500">
-                  Possibility · {scenario.possibility} · {scenario.communityVote}% · {scenario.voteSide === "Bullish" ? "Long" : "Short"}
-                </span>
-                <span className="block max-w-44 truncate text-slate-400" title={scenario.writerOpinion}>
-                  Writer opinion · {scenario.writerOpinion}
-                </span>
+                {hoveredScenario === scenario.author ? (
+                  <>
+                    <span className="mt-0.5 block truncate font-semibold text-slate-500">Strategy · {scenario.movement}</span>
+                    <span className="block truncate text-slate-500">Entry · {scenario.entry} · Target {scenario.target}</span>
+                    <span className="block truncate font-semibold text-slate-500">Possibility · {scenario.possibility} · {scenario.communityVote}% · {scenario.voteSide === "Bullish" ? "Long" : "Short"}</span>
+                    <span className="block max-w-44 truncate text-slate-400" title={scenario.writerOpinion}>Writer opinion · {scenario.writerOpinion}</span>
+                  </>
+                ) : (
+                  <span className="mt-0.5 block truncate font-semibold text-slate-500">{scenario.communityVote}% vote · {scenario.voteSide === "Bullish" ? "Long" : "Short"}</span>
+                )}
               </button>
               );
             })}
