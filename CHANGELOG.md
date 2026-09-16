@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.85] - 2026-09-16
+
+### Changed
+
+- Removed the symbol-cell Buy/Sell hover pair so Crypto rows show only their coin symbol.
+
 ## [1.4.84] - 2026-09-16
 
 ### Changed
