@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.6] - 2026-09-16
+
+### Changed
+
+- Moved pair side, product, risk/reward, and benchmark customization into Recommended signal details so each setting stays next to the leg signals it changes.
+- Removed the separate customization table from the selected-pair summary.
+
 ## [1.5.5] - 2026-09-16
 
 ### Changed
