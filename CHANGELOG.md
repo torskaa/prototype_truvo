@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.9] - 2026-09-16
+
+### Changed
+
+- Made correlation matrix row and column symbols clickable benchmark selectors.
+- Synchronize the selected benchmark symbol, recommended pairs, selected-pair title, and per-leg form data when a matrix symbol is clicked.
+
 ## [1.5.8] - 2026-09-16
 
 ### Changed
