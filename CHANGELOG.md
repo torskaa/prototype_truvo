@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.87] - 2026-09-16
+
+### Changed
+
+- Added Crypto-only Pair and Broker badges to the Products & broker access header using the matched provider for the selected product.
+
 ## [1.4.86] - 2026-09-16
 
 ### Changed

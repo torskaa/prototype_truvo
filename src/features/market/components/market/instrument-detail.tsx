@@ -3792,6 +3792,7 @@ function ProductsAndBrokersTable({
   const matchedBrokers = brokers.filter((broker) =>
     broker.products.includes(product),
   );
+  const primaryMatchedBroker = matchedBrokers[0];
   const productDetails: Record<ProductType, string> = {
     Spot: "Buy or sell the underlying asset for direct settlement.",
     Share: "Whole-share ownership with standard equity market access.",
@@ -3824,7 +3825,27 @@ function ProductsAndBrokersTable({
             access.
           </p>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap justify-end gap-2">
+          {instrument.market === "Crypto" && (
+            <>
+              <div className="rounded-lg border border-violet-100 bg-violet-50/60 px-2.5 py-1.5">
+                <span className="block text-[8px] font-semibold uppercase tracking-wide text-violet-500">
+                  Pair
+                </span>
+                <b className="font-mono text-[10px] text-violet-800">
+                  {instrument.symbol}
+                </b>
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5">
+                <span className="block text-[8px] font-semibold uppercase tracking-wide text-slate-400">
+                  Broker
+                </span>
+                <b className="text-[10px] text-slate-800">
+                  {primaryMatchedBroker?.name ?? "No matched broker"}
+                </b>
+              </div>
+            </>
+          )}
           {products.map((item) => (
             <span key={item} className="group relative">
               <button
