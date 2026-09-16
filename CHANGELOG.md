@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.48] - 2026-09-16
+
+### Changed
+
+- Applied base-symbol formatting to crypto movers, CFD briefs, heatmap tiles, and screener tooltips.
+
 ## [1.5.47] - 2026-09-16
 
 ### Fixed
