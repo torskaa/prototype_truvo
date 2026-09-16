@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.50] - 2026-09-16
+
+### Changed
+
+- Restored the established screener Buy/Sell action placement beside the instrument price.
+
 ## [1.5.49] - 2026-09-16
 
 ### Changed
