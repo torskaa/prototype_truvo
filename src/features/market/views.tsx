@@ -9,7 +9,7 @@ import type { FilterRule, Instrument, IndexStatus, InstrumentMetric, MarketIndex
 import type { Broker } from '../../types';
 import { useMarketEngagement } from './MarketEngagement';
 import { useRewards } from '../rewards/RewardProvider';
-import { signalTierForConfidence } from './signal-access';
+import { clampSignalConfidence, signalTierForConfidence } from './signal-access';
 
 function IndexHeatmap({ data, open }: { data: MarketIndex[]; open: (index: MarketIndex) => void }) {
  const options = metricOptions.Indices;
@@ -362,7 +362,7 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
     ? <>{viz === 'Table' && <IndicesPanel data={filteredIndices} open={openIndex} />}{viz === 'Heatmap' && <IndexHeatmap data={filteredIndices} open={openIndex} />}{viz === 'Scatter' && <IndexScatter data={filteredIndices} open={openIndex} />}{viz === 'Correlation' && <Correlation names={filteredIndices.map(index => index.symbol)} precisionUnlocked={precisionUnlocked} requestPrecisionUnlock={() => requestUnlock('signalPrecision')} />}</>
      : <>
       {viz === 'Table' && <InstrumentTable data={filtered} market={market} open={openInstrument} watchlist={watchlist} toggleWatch={toggleWatch} openBrokerAccess={openBrokerAccess} />}
-      {viz === 'Heatmap' && <Heatmap data={filtered} market={market} open={openInstrument} brokers={brokers} />}
+      {viz === 'Heatmap' && <Heatmap data={filtered} market={market} open={openInstrument} brokers={brokers} userTierLevel={snapshot.level.level} precisionUnlocked={precisionUnlocked} />}
       {viz === 'Scatter' && <ScatterView data={filtered} market={market} open={openInstrument} brokers={brokers} userTierLevel={snapshot.level.level} precisionUnlocked={precisionUnlocked} />}
       {viz === 'Correlation' && <Correlation names={filtered.map(instrument => instrument.symbol)} precisionUnlocked={precisionUnlocked} requestPrecisionUnlock={() => requestUnlock('signalPrecision')} brokers={brokers} />}
      </>}
@@ -545,7 +545,8 @@ const symbolOffer = (symbol: string, brokers: Broker[]) => {
  const campaign = score % 2 ? `${broker.maxCashback} cashback campaign` : `${broker.spreadFrom} spread campaign`;
  return { broker, campaign };
 };
-function Heatmap({ data, market, open, brokers }: { data: Instrument[]; market: MarketFilter; open: (i: Instrument) => void; brokers: Broker[] }) {
+const availableSignalProducts = (instrument: Instrument) => instrument.market === 'Crypto' ? ['Spot', 'Perpetual', 'CFD'] : instrument.market === 'Forex' ? ['FX spot', 'CFD', 'Future'] : instrument.market === 'Commodity' ? ['Spot', 'CFD', 'Future'] : instrument.market === 'US Stocks' || instrument.market === 'Stocks' ? ['Share', 'Fractional share', 'CFD'] : ['CFD', 'Future'];
+function Heatmap({ data, market, open, brokers, userTierLevel, precisionUnlocked }: { data: Instrument[]; market: MarketFilter; open: (i: Instrument) => void; brokers: Broker[]; userTierLevel: number; precisionUnlocked: boolean }) {
  const metricMarket = market === 'All' ? 'Stocks' : market;
  const options = heatmapMetricOptions(metricMarket);
  const [sizeBy, setSizeBy] = useState<InstrumentMetric>('marketCap');
@@ -588,7 +589,7 @@ function Heatmap({ data, market, open, brokers }: { data: Instrument[]; market: 
       {detail && symbolOffer(instrument.symbol, brokers) && <span className="max-w-full truncate text-[8px] font-semibold text-violet-700">Broker campaign · 7d access</span>}
      </button>;
     })}
-    {hovered && <HeatmapTooltip instrument={hovered} offer={symbolOffer(hovered.symbol, brokers)} />}
+    {hovered && <HeatmapTooltip instrument={hovered} offer={symbolOffer(hovered.symbol, brokers)} userTierLevel={userTierLevel} precisionUnlocked={precisionUnlocked} />}
    </div>
    <HeatmapLegend option={colorOption} values={legendValues} diverging={isDiverging} />
   </div>
@@ -599,9 +600,10 @@ function HeatmapLegend({ option, values, diverging }: { option: MetricOption; va
  return <div className="mt-2 flex items-center gap-2 text-[9px] text-slate-400"><span>{heatmapMetricText(values[0], option)}</span><div className={`h-2 flex-1 rounded-full ${diverging ? 'bg-linear-to-r from-rose-500 via-slate-100 to-emerald-500' : 'bg-linear-to-r from-slate-100 to-emerald-600'}`} /><span>{heatmapMetricText(values[1], option)}</span><span className="ml-1 text-slate-500">{diverging ? 'negative · neutral · positive' : 'low · high'}</span></div>;
 }
 
-function HeatmapTooltip({ instrument, offer }: { instrument: Instrument; offer?: { broker: Broker; campaign: string } }) {
+function HeatmapTooltip({ instrument, offer, userTierLevel, precisionUnlocked }: { instrument: Instrument; offer?: { broker: Broker; campaign: string }; userTierLevel: number; precisionUnlocked: boolean }) {
  const rows: [string, string][] = [['Price', instrument.price.toLocaleString(undefined, { maximumFractionDigits: 4 })], ['Market Cap', heatmapMetricText(heatmapValue(instrument, 'marketCap'), metricLabel('marketCap', 'Stocks'))], ['P/E Ratio', heatmapMetricText(heatmapValue(instrument, 'pe'), metricLabel('pe', 'Stocks'))], ['Change 1D', heatmapMetricText(heatmapValue(instrument, 'change'), metricLabel('change', 'Stocks'))], ['Performance 1M', heatmapMetricText(heatmapValue(instrument, 'return1m'), metricLabel('return1m', 'Stocks'))], ['Relative Volume', heatmapMetricText(heatmapValue(instrument, 'rvol'), metricLabel('rvol', 'Stocks'))]];
- return <div className="pointer-events-none absolute right-2 top-2 z-20 w-52 rounded-lg border border-border bg-white/95 p-3 text-left shadow-xl"><b className="block text-xs text-slate-900">{instrument.name} ({instrument.symbol})</b><p className="mt-1 text-[9px] text-slate-500">{instrument.sector} · {instrument.subSector ?? 'Unclassified'}</p><p className="text-[9px] text-slate-500">{instrument.primaryMarket ?? 'Exchange unavailable'} · {instrument.country ?? 'Country unavailable'}</p>{offer && <p className="mt-2 rounded bg-violet-50 px-2 py-1 text-[9px] font-semibold text-violet-700">{offer.broker.name} · {offer.campaign} · 7d access</p>}<div className="mt-2 space-y-1 border-t border-border pt-2">{rows.map(([label, value]) => <div className="flex justify-between gap-2 text-[9px]" key={label}><span className="text-slate-400">{label}</span><b className="text-slate-700">{value}</b></div>)}</div></div>;
+ const signalProducts = availableSignalProducts(instrument);
+ return <div className="pointer-events-none absolute right-2 top-2 z-20 w-64 rounded-lg border border-border bg-white/95 p-3 text-left shadow-xl"><b className="block text-xs text-slate-900">{instrument.name} ({instrument.symbol})</b><p className="mt-1 text-[9px] text-slate-500">{instrument.sector} · {instrument.subSector ?? 'Unclassified'}</p><p className="text-[9px] text-slate-500">{instrument.primaryMarket ?? 'Exchange unavailable'} · {instrument.country ?? 'Country unavailable'}</p><div className="mt-2 border-t border-border pt-2"><b className="text-[9px] uppercase tracking-wide text-violet-700">Trading signals</b><div className="mt-1 space-y-1">{signalProducts.map((product, index) => { const confidence = clampSignalConfidence(instrument.confidence + (index === 0 ? 0 : index === 1 ? -3 : 2)); const tier = signalTierForConfidence(confidence); const locked = !precisionUnlocked && userTierLevel < tier; return <div className="rounded border border-violet-100 bg-violet-50/60 px-2 py-1.5" key={product}><div className="flex items-center justify-between gap-2"><span className="font-semibold text-violet-800">{product}</span><span className="font-semibold text-violet-700">{confidence}% · L{tier}</span></div>{locked ? <span className="text-[9px] font-semibold text-violet-600">Details locked</span> : <span className="text-[9px] text-slate-600">{instrument.signal === 'LONG' ? 'BUY' : 'SELL'} · Target / Entry / Stop {instrument.price.toLocaleString(undefined, { maximumFractionDigits: 4 })} · R:R 1:1.5</span>}</div>; })}</div></div>{offer && <p className="mt-2 rounded bg-violet-50 px-2 py-1 text-[9px] font-semibold text-violet-700">{offer.broker.name} · {offer.campaign} · 7d access</p>}<div className="mt-2 space-y-1 border-t border-border pt-2">{rows.map(([label, value]) => <div className="flex justify-between gap-2 text-[9px]" key={label}><span className="text-slate-400">{label}</span><b className="text-slate-700">{value}</b></div>)}</div></div>;
 }
 
 function ScatterView({ data, market, open, brokers, userTierLevel, precisionUnlocked }: { data: Instrument[]; market: MarketFilter; open: (i: Instrument) => void; brokers: Broker[]; userTierLevel: number; precisionUnlocked: boolean }) {

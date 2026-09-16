@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.1] - 2026-09-16
+
+### Changed
+
+- Added the same multi-product trading signals to heatmap hover details, with confidence levels and access gating synchronized to the instrument signal view.
+
 ## [1.5.0] - 2026-09-16
 
 ### Changed
