@@ -263,7 +263,7 @@ function Application() {
 
       {/* Main App Container */}
       <main className="flex-1 w-full px-4 sm:px-8 lg:px-[56px] py-6 space-y-6">
-        {marketViews.includes(activeTab) && <Suspense fallback={<div className="p-10 text-center text-slate-500">Loading market workspace…</div>}><MarketWorkspace view={activeTab} locationSearch={routeSearch} onNavigate={setActiveTab} tierLevel={user.tierLevel} onToast={showToast}
+        {marketViews.includes(activeTab) && <Suspense fallback={<div className="p-10 text-center text-slate-500">Loading market workspace…</div>}><MarketWorkspace view={activeTab} locationSearch={routeSearch} onNavigate={setActiveTab} tierLevel={user.tierLevel} onToast={showToast} recentTrades={RECENT_TRADES}
           brokers={brokers}
           onConnectBroker={(broker, symbol) => { setSelectedBrokerForConnect(broker); setBrokerContextSymbol(symbol); setIsConnectModalOpen(true); }}
           onCompareBrokers={() => setIsBrokerComparisonOpen(true)}

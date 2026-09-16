@@ -4,7 +4,7 @@ import { InstrumentDetail } from "./components/market/instrument-detail";
 import { TechnicalChartWorkspace } from "./components/charts/technical-chart-workspace";
 import { instruments, marketIndices } from "./data/mock-market";
 import type { Instrument, View, Visualization, Tier } from "./types";
-import type { Broker } from "../../types";
+import type { Broker, CashbackTrade } from "../../types";
 import { useRewards } from "../rewards/RewardProvider";
 import { MarketEngagement } from "./MarketEngagement";
 
@@ -15,6 +15,7 @@ export default function MarketWorkspace({
   onNavigate,
   onToast,
   brokers,
+  recentTrades,
   onConnectBroker,
   onCompareBrokers,
   onOpenRewards,
@@ -26,6 +27,7 @@ export default function MarketWorkspace({
   tierLevel: number;
   onToast: (message: string) => void;
   brokers: Broker[];
+  recentTrades: CashbackTrade[];
   onConnectBroker: (broker: Broker, symbol?: string) => void;
   onCompareBrokers: () => void;
   onOpenRewards: () => void;
@@ -132,6 +134,7 @@ export default function MarketWorkspace({
             watchlist={watchlist}
             toggleWatch={toggleWatch}
             toast={onToast}
+            recentTrades={recentTrades}
           />
         )}
         {(view === "instrument" || view === "chart") && hasSelectedInstrument && (

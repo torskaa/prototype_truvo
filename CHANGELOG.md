@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.2] - 2026-09-16
+
+### Added
+
+- Added a Level 3–4 Adaptive Pair-Trade suggestion panel to Correlation.
+- Suggestions use the latest recorded trade and current instrument confidence, require explicit review and confirmation, and never submit an order automatically.
+
 ## [1.5.1] - 2026-09-16
 
 ### Changed

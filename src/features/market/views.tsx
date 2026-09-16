@@ -269,7 +269,7 @@ function MarketHighlights({ openInstrument, market, currentResults }: { openInst
  </section>;
 }
 
-function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument, openIndex, watchlist, toggleWatch, toast }: { tier: Tier; rules: FilterRule[]; setRules: (r: FilterRule[]) => void; results: Instrument[]; viz: Visualization; setViz: (v: Visualization) => void; openInstrument: (i: Instrument) => void; openIndex: (index: MarketIndex) => void; watchlist: string[]; toggleWatch: (symbol: string) => void; toast: (s: string) => void }) {
+function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument, openIndex, watchlist, toggleWatch, toast, recentTrades }: { tier: Tier; rules: FilterRule[]; setRules: (r: FilterRule[]) => void; results: Instrument[]; viz: Visualization; setViz: (v: Visualization) => void; openInstrument: (i: Instrument) => void; openIndex: (index: MarketIndex) => void; watchlist: string[]; toggleWatch: (symbol: string) => void; toast: (s: string) => void; recentTrades: Array<{ symbol: string; type: 'BUY' | 'SELL'; broker: string; lots: number }> }) {
  const { requestQuest, requestUnlock, openBrokerAccess, compare, brokers } = useMarketEngagement();
  const { hasAccess, snapshot } = useRewards();
  const scatterUnlocked = hasAccess('advancedScreener');
@@ -359,12 +359,12 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
    </div>
    <div className="panel mt-3 min-h-95">
     {viz === 'Scatter' && !scatterUnlocked ? <div className="flex min-h-80 flex-col items-center justify-center gap-3 p-6 text-center"><Lock className="size-7 text-violet-500" /><h2 className="font-semibold text-slate-800">Advanced scatter research</h2><p className="max-w-md text-xs text-slate-500">Compare three dimensions with the existing scatter tool. Table, heatmap, exports, and guided research remain free.</p><button className="primary" onClick={() => requestUnlock('advancedScreener')}>Choose credit unlock</button></div> : market === 'Indices'
-    ? <>{viz === 'Table' && <IndicesPanel data={filteredIndices} open={openIndex} />}{viz === 'Heatmap' && <IndexHeatmap data={filteredIndices} open={openIndex} />}{viz === 'Scatter' && <IndexScatter data={filteredIndices} open={openIndex} />}{viz === 'Correlation' && <Correlation names={filteredIndices.map(index => index.symbol)} precisionUnlocked={precisionUnlocked} requestPrecisionUnlock={() => requestUnlock('signalPrecision')} />}</>
+    ? <>{viz === 'Table' && <IndicesPanel data={filteredIndices} open={openIndex} />}{viz === 'Heatmap' && <IndexHeatmap data={filteredIndices} open={openIndex} />}{viz === 'Scatter' && <IndexScatter data={filteredIndices} open={openIndex} />}{viz === 'Correlation' && <Correlation names={filteredIndices.map(index => index.symbol)} instruments={filteredIndices.map(indexAsInstrument)} recentTrades={recentTrades} userTierLevel={snapshot.level.level} precisionUnlocked={precisionUnlocked} requestPrecisionUnlock={() => requestUnlock('signalPrecision')} brokers={brokers} onToast={toast} />}</>
      : <>
       {viz === 'Table' && <InstrumentTable data={filtered} market={market} open={openInstrument} watchlist={watchlist} toggleWatch={toggleWatch} openBrokerAccess={openBrokerAccess} />}
       {viz === 'Heatmap' && <Heatmap data={filtered} market={market} open={openInstrument} brokers={brokers} userTierLevel={snapshot.level.level} precisionUnlocked={precisionUnlocked} />}
       {viz === 'Scatter' && <ScatterView data={filtered} market={market} open={openInstrument} brokers={brokers} userTierLevel={snapshot.level.level} precisionUnlocked={precisionUnlocked} />}
-      {viz === 'Correlation' && <Correlation names={filtered.map(instrument => instrument.symbol)} precisionUnlocked={precisionUnlocked} requestPrecisionUnlock={() => requestUnlock('signalPrecision')} brokers={brokers} />}
+      {viz === 'Correlation' && <Correlation names={filtered.map(instrument => instrument.symbol)} instruments={filtered} recentTrades={recentTrades} userTierLevel={snapshot.level.level} precisionUnlocked={precisionUnlocked} requestPrecisionUnlock={() => requestUnlock('signalPrecision')} brokers={brokers} onToast={toast} />}
      </>}
    </div>
    <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
@@ -656,12 +656,41 @@ function ScatterTooltip({ active, payload, xOption, yOption, sizeOption, brokers
  return <div className="rounded-lg border border-border bg-white p-3 text-[10px] shadow-lg"><b className="block text-xs text-slate-900">{point.symbol}</b><span className="mt-0.5 block text-[10px] text-slate-500">{point.name}</span><div className="mt-2 flex items-center justify-between gap-3 rounded bg-violet-50 px-2 py-1 text-[9px] font-semibold text-violet-700"><span>{point.signal ?? 'NEUTRAL'} · {point.confidence ?? 0}% confidence</span><span>Level {signalTier}</span></div>{detailsLocked ? <div className="mt-2 rounded border border-violet-100 bg-violet-50/60 px-2 py-2 text-[9px] font-semibold text-violet-700">Signal details require Level {signalTier} access.</div> : <><div className="mt-2 grid grid-cols-3 gap-1 border-b border-border pb-2 text-center"><div><span className="block text-slate-400">Target</span><b className="text-slate-700">{signalPrice}</b></div><div><span className="block text-slate-400">Entry</span><b className="text-slate-700">{signalPrice}</b></div><div><span className="block text-slate-400">Stop</span><b className="text-slate-700">{signalPrice}</b></div></div><div className="mt-2 space-y-1 text-slate-600"><div>Signal: <b>{signalAction}</b></div><div>Products: <b>{products}</b></div><div>Risk/Reward: <b>1:1.5</b></div><div>{xOption.label}: <b>{formatMetric(point.xValue ?? 0, xOption)}</b></div><div>{yOption.label}: <b>{formatMetric(point.yValue ?? 0, yOption)}</b></div><div>{sizeOption.label}: <b>{formatMetric(point.sizeValue ?? 0, sizeOption)}</b></div></div>{offer && <span className="mt-2 block rounded bg-violet-50 px-2 py-1 text-[9px] font-semibold text-violet-700">{offer.broker.name} · {offer.campaign} · 7d access</span>}</>}</div>;
 }
 
-function Correlation({ names, precisionUnlocked, requestPrecisionUnlock, brokers }: { names: string[]; precisionUnlocked: boolean; requestPrecisionUnlock: () => void; brokers: Broker[] }) {
+function Correlation({ names, instruments, recentTrades, userTierLevel, precisionUnlocked, requestPrecisionUnlock, brokers, onToast }: { names: string[]; instruments: Instrument[]; recentTrades: Array<{ symbol: string; type: 'BUY' | 'SELL'; broker: string; lots: number }>; userTierLevel: number; precisionUnlocked: boolean; requestPrecisionUnlock: () => void; brokers: Broker[]; onToast: (message: string) => void }) {
  const displayNames = names.length >= 2 ? names.slice(0, 20) : ['No match', 'No match'];
  const offer = names.map(name => symbolOffer(name, brokers)).find(Boolean);
+ const [reviewChecked, setReviewChecked] = useState(false);
+ const [pairConfirmed, setPairConfirmed] = useState(false);
+ const latestTrade = recentTrades[0];
+ const tradeBase = latestTrade?.symbol.split('/')[0].toUpperCase();
+ const primary = instruments.find(instrument => instrument.symbol.toUpperCase() === latestTrade?.symbol.toUpperCase() || instrument.symbol.toUpperCase().startsWith(`${tradeBase}/`)) ?? instruments[0];
+ const secondary = instruments.filter(instrument => instrument.symbol !== primary?.symbol).sort((left, right) => right.confidence - left.confidence)[0];
+ const pairConfidence = primary && secondary ? clampSignalConfidence((primary.confidence + secondary.confidence) / 2) : 70;
+ const pairTier = signalTierForConfidence(pairConfidence);
+ const pairLocked = !precisionUnlocked && pairTier > userTierLevel;
+ const pairProduct = primary ? availableSignalProducts(primary)[0] : 'CFD';
+ const pairAction = primary?.signal === 'LONG' ? 'BUY' : 'SELL';
+ const pairLabel = primary && secondary ? `${primary.symbol} / ${secondary.symbol}` : 'Select two instruments';
+ const confirmPair = () => {
+   if (!reviewChecked || pairLocked || !primary || !secondary) return;
+   setPairConfirmed(true);
+   onToast(`Pair trade draft confirmed for ${pairLabel}. No order was placed.`);
+ };
  return (
   <div className="p-6">
    <div className="mb-4 flex flex-wrap items-center justify-between gap-2"><div><p className="label">Adaptive correlation</p><p className="mt-1 text-[10px] text-slate-400">Derived from the current market, venue, sector, and filter selection.</p><p className="mt-1 text-[10px] text-slate-500">High-significance dynamics over ±60% require High-precision signals access.</p>{offer && <p className="mt-1 text-[10px] font-semibold text-violet-700">{offer.broker.name} · {offer.campaign} · unlock 7 days</p>}</div><div className="flex items-center gap-2"><span className="badge">{names.length} matches · showing {Math.min(names.length, 20)}×{Math.min(names.length, 20)}</span>{!precisionUnlocked && <button className="secondary px-2 py-1 text-[9px]" onClick={requestPrecisionUnlock}><Lock className="mr-1 inline size-2.5" />Unlock ±60%</button>}</div></div>
+   <section className="mb-4 rounded-xl border border-violet-200 bg-gradient-to-r from-violet-50 via-white to-amber-50 p-4">
+    <div className="flex flex-wrap items-start justify-between gap-3">
+     <div><p className="text-[9px] font-bold uppercase tracking-[.16em] text-violet-600">Advanced user tool · Level 3–4</p><h2 className="mt-1 text-sm font-semibold text-slate-900">Adaptive pair-trade suggestion</h2><p className="mt-1 max-w-2xl text-[10px] text-slate-500">Aligns the latest trade bias with the strongest current instrument relationship. This creates a reviewable draft only; it never submits an order.</p></div>
+     {userTierLevel < 3 && <button className="secondary px-2 py-1 text-[9px]" onClick={requestPrecisionUnlock}><Lock className="mr-1 inline size-2.5" />Requires Level 3</button>}
+    </div>
+    {userTierLevel < 3 ? <p className="mt-3 rounded-lg border border-violet-100 bg-white/70 px-3 py-2 text-[10px] font-semibold text-violet-700">Reach Level 3 to generate a pair suggestion from your last trade.</p> : primary && secondary ? <div className="mt-3 rounded-lg border border-white bg-white/80 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2"><div><span className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">Suggested pair</span><b className="mt-1 block text-base text-slate-900">{pairLabel}</b><span className="text-[10px] text-slate-500">Latest trade: {latestTrade?.type ?? 'BUY'} {latestTrade?.symbol ?? 'market bias'} · {latestTrade?.broker ?? 'connected broker'}</span></div><div className="text-right"><b className="block text-lg text-violet-700">{pairConfidence}%</b><span className="text-[9px] font-semibold text-slate-500">Level {pairTier} signal</span></div></div>
+      <div className="mt-3 grid gap-2 text-[10px] text-slate-600 sm:grid-cols-4"><div className="rounded border border-slate-100 bg-slate-50 px-2 py-1.5"><span className="block text-slate-400">Action</span><b>{pairAction}</b></div><div className="rounded border border-slate-100 bg-slate-50 px-2 py-1.5"><span className="block text-slate-400">Product</span><b>{pairProduct}</b></div><div className="rounded border border-slate-100 bg-slate-50 px-2 py-1.5"><span className="block text-slate-400">Risk / reward</span><b>1:1.5</b></div><div className="rounded border border-slate-100 bg-slate-50 px-2 py-1.5"><span className="block text-slate-400">Signal access</span><b>{pairLocked ? `Level ${pairTier} required` : 'Available'}</b></div></div>
+      <label className="mt-3 flex items-start gap-2 text-[10px] text-slate-600"><input type="checkbox" checked={reviewChecked} onChange={event => { setReviewChecked(event.target.checked); setPairConfirmed(false); }} className="mt-0.5 accent-violet-600" /><span>I reviewed the pair, product, direction, confidence, and risk/reward. Prepare this draft for my confirmation.</span></label>
+      <div className="mt-3 flex flex-wrap items-center gap-2"><button className="primary px-3 py-1.5 text-[10px]" disabled={!reviewChecked || pairLocked || pairConfirmed} onClick={confirmPair}>{pairConfirmed ? 'Draft confirmed · no order placed' : pairLocked ? `Unlock Level ${pairTier} signal` : 'Confirm pair-trade draft'}</button>{pairConfirmed && <span className="text-[10px] font-semibold text-emerald-700">Ready for manual broker review.</span>}</div>
+    </div> : <p className="mt-3 rounded-lg border border-slate-100 bg-white/70 px-3 py-2 text-[10px] text-slate-500">Apply at least two matching instruments to generate a pair suggestion.</p>}
+   </section>
   <div className="max-h-150 overflow-auto"><div className="grid min-w-225 gap-1 text-center text-[10px]" style={{ gridTemplateColumns: `repeat(${displayNames.length + 1}, minmax(38px, 1fr))` }}>
     <div />{displayNames.map(n => <b key={n} className="p-2 text-slate-900">{n}</b>)}
     {displayNames.map((r, ri) => (
