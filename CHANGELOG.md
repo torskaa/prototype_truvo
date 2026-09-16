@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.8] - 2026-09-16
+
+### Changed
+
+- Moved Lots, Stop loss %, and Take profit % into each recommended symbol card.
+- Main and pair legs now keep independent position sizing and risk settings for separate setups such as EUR/USD and AMZN.
+- Included both leg lot values in draft confirmation and broker-queue messages.
+
 ## [1.5.7] - 2026-09-16
 
 ### Changed
