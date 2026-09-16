@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.43] - 2026-09-16
+
+### Changed
+
+- Expanded the symbol-specific CFD partner table with six available demo partner options.
+
 ## [1.5.42] - 2026-09-16
 
 ### Changed

@@ -4204,9 +4204,30 @@ function ProductsAndBrokersTable({
   setProduct: (product: ProductType) => void;
   brokers: Broker[];
 }) {
-  const matchedBrokers = brokers.filter((broker) =>
-    broker.products.includes(product),
-  );
+  const generatedCfdPartners: Broker[] = [
+    ["XM", "Global CFD partner", "From 0.08%", "$5", "MT4 / MT5"],
+    ["HFM", "Multi-asset CFD partner", "From 0.09%", "$5", "MT4 / MT5 / Web"],
+    ["Exness", "Global CFD partner", "From 0.07%", "$10", "MT4 / MT5 / Web"],
+    ["Pepperstone", "Regulated CFD partner", "From 0.06%", "$10", "MT4 / MT5 / cTrader"],
+    ["IC Markets", "Raw spread CFD partner", "From 0.05%", "$200", "MT4 / MT5 / cTrader"],
+    ["Fx Pro", "Multi-asset CFD partner", "From 0.10%", "$100", "FxPro Edge / MT5"],
+  ].map(([name, venue, spread, minimum, platform]) => ({
+    name,
+    venue,
+    products: ["CFD"],
+    symbols: [instrument.symbol],
+    status: "Available",
+    spread,
+    minimum,
+    platform,
+    commission: "Partner terms apply",
+    execution: "Demo market execution",
+    details: `${name} CFD access for ${instrument.symbol}; verify regional eligibility, costs, and account terms before connecting.`,
+  }));
+  const matchedBrokers =
+    product === "CFD"
+      ? generatedCfdPartners
+      : brokers.filter((broker) => broker.products.includes(product));
   const productDetails: Record<ProductType, string> = {
     Spot: "Buy or sell the underlying asset for direct settlement.",
     Share: "Whole-share ownership with standard equity market access.",
