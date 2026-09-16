@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.92] - 2026-09-16
+
+### Changed
+
+- Restored the Crypto Products & broker access table to the pre-coverage-edit layout with one current pair symbol.
+
 ## [1.4.91] - 2026-09-16
 
 ### Changed
