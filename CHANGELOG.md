@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.88] - 2026-09-16
+
+### Changed
+
+- Moved the Crypto pair into a dedicated Pair column in the broker comparison table and removed the header Pair/Broker badges.
+
 ## [1.4.87] - 2026-09-16
 
 ### Changed
