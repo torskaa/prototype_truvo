@@ -3644,7 +3644,7 @@ function Forecast({
               >
                 <b className={`block truncate ${color}`}>{scenario.author}</b>
                 <span className="mt-0.5 block text-[8px] font-semibold text-slate-500">
-                  {scenario.communityVote}% community vote
+                  Vote: Agree {scenario.communityVote}% · Disagree {100 - scenario.communityVote}% · {scenario.voteSide === "Bullish" ? "Long" : "Short"}
                 </span>
               </button>
               );

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.30] - 2026-09-16
+
+### Changed
+
+- Added Agree/Disagree vote percentages and Long/Short direction to Forecast scenario callouts.
+
 ## [1.5.29] - 2026-09-16
 
 ### Changed
