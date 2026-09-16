@@ -4289,9 +4289,6 @@ function ProductsAndBrokersTable({
         <table className="w-full table-fixed text-left text-[9px]">
           <thead className="bg-slate-50 text-slate-500">
             <tr>
-              {instrument.market === "Crypto" && (
-                <th className="px-4 py-3">Pair</th>
-              )}
               <th className="px-5 py-3">Product</th>
               <th className="px-4 py-3">Broker</th>
               <th className="px-4 py-3">Spread</th>
@@ -4408,9 +4405,6 @@ function CryptoBrokerRows({
             window.location.href = "?view=brokers";
           }}
         >
-          <td className="w-[11%] px-2 py-3 font-mono font-semibold text-slate-900">
-            {row.pair}
-          </td>
           <td className="w-[11%] px-2 py-3 font-semibold text-violet-700">
             {row.pair}
           </td>

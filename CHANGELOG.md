@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.45] - 2026-09-16
+
+### Changed
+
+- Removed the crypto-only Pair column so CFD tables use a consistent symbol-only Product column.
+
 ## [1.5.44] - 2026-09-16
 
 ### Changed
