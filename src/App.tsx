@@ -50,6 +50,7 @@ import { SignalDetailModal } from './components/SignalDetailModal';
 import { CashbackLedgerModal } from './components/CashbackLedgerModal';
 import { BrokerComparisonModal } from './components/BrokerComparisonModal';
 import { SearchModal } from './components/SearchModal';
+import { MarketAISuggestion } from './components/MarketAISuggestion';
 import { Coins, Sparkles, Trophy, Zap, Shield, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { RewardProvider, useRewards } from './features/rewards/RewardProvider';
 
@@ -619,6 +620,13 @@ function Application() {
 
       {/* Footer Matching Reference */}
       <Footer />
+
+      <MarketAISuggestion
+        key={`${activeTab}-${new URLSearchParams(routeSearch).get('symbol') ?? 'market'}`}
+        activeTab={activeTab}
+        routeSearch={routeSearch}
+        tierLevel={snapshot.level.level}
+      />
 
       {/* Modals */}
       <ConnectBrokerModal

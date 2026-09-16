@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.15] - 2026-09-16
+
+### Added
+
+- Added a bottom-right AI market suggestion chat box with context-aware quick prompts and grounded demo-market responses.
+
 ## [1.5.14] - 2026-09-16
 
 ### Changed
