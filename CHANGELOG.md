@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.89] - 2026-09-16
+
+### Changed
+
+- Expanded Crypto broker rows to show a deterministic 5–10 pair coverage set for each active product filter.
+
 ## [1.4.88] - 2026-09-16
 
 ### Changed

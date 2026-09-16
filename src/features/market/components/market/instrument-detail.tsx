@@ -75,12 +75,58 @@ type Broker = {
   details?: string;
 };
 
+const cryptoPairUniverse = [
+  "BTC/USD",
+  "ETH/USD",
+  "SOL/USD",
+  "XRP/USD",
+  "ADA/USD",
+  "DOGE/USD",
+  "AVAX/USD",
+  "LINK/USD",
+  "DOT/USD",
+  "MATIC/USD",
+];
+
+const cryptoPairSeed = (value: string) =>
+  [...value].reduce((total, character) => (total * 31 + character.charCodeAt(0)) % 997, 7);
+
+const cryptoPairsForBroker = (
+  instrumentSymbol: string,
+  product: ProductType,
+  broker: Broker,
+) => {
+  const supportedPairs = [...new Set(
+    broker.symbols.filter((symbol) => cryptoPairUniverse.includes(symbol)),
+  )];
+  const orderedPairs = supportedPairs.sort(
+    (left, right) =>
+      cryptoPairSeed(`${product}-${broker.name}-${left}`) -
+      cryptoPairSeed(`${product}-${broker.name}-${right}`),
+  );
+  const pairCount = Math.min(
+    orderedPairs.length,
+    5 + (cryptoPairSeed(`${product}-${broker.name}-${instrumentSymbol}`) % 6),
+  );
+  return [
+    instrumentSymbol,
+    ...orderedPairs.filter((symbol) => symbol !== instrumentSymbol),
+  ].slice(0, pairCount);
+};
+
 const brokers: Broker[] = [
   {
     name: "Marketsyde Demo",
     venue: "Multi-asset gateway",
     products: ["Share", "Fractional share", "FX spot", "CFD", "Future", "Spot"],
-    symbols: ["AAPL", "NVDA", "EUR/USD", "BTC/USD", "XAU/USD", "SPX"],
+    symbols: [
+      "AAPL",
+      "NVDA",
+      "EUR/USD",
+      "XAU/USD",
+      "SPX",
+      ...cryptoPairUniverse,
+    ],
     status: "Available",
     spread: "Demo quote",
     minimum: "$0",
@@ -144,7 +190,7 @@ const brokers: Broker[] = [
     name: "Atlas Exchange",
     venue: "Digital asset venue demo",
     products: ["Spot", "Perpetual"],
-    symbols: ["BTC/USD", "ETH/USD", "SOL/USD"],
+    symbols: cryptoPairUniverse,
     status: "Requires account",
     spread: "From 0.04%",
     minimum: "$10",
@@ -3877,8 +3923,19 @@ function ProductsAndBrokersTable({
                 }}
               >
                 {instrument.market === "Crypto" && (
-                  <td className="w-[11%] px-2 py-3 font-mono font-semibold text-slate-900">
-                    {instrument.symbol}
+                  <td className="w-[18%] px-2 py-3 font-mono font-semibold text-slate-900">
+                    <div className="flex flex-wrap gap-1">
+                      {cryptoPairsForBroker(instrument.symbol, product, broker).map(
+                        (pair) => (
+                          <span
+                            key={pair}
+                            className={`rounded px-1 py-0.5 text-[8px] ${pair === instrument.symbol ? "bg-violet-100 text-violet-700" : "bg-slate-100 text-slate-600"}`}
+                          >
+                            {pair}
+                          </span>
+                        ),
+                      )}
+                    </div>
                   </td>
                 )}
                 <td className="w-[11%] px-2 py-3 font-semibold text-violet-700">
