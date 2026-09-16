@@ -360,7 +360,7 @@ function Screener({ tier, rules, setRules, results, viz, setViz, openInstrument,
     {viz === 'Scatter' && !scatterUnlocked ? <div className="flex min-h-80 flex-col items-center justify-center gap-3 p-6 text-center"><Lock className="size-7 text-violet-500" /><h2 className="font-semibold text-slate-800">Advanced scatter research</h2><p className="max-w-md text-xs text-slate-500">Compare three dimensions with the existing scatter tool. Table, heatmap, exports, and guided research remain free.</p><button className="primary" onClick={() => requestUnlock('advancedScreener')}>Choose credit unlock</button></div> : market === 'Indices'
     ? <>{viz === 'Table' && <IndicesPanel data={filteredIndices} open={openIndex} />}{viz === 'Heatmap' && <IndexHeatmap data={filteredIndices} open={openIndex} />}{viz === 'Scatter' && <IndexScatter data={filteredIndices} open={openIndex} />}{viz === 'Correlation' && <Correlation names={filteredIndices.map(index => index.symbol)} precisionUnlocked={precisionUnlocked} requestPrecisionUnlock={() => requestUnlock('signalPrecision')} />}</>
      : <>
-      {viz === 'Table' && <InstrumentTable data={filtered} open={openInstrument} watchlist={watchlist} toggleWatch={toggleWatch} openBrokerAccess={openBrokerAccess} />}
+      {viz === 'Table' && <InstrumentTable data={filtered} market={market} open={openInstrument} watchlist={watchlist} toggleWatch={toggleWatch} openBrokerAccess={openBrokerAccess} />}
       {viz === 'Heatmap' && <Heatmap data={filtered} market={market} open={openInstrument} brokers={brokers} />}
       {viz === 'Scatter' && <ScatterView data={filtered} market={market} open={openInstrument} brokers={brokers} />}
       {viz === 'Correlation' && <Correlation names={filtered.map(instrument => instrument.symbol)} precisionUnlocked={precisionUnlocked} requestPrecisionUnlock={() => requestUnlock('signalPrecision')} brokers={brokers} />}
@@ -390,7 +390,7 @@ function SortHeader({ label, active, dir, onClick }: { label: string; active: bo
  return <button onClick={onClick} className="flex items-center gap-1 hover:text-slate-700">{label}{active && <span className="text-violet-600">{dir === 1 ? '▲' : '▼'}</span>}</button>;
 }
 
-function InstrumentTable({ data, open, watchlist, toggleWatch, openBrokerAccess }: { data: Instrument[]; open: (i: Instrument) => void; watchlist?: string[]; toggleWatch?: (symbol: string) => void; openBrokerAccess?: () => void }) {
+function InstrumentTable({ data, market, open, watchlist, toggleWatch, openBrokerAccess }: { data: Instrument[]; market?: MarketFilter; open: (i: Instrument) => void; watchlist?: string[]; toggleWatch?: (symbol: string) => void; openBrokerAccess?: () => void }) {
  const [sort, setSort] = useState<{ key: InstrumentSortKey; dir: 1 | -1 } | null>(null);
  const sorted = useMemo(() => {
   if (!sort) return data;
@@ -406,7 +406,7 @@ function InstrumentTable({ data, open, watchlist, toggleWatch, openBrokerAccess 
      <tr key={i.symbol} className="group" onClick={() => open(i)}>
       {toggleWatch && <td><button aria-label={`${watchlist?.includes(i.symbol) ? 'Remove' : 'Add'} ${i.symbol} ${watchlist?.includes(i.symbol) ? 'from' : 'to'} watchlist`} onClick={event => { event.stopPropagation(); toggleWatch(i.symbol); }} className={`grid size-7 place-items-center rounded-lg border ${watchlist?.includes(i.symbol) ? 'border-violet-200 bg-violet-50 text-violet-700' : 'border-border text-slate-400 hover:bg-slate-50'}`}><Star className={`size-3.5 ${watchlist?.includes(i.symbol) ? 'fill-violet-600' : ''}`} /></button></td>}
       <td><span className="instrument-logo" aria-label={`${i.name} logo`}>{i.symbol.slice(0, 2).toUpperCase()}</span></td>
-      <td><b className="text-slate-900">{i.symbol}</b></td>
+      <td><b className="text-slate-900">{market === 'Crypto' ? i.symbol.split('/')[0] : i.symbol}</b></td>
       <td className="mono"><div className="flex items-center gap-2"><span>{i.price.toLocaleString()}</span>{openBrokerAccess && <button type="button" className={`secondary px-2 py-1 text-[9px] ${i.signal === 'LONG' ? 'text-emerald-700' : 'text-rose-700'}`} onClick={event => { event.stopPropagation(); openBrokerAccess(); }}>{i.signal === 'LONG' ? 'Buy' : 'Sell'}</button>}</div></td>
       <td className={i.change >= 0 ? 'up' : 'down'}>{i.change > 0 ? '+' : ''}{i.change}%</td>
       <td className={i.return1m >= 0 ? 'up' : 'down'}>{i.return1m}%</td>

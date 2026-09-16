@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.86] - 2026-09-16
+
+### Changed
+
+- Display Crypto screener symbols as base coins, such as `BTC` instead of `BTC/USD`.
+
 ## [1.4.85] - 2026-09-16
 
 ### Changed
