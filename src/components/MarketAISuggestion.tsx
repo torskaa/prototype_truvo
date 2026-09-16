@@ -2,12 +2,17 @@ import { useMemo, useState, type FormEvent } from "react";
 import {
   Bot,
   ChevronDown,
+  Crosshair,
+  LineChart,
+  Lock,
+  Newspaper,
   Send,
   Sparkles,
   UserRound,
   X,
 } from "lucide-react";
 import { instruments } from "../features/market/data/mock-market";
+import type { CashbackTrade } from "../types";
 
 type ChatMessage = {
   id: number;
@@ -19,6 +24,8 @@ type MarketAISuggestionProps = {
   activeTab: string;
   routeSearch: string;
   tierLevel: number;
+  recentTrades: CashbackTrade[];
+  onNavigate: (view: string, symbol?: string) => void;
 };
 
 const quickPrompts = [
@@ -31,6 +38,8 @@ export function MarketAISuggestion({
   activeTab,
   routeSearch,
   tierLevel,
+  recentTrades,
+  onNavigate,
 }: MarketAISuggestionProps) {
   const symbol = useMemo(
     () => new URLSearchParams(routeSearch).get("symbol"),
@@ -41,6 +50,25 @@ export function MarketAISuggestion({
     (a, b) => b.confidence - a.confidence,
   )[0];
   const contextInstrument = instrument ?? topInstrument;
+  const tradeContext = recentTrades.map((trade) => ({
+    trade,
+    instrument: instruments.find(
+      (item) =>
+        item.symbol === trade.symbol ||
+        item.symbol === trade.symbol.replace("/USDT", "/USD"),
+    ),
+  }));
+  const focusTrade =
+    tradeContext.find((item) => item.instrument?.symbol === symbol)?.trade ??
+    tradeContext[0]?.trade;
+  const focusInstrument =
+    tradeContext.find((item) => item.trade.id === focusTrade?.id)?.instrument ??
+    contextInstrument;
+  const precisionInstrument =
+    tradeContext
+      .map((item) => item.instrument)
+      .filter((item): item is NonNullable<typeof item> => !!item)
+      .sort((a, b) => b.confidence - a.confidence)[0] ?? contextInstrument;
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -70,6 +98,48 @@ export function MarketAISuggestion({
       return `${signal}. The strongest follow-up is to validate the signal with relative volume and a related market rather than relying on confidence alone.`;
     }
     return `I’m looking at ${contextLabel}. ${signal}. Ask me about the signal, risks, or the next research step and I’ll keep the answer tied to the visible demo market data.`;
+  };
+
+  const addAssistantMessage = (text: string) => {
+    setMessages((current) => [
+      ...current,
+      { id: Date.now(), role: "assistant", text },
+    ]);
+  };
+
+  const runGuidedOption = (option: "data" | "news" | "precision") => {
+    const target = focusInstrument ?? contextInstrument;
+    const targetSymbol = target?.symbol ?? focusTrade?.symbol;
+    if (!targetSymbol) {
+      addAssistantMessage("I could not match a recent trade to the available market data.");
+      return;
+    }
+
+    if (option === "data") {
+      onNavigate("instrument", targetSymbol);
+      addAssistantMessage(
+        `${targetSymbol} is ${target?.signal ?? "being monitored"} at ${target?.confidence ?? "—"}% confidence. Scenario idea: compare its current move with relative volume and define the price that would invalidate the setup.`,
+      );
+      return;
+    }
+    if (option === "news") {
+      onNavigate("instrument", targetSymbol);
+      addAssistantMessage(
+        `Trade-linked news brief for ${targetSymbol}: review company, macro, and sector headlines around the position before changing direction. The visible demo feed is context only, so verify the original source and timestamp.`,
+      );
+      return;
+    }
+    if (tierLevel < 3) {
+      addAssistantMessage(
+        `High-precision signal selection starts at Level 3. Your recent ${focusTrade?.type ?? "BUY"} record for ${targetSymbol} is still available for market-data research.`,
+      );
+      return;
+    }
+    const precisionTarget = precisionInstrument ?? target;
+    onNavigate("signals", precisionTarget?.symbol ?? targetSymbol);
+    addAssistantMessage(
+      `I selected ${precisionTarget?.symbol ?? targetSymbol} as the highest-confidence signal matched to your recent trade set at ${precisionTarget?.confidence ?? "—"}%. Validate entry, stop, target, and timeframe before taking action.`,
+    );
   };
 
   const ask = (question: string) => {
@@ -147,6 +217,76 @@ export function MarketAISuggestion({
             against the underlying market data.
           </div>
         )}
+        {recentTrades.length > 0 && (
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
+              Recent trade context
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {recentTrades.slice(0, 4).map((trade) => (
+                <span
+                  key={trade.id}
+                  className="rounded-full bg-white px-2 py-1 text-[9px] font-semibold text-slate-600"
+                >
+                  {trade.type} {trade.symbol}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="grid gap-1.5">
+          <button
+            type="button"
+            onClick={() => runGuidedOption("data")}
+            className="flex items-center gap-2 rounded-xl border border-violet-100 bg-white p-2.5 text-left hover:border-violet-300 hover:bg-violet-50/50"
+          >
+            <LineChart className="size-4 shrink-0 text-violet-600" />
+            <span>
+              <b className="block text-[10px] text-slate-800">
+                Navigate to data and scenario
+              </b>
+              <small className="text-[9px] text-slate-500">
+                Explain what changed around your latest trade.
+              </small>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => runGuidedOption("news")}
+            className="flex items-center gap-2 rounded-xl border border-violet-100 bg-white p-2.5 text-left hover:border-violet-300 hover:bg-violet-50/50"
+          >
+            <Newspaper className="size-4 shrink-0 text-violet-600" />
+            <span>
+              <b className="block text-[10px] text-slate-800">
+                Trade-linked news update
+              </b>
+              <small className="text-[9px] text-slate-500">
+                Focus the news context on your recorded symbols.
+              </small>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => runGuidedOption("precision")}
+            className="flex items-center gap-2 rounded-xl border border-violet-100 bg-white p-2.5 text-left hover:border-violet-300 hover:bg-violet-50/50"
+          >
+            {tierLevel < 3 ? (
+              <Lock className="size-4 shrink-0 text-slate-400" />
+            ) : (
+              <Crosshair className="size-4 shrink-0 text-violet-600" />
+            )}
+            <span>
+              <b className="block text-[10px] text-slate-800">
+                Select high-precision signal
+              </b>
+              <small className="text-[9px] text-slate-500">
+                {tierLevel < 3
+                  ? "Requires Level 3 access."
+                  : "Match the strongest signal to your trade record."}
+              </small>
+            </span>
+          </button>
+        </div>
         {messages.map((message) => (
           <div
             key={message.id}

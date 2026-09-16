@@ -622,10 +622,11 @@ function Application() {
       <Footer />
 
       <MarketAISuggestion
-        key={`${activeTab}-${new URLSearchParams(routeSearch).get('symbol') ?? 'market'}`}
         activeTab={activeTab}
         routeSearch={routeSearch}
         tierLevel={snapshot.level.level}
+        recentTrades={RECENT_TRADES}
+        onNavigate={setActiveTab}
       />
 
       {/* Modals */}

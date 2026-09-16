@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.16] - 2026-09-16
+
+### Added
+
+- Connected AI market suggestions to recent trade records with guided market-data, trade-linked news, scenario, and high-precision signal actions.
+
 ## [1.5.15] - 2026-09-16
 
 ### Added
