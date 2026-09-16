@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.84] - 2026-09-16
+
+### Changed
+
+- Added the signal-driven Buy/Sell broker action to each screener price cell.
+
 ## [1.4.83] - 2026-09-16
 
 ### Changed

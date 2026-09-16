@@ -147,7 +147,7 @@ function Explorer({ navigate, openInstrument }: { navigate: (v: View) => void; o
    <div className="mt-4 grid grid-cols-[minmax(0,1fr)_340px] gap-4 max-xl:grid-cols-1">
     <div className="panel">
     <div className="panel-head"><div><b className="text-sm text-slate-900">Opportunity radar</b><p>{visibleInstruments.length} matched · high volume + pullback strength</p></div><button onClick={() => navigate('screener')} className="primary"><Filter />Open screener</button></div>
-    <InstrumentTable data={visibleInstruments.slice(0, 6)} open={openInstrument} />
+    <InstrumentTable data={visibleInstruments.slice(0, 6)} open={openInstrument} brokers={brokers} openBrokerAccess={openBrokerAccess} />
     </div>
     <VolumeFlowPanel currentMarket="All" currentResults={visibleInstruments} />
    </div>
@@ -409,7 +409,7 @@ function InstrumentTable({ data, open, watchlist, toggleWatch, brokers, openBrok
       {toggleWatch && <td><button aria-label={`${watchlist?.includes(i.symbol) ? 'Remove' : 'Add'} ${i.symbol} ${watchlist?.includes(i.symbol) ? 'from' : 'to'} watchlist`} onClick={event => { event.stopPropagation(); toggleWatch(i.symbol); }} className={`grid size-7 place-items-center rounded-lg border ${watchlist?.includes(i.symbol) ? 'border-violet-200 bg-violet-50 text-violet-700' : 'border-border text-slate-400 hover:bg-slate-50'}`}><Star className={`size-3.5 ${watchlist?.includes(i.symbol) ? 'fill-violet-600' : ''}`} /></button></td>}
       <td><span className="instrument-logo" aria-label={`${i.name} logo`}>{i.symbol.slice(0, 2).toUpperCase()}</span></td>
       <td className="relative"><b className="text-slate-900">{i.symbol}</b>{(() => { const tags = campaignTags(i.symbol); return <div className="campaign-hover-card invisible opacity-0 transition group-hover:visible group-hover:opacity-100">{tags.length > 0 && <div className="mb-1 flex flex-wrap gap-1">{tags.map((tag, tagIndex) => <span key={tag} className={`rounded px-1.5 py-0.5 text-[8px] font-semibold ${tagIndex === 0 ? 'bg-violet-100 text-violet-700' : tagIndex === 1 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{tag}</span>)}</div>}<div className="flex gap-1"><button className="secondary px-2 py-1 text-[9px] text-emerald-700" onClick={event => { event.stopPropagation(); setTradeSide('Buy'); openBrokerAccess?.(); }}>Buy</button><button className="secondary px-2 py-1 text-[9px] text-rose-700" onClick={event => { event.stopPropagation(); setTradeSide('Sell'); openBrokerAccess?.(); }}>Sell</button></div></div>; })()}</td>
-      <td className="mono">{i.price.toLocaleString()}</td>
+      <td className="mono"><div className="flex items-center gap-2"><span>{i.price.toLocaleString()}</span>{openBrokerAccess && <button type="button" className={`secondary px-2 py-1 text-[9px] ${i.signal === 'LONG' ? 'text-emerald-700' : 'text-rose-700'}`} onClick={event => { event.stopPropagation(); openBrokerAccess(); }}>{i.signal === 'LONG' ? 'Buy' : 'Sell'}</button>}</div></td>
       <td className={i.change >= 0 ? 'up' : 'down'}>{i.change > 0 ? '+' : ''}{i.change}%</td>
       <td className={i.return1m >= 0 ? 'up' : 'down'}>{i.return1m}%</td>
       <td>{i.rvol.toFixed(2)}</td>
