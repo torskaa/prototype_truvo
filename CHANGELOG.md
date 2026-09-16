@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.5] - 2026-09-16
+
+### Changed
+
+- Moved the Adaptive Pair-Trade tool header to the top of the Correlation experience.
+- Replaced fixed action, product, risk/reward, and signal summary cards with editable benchmark and trade setup controls initialized from the latest trade.
+- Included the customized setup in pair-draft confirmation and connected-broker queue messages while retaining calculated access-tier gating.
+
 ## [1.5.4] - 2026-09-16
 
 ### Changed
