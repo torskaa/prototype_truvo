@@ -1,0 +1,48 @@
+Area,Feature,Level 1,Level 2,Level 3,Level 4,Lock behavior or notes
+Core,Market overview,Available,Available,Available,Available,No lock
+Core,Basic instrument analysis,Available,Available,Available,Available,No lock
+Core,24H data,Available,Available,Available,Available,No lock
+Core,Fear and Greed,Available,Available,Available,Available,No lock
+Core,Historical data,Locked,7D,30D,1Y+,Timeframes are gated by required tier
+Core,Market screener,Basic,Advanced,Pro,Full,Capability increases by tier
+Core,Heatmap,Locked,Available,Available,Available,Requires Level 2
+Core,Scatter,Locked,Locked,Available,Available,Requires Level 3
+Core,Correlation,Locked,Locked,Available,Available,Requires Level 3
+Core,Advanced filters,Locked,Available,Available,Available,Requires Level 2
+Core,Saved screeners,Locked,Available,Available,Unlimited,Capability increases by tier
+Core,Alerts,Basic,Advanced,Multi-condition,Smart,Capability increases by tier
+Core,Watchlists,5 symbols,20 symbols,Unlimited,Unlimited,Limit enforced when adding symbols
+Core,Broker comparison,Basic,Advanced,Pro,Full,Capability increases by tier
+Core,Broker offers,Basic,Available,Available,Exclusive,Capability increases by tier
+Core,Trading calculator,Basic,Advanced,Pro,Full,Capability increases by tier
+Core,Data export,Locked,CSV,Advanced,API,Requires Level 2 for export
+Core,Custom dashboard,Locked,Locked,Available,Available,Requires Level 3
+Core,Priority features,Locked,Locked,Available,Available,Requires Level 3
+Instrument,Research news filter,Locked,Locked,Locked,Available,Requires Level 4; blurred/locked control
+Instrument,Advanced chart,Locked,Available,Available,Available,Requires Level 2; locked control
+Instrument,Performance 1D,Available,Available,Available,Available,Requires Level 1
+Instrument,Performance 1W,Locked,Available,Available,Available,Requires Level 2
+Instrument,Performance 1M,Locked,Locked,Available,Available,Requires Level 3
+Instrument,Performance 1Y,Locked,Locked,Locked,Available,Requires Level 4
+Instrument,Technical interval 1 minute,Locked,Locked,Available,Available,Requires Level 3; disabled control
+Instrument,Technical interval 5 minutes,Locked,Locked,Available,Available,Requires Level 3; disabled control
+Instrument,Technical interval 15 minutes,Locked,Locked,Available,Available,Requires Level 3; disabled control
+Instrument,Technical interval 30 minutes,Locked,Locked,Available,Available,Requires Level 3; disabled control
+Instrument,Technical intervals 1 hour through 1 day,Available,Available,Available,Available,No lock
+Instrument,Technical interval 1 week,Locked,Available,Available,Available,Requires Level 2; disabled control
+Instrument,Technical interval 1 month,Locked,Locked,Available,Available,Requires Level 3; disabled control
+Instrument,Oscillator tools,5 visible,7 visible,All visible,All visible,Lower tiers see remaining rows blurred
+Instrument,Moving average tools,5 visible,7 visible,All visible,All visible,Lower tiers see remaining rows blurred
+Instrument,Technical period inputs,Locked,Locked,Editable,Editable,Inputs remain visible but disabled below Level 3
+Instrument,Remove and restore technical tools,Locked,Locked,Available,Available,Remove controls and restore area require Level 3
+Instrument,Custom technical parameters,Locked,Locked,Available,Available,Custom parameter controls require Level 3
+Community,Weekly community vote,Available,Available,Available,Available,One vote per symbol every 7 days
+Community,Vote timeline 2W,Available,Available,Available,Available,Available to all levels
+Community,Vote timeline 1M,Locked,Available,Available,Available,Requires Level 2
+Financial,Financial analysis,Locked,Locked,Available,Available,Requires Level 3; locked panel state
+Visualization,Table,Available,Available,Available,Available,Requires Level 1
+Visualization,Heatmap,Locked,Available,Available,Available,Requires Level 2
+Visualization,Scatter,Locked,Locked,Available,Available,Requires Level 3
+Visualization,Correlation,Locked,Locked,Available,Available,Requires Level 3
+Visualization,Cross-market comparison,Locked,Locked,Available,Available,Requires Level 3
+Visualization,Custom visualization,Locked,Locked,Locked,Available,Requires Level 4

@@ -10,13 +10,34 @@ export const LEVELS = [
   { level: 4, name: 'Elite', minPoints: 700, nextPoints: null },
 ] as const;
 
-export type PremiumFeature = 'advancedScreener' | 'signalPrecision' | 'eventIntelligence' | 'orderFlow';
+export type PremiumFeature =
+  | 'advancedScreener' | 'signalPrecision' | 'eventIntelligence' | 'orderFlow'
+  | 'historicalData' | 'marketScreener' | 'heatmap' | 'scatter' | 'correlation'
+  | 'advancedFilters' | 'alerts' | 'brokerComparison' | 'tradingCalculator'
+  | 'customDashboard' | 'researchNews' | 'advancedChart' | 'performanceAnalytics'
+  | 'technicalIntervals' | 'technicalTools' | 'technicalParameters';
 export type UnlockDuration = '1h' | '1d' | '7d';
 export const PREMIUM_FEATURES: Record<PremiumFeature, { title: string; dailyPrice: number; includedLevel: number }> = {
   advancedScreener: { title: 'Advanced screener scatter', dailyPrice: 100, includedLevel: 2 },
   signalPrecision: { title: 'High-precision signals & correlations', dailyPrice: 140, includedLevel: 3 },
   eventIntelligence: { title: 'Chart event intelligence', dailyPrice: 120, includedLevel: 3 },
   orderFlow: { title: 'Chart order-flow analysis', dailyPrice: 180, includedLevel: 4 },
+  historicalData: { title: 'Historical market data', dailyPrice: 120, includedLevel: 2 },
+  marketScreener: { title: 'Advanced market screener', dailyPrice: 120, includedLevel: 2 },
+  heatmap: { title: 'Market heatmap', dailyPrice: 100, includedLevel: 2 },
+  scatter: { title: 'Scatter visualization', dailyPrice: 120, includedLevel: 3 },
+  correlation: { title: 'Correlation analytics', dailyPrice: 180, includedLevel: 3 },
+  advancedFilters: { title: 'Advanced screener filters', dailyPrice: 100, includedLevel: 2 },
+  alerts: { title: 'Advanced alerts', dailyPrice: 140, includedLevel: 2 },
+  brokerComparison: { title: 'Advanced broker comparison', dailyPrice: 100, includedLevel: 2 },
+  tradingCalculator: { title: 'Advanced trading calculator', dailyPrice: 100, includedLevel: 2 },
+  customDashboard: { title: 'Custom dashboard', dailyPrice: 120, includedLevel: 3 },
+  researchNews: { title: 'Research news filter', dailyPrice: 120, includedLevel: 4 },
+  advancedChart: { title: 'Advanced instrument chart', dailyPrice: 120, includedLevel: 2 },
+  performanceAnalytics: { title: 'Extended performance analytics', dailyPrice: 180, includedLevel: 3 },
+  technicalIntervals: { title: 'Advanced technical intervals', dailyPrice: 120, includedLevel: 3 },
+  technicalTools: { title: 'Advanced technical tools', dailyPrice: 120, includedLevel: 3 },
+  technicalParameters: { title: 'Technical parameter editing', dailyPrice: 30, includedLevel: 3 },
 };
 const durations: Record<UnlockDuration, { multiplier: number; milliseconds: number }> = {
   '1h': { multiplier: 0.4, milliseconds: DAY / 24 },

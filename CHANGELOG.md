@@ -1,5 +1,300 @@
 # Changelog
 
+## [1.5.110] - 2026-09-17
+
+### Fixed
+
+- Changed locked technical period inputs from disabled to read-only so clicks can open the parameter unlock dialog.
+
+## [1.5.109] - 2026-09-17
+
+### Added
+
+- Added a lower-cost technical-parameter editing unlock for locked indicator period inputs.
+
+## [1.5.108] - 2026-09-17
+
+### Changed
+
+- Added a credit-unlock action to the Level 4 seasonal-performance lock panel.
+
+## [1.5.107] - 2026-09-17
+
+### Changed
+
+- Connected the full financial-analysis lock overlay to the performance-analytics credit unlock package.
+
+## [1.5.106] - 2026-09-17
+
+### Changed
+
+- Made locked technical intervals and blurred technical indicator rows open the matching credit-unlock package.
+
+## [1.5.105] - 2026-09-17
+
+### Removed
+
+- Removed the locked `Save screen` and `Export CSV` controls from the screener header and toolbar.
+
+## [1.5.104] - 2026-09-17
+
+### Changed
+
+- Added credit-unlock actions to screener cross-market comparison, locked historical periods, and advanced custom filters.
+
+## [1.5.103] - 2026-09-17
+
+### Added
+
+- Added credit-based temporary unlock options to locked instrument and visualization areas using the supplied access mapping.
+
+## [1.5.102] - 2026-09-17
+
+### Changed
+
+- Renamed the technical indicator label from `Awesome Oscillator` to `Oscillator`.
+
+## [1.5.101] - 2026-09-17
+
+### Added
+
+- Added `ACCESS_LEVEL_REPORT.csv` documenting feature availability and lock behavior across Levels 1–4.
+
+## [1.5.100] - 2026-09-17
+
+### Changed
+
+- Formatted expanded comments as a full-width vertical user list with a separated comment composer.
+
+## [1.5.99] - 2026-09-17
+
+### Changed
+
+- Removed the CFD product selector button from the Products & broker access header.
+
+## [1.5.98] - 2026-09-17
+
+### Changed
+
+- Removed the View chart and Connect broker actions from community prediction posts.
+
+## [1.5.97] - 2026-09-17
+
+### Changed
+
+- Removed the DEMO badge from the financial news panel and moved the wide-layout panel down slightly.
+
+## [1.5.96] - 2026-09-17
+
+### Changed
+
+- Increased the wide-layout financial news panel offset to 56px.
+
+## [1.5.95] - 2026-09-17
+
+### Changed
+
+- Increased the wide-layout financial news panel offset for a clearer vertical separation.
+
+## [1.5.94] - 2026-09-17
+
+### Changed
+
+- Shifted the financial news panel down slightly on wide layouts while preserving its existing position on narrower screens.
+
+## [1.5.93] - 2026-09-17
+
+### Changed
+
+- Updated the platform-credit campaign example to `Free 200 Marketsyde credit`.
+
+## [1.5.92] - 2026-09-17
+
+### Changed
+
+- Changed the trading-credit campaign label to `Marketsyde credit` to clarify that it is platform credit rather than cash.
+
+## [1.5.91] - 2026-09-17
+
+### Added
+
+- Added a broker-specific Special offer column showing campaign benefits such as cashback, points, trading credits, and free feature unlocks.
+
+## [1.5.90] - 2026-09-17
+
+### Changed
+
+- Removed the custom period inputs and plus buttons from the technical table headers.
+
+## [1.5.89] - 2026-09-17
+
+### Changed
+
+- Enlarged technical parameter input boxes inside `[ ]` so locked and editable values are easier to read and interact with.
+
+## [1.5.88] - 2026-09-17
+
+### Changed
+
+- Restricted Research news filtering to Level 4 users.
+
+## [1.5.87] - 2026-09-17
+
+### Changed
+
+- Removed the 6M and 1Y community vote timeline selectors; the available vote ranges are now 2W and 1M.
+
+## [1.5.86] - 2026-09-17
+
+### Changed
+
+- Kept the Removed tools restore area visible even before any parameter has been removed.
+
+## [1.5.85] - 2026-09-17
+
+### Changed
+
+- Kept locked technical intervals and tools visible for lower levels with a blurred, faded presentation instead of removing them from view.
+
+## [1.5.84] - 2026-09-17
+
+### Changed
+
+- Made the 1-minute, 5-minute, 15-minute, and 30-minute intervals available to Levels 3 and 4, while locking them for lower levels.
+
+## [1.5.83] - 2026-09-17
+
+### Changed
+
+- Locked the 1-minute, 5-minute, 15-minute, and 30-minute technical intervals for Levels 3 and 4.
+
+## [1.5.82] - 2026-09-17
+
+### Added
+
+- Added a Removed tools area with restore buttons for parameters removed from the technical tables.
+
+## [1.5.81] - 2026-09-17
+
+### Changed
+
+- Limited the visible technical tools by access level: Level 1 shows 5 per table, Level 2 shows 7 per table, and Levels 3–4 show all tools.
+
+## [1.5.80] - 2026-09-17
+
+### Changed
+
+- Rendered multi-period technical parameters as separate inputs inside the brackets, such as `[14 3 3]` and `[12 26]`.
+
+## [1.5.79] - 2026-09-17
+
+### Changed
+
+- Made every built-in technical period visible as a locked `[number]` input below Level 3 and editable for Level 3–4 users.
+
+## [1.5.78] - 2026-09-17
+
+### Added
+
+- Added inline period inputs to built-in technical parameters for Level 3 and Level 4 users.
+
+## [1.5.77] - 2026-09-17
+
+### Changed
+
+- Enabled Level 3 removal controls on every built-in oscillator and moving-average row, allowing users to hide any unused parameter.
+
+## [1.5.76] - 2026-09-17
+
+### Added
+
+- Added a Level 3 minus control beside the first built-in parameter row, allowing users to remove parameters from the technical list.
+
+## [1.5.75] - 2026-09-17
+
+### Changed
+
+- Moved custom parameter remove controls beside the parameter name in each technical row, keeping the value and action columns uncluttered.
+
+## [1.5.74] - 2026-09-17
+
+### Fixed
+
+- Kept custom technical-period controls visible as disabled Level 3 controls instead of hiding them for lower-tier users.
+
+## [1.5.73] - 2026-09-17
+
+### Added
+
+- Added Level 3 custom period controls to both Oscillators and Moving Averages, allowing user-defined parameter numbers with add and remove actions.
+
+## [1.5.72] - 2026-09-17
+
+### Added
+
+- Added Level 3 custom moving-average periods with plus-to-add and minus-to-remove controls beside the Moving Averages heading.
+
+## [1.5.71] - 2026-09-17
+
+### Changed
+
+- Expanded the timeframe-responsive technical parameter tables with additional oscillators, simple moving averages, Ichimoku, volume-weighted, and Hull moving averages without duplicate entries.
+
+## [1.5.70] - 2026-09-17
+
+### Changed
+
+- Connected the technical indicators, scores, moving averages, and explanatory text to the selected timeframe so each interval returns its own response.
+
+## [1.5.69] - 2026-09-17
+
+### Changed
+
+- Removed the redundant product category badge from the broker product selector.
+
+## [1.5.68] - 2026-09-17
+
+### Fixed
+
+- Scoped identifier popovers to the exact hovered chip and changed their width to adapt to the displayed product detail.
+
+## [1.5.67] - 2026-09-17
+
+### Fixed
+
+- Made individual broker identifier tooltips visible on hover and prevented the broker table container from clipping their detail popovers.
+
+## [1.5.66] - 2026-09-17
+
+### Changed
+
+- Added identifier-specific broker tooltips with product, venue, leverage, issuer, and reference details.
+
+## [1.5.65] - 2026-09-17
+
+### Changed
+
+- Moved product identifiers into the broker symbol table column and show a deterministic pair of forms for each broker row.
+
+## [1.5.64] - 2026-09-17
+
+### Changed
+
+- Added broker/product identifier forms to instrument access, including the supplied NVIDIA forms and generated equivalents for other instruments.
+- Broker matching now considers all supported identifier forms instead of only the primary symbol.
+
+## [1.5.63] - 2026-09-17
+
+### Changed
+
+- Replaced the Technical summary date inputs with responsive timeframe buttons from 1 minute through 1 month, defaulting to 1 day.
+
+## [1.5.62] - 2026-09-17
+
+### Changed
+
+- Replaced the standalone community link with an accessible external-link icon in the bottom-right corner of each community post.
+
 ## [1.5.61] - 2026-09-16
 
 ### Fixed

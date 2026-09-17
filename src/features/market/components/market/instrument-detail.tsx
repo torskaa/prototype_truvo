@@ -15,6 +15,7 @@ import {
   Maximize2,
   MessageCircle,
   Minimize2,
+  Minus,
   Newspaper,
   Plus,
   Send,
@@ -26,6 +27,7 @@ import {
   TrendingUp,
   Users,
   WalletCards,
+  X,
 } from "lucide-react";
 import type {
   Instrument,
@@ -253,6 +255,91 @@ function availableProducts(instrument: Instrument): ProductType[] {
   return ["Share", "Fractional share", "CFD"];
 }
 
+function productIdentifiers(instrument: Instrument) {
+  const symbol = instrument.symbol.replace("/", "");
+  if (assetClass(instrument) === "Stock") {
+    if (instrument.symbol === "NVDA") {
+      return [
+        "NVDA",
+        "XNVDA",
+        "TNVDA",
+        "S45018",
+        "NVD3",
+        "SNVDA",
+        "XNVDAUSDT",
+        "NVDACW",
+        "AT000A3RDT2",
+        "NAEXP",
+      ];
+    }
+    return [
+      instrument.symbol,
+      `X${symbol}`,
+      `T${symbol}`,
+      `S${symbol}`,
+      `${symbol}CW`,
+      `X${symbol}USDT`,
+    ];
+  }
+  return [instrument.symbol];
+}
+
+function brokerSupportsInstrument(broker: Broker, instrument: Instrument) {
+  return productIdentifiers(instrument).some((identifier) =>
+    broker.symbols.includes(identifier),
+  );
+}
+
+function brokerProductPair(broker: Broker, instrument: Instrument) {
+  const identifiers = productIdentifiers(instrument);
+  const seed = cryptoCoverageSeed(`${broker.name}-${instrument.symbol}`);
+  const first = identifiers[seed % identifiers.length];
+  const second = identifiers[(seed + 3) % identifiers.length];
+  return first === second ? [first] : [first, second];
+}
+
+function brokerSpecialOffer(brokerName: string) {
+  const offers = [
+    "10% cashback",
+    "50 bonus points",
+    "Free Level 2 unlock",
+    "Free 200 Marketsyde credit",
+  ];
+  const index = [...brokerName].reduce((total, character) => total + character.charCodeAt(0), 0) % offers.length;
+  return offers[index];
+}
+
+function productIdentifierDetail(identifier: string, instrument: Instrument) {
+  if (identifier === instrument.symbol) {
+    return `${instrument.symbol} · primary ${instrument.primaryMarket ?? instrument.market} listing · underlying share`;
+  }
+  if (identifier.endsWith("USDT")) {
+    return `${identifier} · crypto pair · quoted against USDT · synthetic/demo access`;
+  }
+  if (identifier.endsWith("CW")) {
+    return `${identifier} · covered warrant · issuer-specific terms · expiry and barrier apply`;
+  }
+  if (identifier.startsWith("X")) {
+    return `${identifier} · exchange symbol · ${instrument.primaryMarket ?? "venue"} routing · cash equity`;
+  }
+  if (identifier.startsWith("T")) {
+    return `${identifier} · turbo certificate · leveraged long/short exposure · issuer terms apply`;
+  }
+  if (identifier.startsWith("S")) {
+    return `${identifier} · structured product · certificate reference · issuer terms apply`;
+  }
+  if (identifier === "NVD3") {
+    return "NVD3 · broker-specific derivative code · product terms and leverage depend on the venue.";
+  }
+  if (/^[A-Z]{2}\d{10}$/.test(identifier)) {
+    return `${identifier} · ISIN-style identifier · security lookup/reference code`;
+  }
+  if (identifier === "NAEXP") {
+    return "NAEXP · broker product reference · venue-specific lookup code";
+  }
+  return `${identifier} · broker-supported product or venue reference`;
+}
+
 function recommendedProductCopy(
   kind: string,
 ): { product: ProductType; detail: string }[] {
@@ -292,7 +379,7 @@ function displayValue(instrument: Instrument) {
 
 type PerformancePeriod = "1D" | "1W" | "1M" | "1Y";
 type VoteSide = "Bullish" | "Bearish";
-type VoteRange = "2W" | "1M" | "6M" | "1Y";
+type VoteRange = "2W" | "1M";
 type CompareRange =
   "1d" | "3d" | "7d" | "14d" | "1m" | "3m" | "6m" | "1y" | "3y" | "5y";
 const thirtyTwo = 32;
@@ -346,24 +433,6 @@ const voteRangeOptions: {
     compareRange: "1m",
     intervalDays: 7,
     cadence: "week",
-  },
-  {
-    value: "6M",
-    label: "6M",
-    days: 183,
-    requiredLevel: 3,
-    compareRange: "6m",
-    intervalDays: 30,
-    cadence: "month",
-  },
-  {
-    value: "1Y",
-    label: "1Y",
-    days: 365,
-    requiredLevel: 4,
-    compareRange: "1y",
-    intervalDays: 30,
-    cadence: "month",
   },
 ];
 function voteHistorySeries(instrument: Instrument, range: VoteRange) {
@@ -478,7 +547,7 @@ export function InstrumentDetail({
   onToast: (message: string) => void;
 }) {
   const [tab, setTab] = useState(initialTab ?? "Overview");
-  const { openBrokerAccess } = useMarketEngagement();
+  const { openBrokerAccess, requestUnlock } = useMarketEngagement();
   const { snapshot } = useRewards();
   const conceptColumnsRef = useRef<HTMLDivElement>(null);
   const cashbackRef = useRef<HTMLElement>(null);
@@ -488,6 +557,9 @@ export function InstrumentDetail({
     votedAt: number;
   } | null>(null);
   const [article, setArticle] = useState<InstrumentNews | null>(null);
+  const [newPostOpen, setNewPostOpen] = useState(false);
+  const [newPostText, setNewPostText] = useState("");
+  const [newCommunityPost, setNewCommunityPost] = useState<string | null>(null);
   const [product, setProduct] = useState<ProductType>(
     availableProducts(instrument)[0],
   );
@@ -705,25 +777,24 @@ export function InstrumentDetail({
               <h2>Latest news</h2>
               <p>Market context for {instrument.symbol}</p>
             </div>
-            <span className="concept-demo">DEMO</span>
           </div>
           <div className="concept-news-filters">
             {["All news", "Market", "Research"].map((item) => (
               <button
                 key={item}
-                className={`${newsFilter === item ? "selected" : ""} ${item === "Research" && snapshot.level.level < 2 ? "cursor-not-allowed opacity-50" : ""}`}
-                aria-disabled={item === "Research" && snapshot.level.level < 2}
-                title={item === "Research" && snapshot.level.level < 2 ? "Requires Level 2" : undefined}
+                className={`${newsFilter === item ? "selected" : ""} ${item === "Research" && snapshot.level.level < 4 ? "cursor-not-allowed opacity-50" : ""}`}
+                aria-disabled={item === "Research" && snapshot.level.level < 4}
+                title={item === "Research" && snapshot.level.level < 4 ? "Requires Level 4" : undefined}
                 onClick={() => {
-                  if (item === "Research" && snapshot.level.level < 2) {
-                    onToast("Research news requires Level 2.");
+                  if (item === "Research" && snapshot.level.level < 4) {
+                    requestUnlock("researchNews");
                     return;
                   }
                   setNewsFilter(item);
                 }}
               >
                 {item}
-                {item === "Research" && snapshot.level.level < 2 && <Lock className="ml-1 inline size-2.5" />}
+                {item === "Research" && snapshot.level.level < 4 && <Lock className="ml-1 inline size-2.5" />}
               </button>
             ))}
           </div>
@@ -788,49 +859,6 @@ export function InstrumentDetail({
                 onShowLinkedTagsChange={onShowLinkedTagsChange}
                 tabs={instrumentTabs}
               />
-              <section className="concept-card concept-summary">
-                <div className="concept-summary-top">
-                  <div>
-                    <p className="concept-eyebrow">TECHNICAL OUTLOOK</p>
-                    <h2 className={positive ? "concept-up" : "concept-down"}>
-                      {instrument.signal === "LONG"
-                        ? "Positive momentum"
-                        : instrument.signal === "WATCH"
-                          ? "Watch for confirmation"
-                          : "Neutral outlook"}
-                    </h2>
-                    <p>
-                      Synthetic signal · {instrument.confidence}% confidence
-                    </p>
-                  </div>
-                  <div>
-                    <p className="concept-eyebrow">COMMUNITY OUTLOOK</p>
-                    <b>{instrument.sentiment}% bullish</b>
-                  </div>
-                </div>
-                <div className="concept-sentiment-bar">
-                  <i style={{ width: `${instrument.sentiment}%` }} />
-                </div>
-                <h3>Key valuation & activity</h3>
-                <div className="concept-metrics">
-                  <Metric
-                    label="P/E ratio"
-                    value={instrument.pe ? `${instrument.pe.toFixed(1)}x` : "—"}
-                  />
-                  <Metric label="RSI (14)" value={instrument.rsi.toFixed(1)} />
-                  <Metric
-                    label="Relative volume"
-                    value={`${instrument.rvol.toFixed(2)}x`}
-                  />
-                  <Metric label="1M return" value={`${instrument.return1m}%`} />
-                </div>
-                <h3>Technical evidence</h3>
-                <TechnicalSummary
-                  instrument={instrument}
-                  tierLevel={snapshot.level.level}
-                  onToast={onToast}
-                />
-              </section>
             </>
           )}
           {tab === "Technicals" && (
@@ -975,8 +1003,8 @@ export function InstrumentDetail({
           <div className="concept-section-title">
             <Users size={20} />
             <div>
-              <h2>Community sentiment</h2>
-              <p>{instrument.symbol} trader perspectives</p>
+              <h2>Nvidia Community</h2>
+              <p>Community perspectives and discussion</p>
             </div>
           </div>
           <div className="concept-voting">
@@ -1022,16 +1050,28 @@ export function InstrumentDetail({
           </div>
           <button
             className="concept-outline"
-            onClick={onOpenCommunity}
+            onClick={() => setNewPostOpen(true)}
           >
             Discuss {instrument.symbol} <MessageCircle size={15} />
           </button>
-          <button
-            className="concept-outline"
-            onClick={onOpenCommunity}
-          >
-            Open full Community <ExternalLink size={15} />
-          </button>
+          {newCommunityPost && (
+            <CommunityPredictionPost
+              instrument={instrument}
+              post={{
+                name: "You",
+                initials: "YO",
+                time: "now",
+                tag: "COMMUNITY",
+                text: newCommunityPost,
+                agree: 0,
+                disagree: 0,
+              }}
+              followed={false}
+              onFollow={() => undefined}
+              onToast={onToast}
+              onCommunityChart={onCommunityChart}
+            />
+          )}
           {[
             {
               name: "Daniel Markson",
@@ -1087,18 +1127,20 @@ export function InstrumentDetail({
               onFollow={() => onFollowPublisher(post.name, post.tag)}
               onToast={onToast}
               onCommunityChart={onCommunityChart}
-              onBroker={() => {
-                setTab("Products & Brokers");
-                window.setTimeout(
-                  () =>
-                    document
-                      .querySelector(".concept-analysis")
-                      ?.scrollIntoView({ behavior: "smooth", block: "start" }),
-                  50,
-                );
-              }}
             />
           ))}
+          <div className="concept-community-footer">
+            <button
+              type="button"
+              className="concept-post-community-link"
+              aria-label={`Open ${instrument.symbol} Community`}
+              title="Open Community"
+              onClick={onOpenCommunity}
+            >
+              <ExternalLink size={14} />
+              Community
+            </button>
+          </div>
         </aside>
       </div>
       <section className="concept-cashback" ref={cashbackRef}>
@@ -1127,6 +1169,68 @@ export function InstrumentDetail({
         <span>Market intelligence · News · Community · Rewards</span>
         <small>Demo market data and community content</small>
       </footer>
+      {newPostOpen && (
+        <div
+          className="concept-modal-backdrop"
+          onClick={() => setNewPostOpen(false)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="new-community-post-title"
+            className="concept-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="label">NVIDIA COMMUNITY</p>
+                <h2 id="new-community-post-title">Create a new post</h2>
+                <p>Share an idea, question, or market observation.</p>
+              </div>
+              <button
+                type="button"
+                aria-label="Close new post window"
+                onClick={() => setNewPostOpen(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                const text = newPostText.trim();
+                if (!text) return;
+                setNewCommunityPost(text);
+                onToast("Community post created · demo");
+                setNewPostText("");
+                setNewPostOpen(false);
+              }}
+              className="mt-4"
+            >
+              <textarea
+                autoFocus
+                value={newPostText}
+                onChange={(event) => setNewPostText(event.target.value)}
+                placeholder={`What are you seeing in ${instrument.symbol}?`}
+                aria-label="Community post"
+                rows={5}
+              />
+              <div className="mt-3 flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="concept-outline"
+                  onClick={() => setNewPostOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="concept-primary">
+                  Publish post
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
       {article && (
         <div
           className="concept-modal-backdrop"
@@ -1168,7 +1272,6 @@ function CommunityPredictionPost({
   onFollow,
   onToast,
   onCommunityChart,
-  onBroker,
 }: {
   instrument: Instrument;
   post: {
@@ -1184,7 +1287,6 @@ function CommunityPredictionPost({
   onFollow: () => void;
   onToast: (message: string) => void;
   onCommunityChart: (name: string, tag: string) => void;
-  onBroker: () => void;
 }) {
   const [reaction, setReaction] = useState<"agree" | "disagree" | null>(null);
   const [commentOpen, setCommentOpen] = useState(false);
@@ -1245,24 +1347,6 @@ function CommunityPredictionPost({
           Community vote · {direction} {agreePercent}%
         </span>
       </div>
-      <a
-        className="concept-post-tag market-context-tag"
-        href={`#news-${instrument.symbol.replaceAll("/", "-")}-${post.tag}`}
-        onClick={(event) => {
-          event.preventDefault();
-          const target = document.getElementById(
-            `news-${instrument.symbol.replaceAll("/", "-")}-${post.tag}`,
-          );
-          target?.scrollIntoView({ behavior: "smooth", block: "center" });
-          target?.classList.add("market-context-highlight");
-          window.setTimeout(
-            () => target?.classList.remove("market-context-highlight"),
-            2200,
-          );
-        }}
-      >
-        #{instrument.symbol}_{post.tag}
-      </a>
       <button
         aria-pressed={followed}
         onClick={() => {
@@ -1305,32 +1389,17 @@ function CommunityPredictionPost({
       </button>
       <small className="ml-1 text-[9px] text-slate-400">{total} voters</small>
       <button
-        onClick={() => {
-          window.dispatchEvent(
-            new CustomEvent("market-community-context", {
-              detail: { mode: "Signals", tag: post.tag },
-            }),
-          );
-          onCommunityChart(post.name, post.tag);
-        }}
-      >
-        <LineChart size={14} /> View chart
-      </button>
-      <button
         aria-expanded={commentOpen}
         onClick={() => setCommentOpen((open) => !open)}
       >
         <MessageCircle size={14} /> Comment {comments.length}
       </button>
-      <button onClick={onBroker}>
-        <BriefcaseBusiness size={14} /> Connect broker
-      </button>
       {commentOpen && (
-        <div className="mt-3 space-y-2 rounded-xl bg-slate-50 p-2">
+        <div className="mt-3 flex flex-col gap-2 rounded-xl bg-slate-50 p-2">
           {comments.map((item, index) => (
             <div
               key={`${item.author}-${index}`}
-              className="flex items-start gap-2 rounded-lg bg-white p-2 text-[9px]"
+              className="flex w-full items-start gap-2 rounded-lg bg-white p-2 text-[9px]"
             >
               <span className="grid size-6 shrink-0 place-items-center rounded-full bg-violet-100 font-bold text-violet-600">
                 {item.initials}
@@ -1347,7 +1416,7 @@ function CommunityPredictionPost({
             </div>
           ))}
           <form
-            className="flex gap-1"
+            className="mt-1 flex w-full gap-1 border-t border-slate-200 pt-2"
             onSubmit={(event) => {
               event.preventDefault();
               if (!comment.trim()) return;
@@ -2546,6 +2615,7 @@ function Overview({
   onShowLinkedTagsChange?: (show: boolean) => void;
   tabs?: ReactNode;
 }) {
+  const { requestUnlock } = useMarketEngagement();
   const [period, setPeriod] = useState<PerformancePeriod>("1D");
   const [compareRange, setCompareRange] = useState<CompareRange>("1d");
   const [openLinkedTag, setOpenLinkedTag] = useState<string | null>(null);
@@ -2590,7 +2660,7 @@ function Overview({
               <button
                 onClick={() => {
                   if (tierLevel < 2) {
-                    onToast("Advanced chart requires Level 2.");
+                    requestUnlock("advancedChart");
                     return;
                   }
                   if (!chartOpen) onChart();
@@ -2616,7 +2686,7 @@ function Overview({
                           type="button"
                           onClick={() => {
                             if (locked) {
-                              onToast(`${item} historical data starts at Level ${requiredTier}.`);
+                              requestUnlock(requiredTier >= 3 ? "performanceAnalytics" : "historicalData");
                               return;
                             }
                             setPeriod(item);
@@ -2732,13 +2802,6 @@ function Overview({
                         >
                           News
                         </a>
-                        <a
-                          onClick={() => setOpenLinkedTag(null)}
-                          className="rounded bg-white/10 px-2 py-1 hover:bg-white/20"
-                          href={`#community-${instrument.symbol.replaceAll("/", "-")}-${topic}`}
-                        >
-                          Community
-                        </a>
                       </span>
                     </span>
                   </span>
@@ -2815,34 +2878,87 @@ function TechnicalSummary({
   tierLevel: number;
   onToast: (message: string) => void;
 }) {
-  const technicalPeriodLocked = tierLevel < 3;
-  const today = new Date().toISOString().slice(0, 10);
-  const defaultFrom = new Date(Date.now() - 30 * 86400000)
-    .toISOString()
-    .slice(0, 10);
-  const [fromDate, setFromDate] = useState(defaultFrom);
-  const [toDate, setToDate] = useState(today);
-  const oscillatorScore = Math.max(0, Math.min(100, 100 - instrument.rsi));
+  const { requestUnlock } = useMarketEngagement();
+  const technicalIntervals = [
+    { label: "1 minute", level: 3, scale: 0.18 },
+    { label: "5 minutes", level: 3, scale: 0.24 },
+    { label: "15 minutes", level: 3, scale: 0.32 },
+    { label: "30 minutes", level: 3, scale: 0.4 },
+    { label: "1 hour", level: 1, scale: 0.5 },
+    { label: "2 hours", level: 1, scale: 0.62 },
+    { label: "4 hours", level: 1, scale: 0.74 },
+    { label: "1 day", level: 1, scale: 1 },
+    { label: "1 week", level: 2, scale: 1.35 },
+    { label: "1 month", level: 3, scale: 1.8 },
+  ];
+  const [technicalInterval, setTechnicalInterval] = useState("1 day");
+  const [customAveragePeriod, setCustomAveragePeriod] = useState("");
+  const [customAveragePeriods, setCustomAveragePeriods] = useState<number[]>([]);
+  const [customOscillatorPeriod, setCustomOscillatorPeriod] = useState("");
+  const [customOscillatorPeriods, setCustomOscillatorPeriods] = useState<number[]>([]);
+  const [hiddenTechnicalParameters, setHiddenTechnicalParameters] = useState<string[]>([]);
+  const intervalScale =
+    technicalIntervals.find((interval) => interval.label === technicalInterval)
+      ?.scale ?? 1;
+  const intervalRsi = Math.max(
+    0,
+    Math.min(100, 50 + (instrument.rsi - 50) * intervalScale),
+  );
+  const intervalReturn = instrument.return1m * intervalScale;
+  const oscillatorScore = Math.max(0, Math.min(100, 100 - intervalRsi));
   const movingAverageScore = Math.max(
     0,
-    Math.min(100, 50 + instrument.return1m * 2.5),
+    Math.min(100, 50 + intervalReturn * 2.5),
   );
   const overallScore = Math.round(
     (oscillatorScore + movingAverageScore + instrument.confidence) / 3,
   );
   const oscillators = [
-    ["Relative Strength Index (14)", instrument.rsi.toFixed(2)],
-    ["Stochastic %K (14, 3, 3)", (instrument.rsi * 0.96).toFixed(2)],
-    ["Commodity Channel Index (20)", (-instrument.rsi * 0.39).toFixed(2)],
+    ["Relative Strength Index (14)", intervalRsi.toFixed(2)],
+    ["Stochastic %K (14, 3, 3)", (intervalRsi * 0.96).toFixed(2)],
+    ["Commodity Channel Index (20)", (-intervalRsi * 0.39).toFixed(2)],
     ["Average Directional Index (14)", (instrument.rvol * 7.1).toFixed(2)],
-    ["Momentum (10)", (instrument.return1m * 0.76).toFixed(2)],
-    ["MACD Level (12, 26)", (instrument.return1m * 0.2).toFixed(2)],
+    ["Oscillator", (intervalReturn * 0.21 - 2.75).toFixed(2)],
+    ["Momentum (10)", (intervalReturn * 0.76).toFixed(2)],
+    ["MACD Level (12, 26)", (intervalReturn * 0.2).toFixed(2)],
+    ["Stochastic RSI Fast (3, 3, 14, 14)", (intervalRsi * 0.18).toFixed(2)],
+    ["Williams Percent Range (14)", (-100 + intervalRsi * 0.5).toFixed(2)],
+    ["Bull Bear Power", (intervalReturn * 0.32 - 6.67).toFixed(2)],
+    ["Ultimate Oscillator (7, 14, 28)", (intervalRsi * 0.75).toFixed(2)],
   ];
-  const averages = [10, 20, 30, 50, 100, 200].map((period) => [
-    `Exponential Moving Average (${period})`,
-    (instrument.price * (1 - instrument.return1m / 1000 - period / 10000)).toFixed(2),
-    period <= 20 ? "Sell" : "Buy",
-  ]);
+  customOscillatorPeriods.forEach((period) => {
+    oscillators.push([
+      `Custom Oscillator (${period}) · User`,
+      (intervalRsi * (period / 14)).toFixed(2),
+      intervalRsi >= 50 ? "Buy" : "Sell",
+      String(period),
+    ]);
+  });
+  const averagePeriods = [10, 20, 30, 50, 100, 200];
+  const averages = averagePeriods.flatMap((period) => {
+    const exponential = instrument.price * (1 - intervalReturn / 1000 - period / 10000);
+    const simple = instrument.price * (1 - intervalReturn / 900 - period / 9500);
+    return [
+      [`Exponential Moving Average (${period})`, exponential.toFixed(2), period <= 20 ? "Sell" : "Buy"],
+      [`Simple Moving Average (${period})`, simple.toFixed(2), period <= 30 ? "Sell" : "Buy"],
+    ];
+  });
+  averages.push(
+    ["Ichimoku Base Line (9, 26, 52, 26)", (instrument.price * (1 - intervalReturn / 1100)).toFixed(2), "Neutral"],
+    ["Volume Weighted Moving Average (20)", (instrument.price * (1 - intervalReturn / 980)).toFixed(2), intervalReturn > 0 ? "Buy" : "Sell"],
+    ["Hull Moving Average (9)", (instrument.price * (1 - intervalReturn / 850)).toFixed(2), intervalReturn > 0 ? "Buy" : "Sell"],
+  );
+  customAveragePeriods.forEach((period) => {
+    averages.push([
+      `Simple Moving Average (${period}) · User`,
+      (instrument.price * (1 - intervalReturn / 900 - period / 9500)).toFixed(2),
+      intervalReturn > 0 ? "Buy" : "Sell",
+      String(period),
+    ]);
+  });
+  const visibleTechnicalToolCount = tierLevel >= 3 ? Number.POSITIVE_INFINITY : tierLevel >= 2 ? 7 : 5;
+  const availableOscillators = oscillators.filter(([name]) => !hiddenTechnicalParameters.includes(name));
+  const availableAverages = averages.filter(([name]) => !hiddenTechnicalParameters.includes(name));
   return (
     <section className="panel p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -2856,55 +2972,45 @@ function TechnicalSummary({
           {instrument.signal} - {instrument.confidence}%
         </span>
       </div>
-      <div className="relative mt-4 flex flex-wrap items-end gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
-        <div className={technicalPeriodLocked ? "pointer-events-none select-none opacity-45" : "contents"}>
-          <label className="text-[10px] font-semibold text-slate-500">
-            From
-            <input
-              type="date"
-              value={fromDate}
-              max={toDate}
-              disabled={technicalPeriodLocked}
-              onChange={(event) => setFromDate(event.target.value)}
-              className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700"
-            />
-          </label>
-          <label className="text-[10px] font-semibold text-slate-500">
-            To
-            <input
-              type="date"
-              value={toDate}
-              min={fromDate}
-              max={today}
-              disabled={technicalPeriodLocked}
-              onChange={(event) => setToDate(event.target.value)}
-              className="mt-1 block rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700"
-            />
-          </label>
-          <span className="pb-1 text-[10px] text-slate-400">
-            Showing technicals for the selected period
-          </span>
-        </div>
-        {technicalPeriodLocked && (
-          <button
-            type="button"
-            className="absolute inset-0 flex items-center justify-center gap-1 rounded-lg bg-white/75 text-[10px] font-semibold text-violet-700"
-            onClick={() => onToast("Custom technical periods require Level 3.")}
-          >
-            <Lock size={12} /> Requires Level 3
-          </button>
-        )}
+      <div className="mt-4 flex flex-wrap items-center gap-1 rounded-lg border border-slate-200 bg-white p-1">
+        {technicalIntervals.map((interval) => {
+          const locked = tierLevel < interval.level;
+          return (
+            <button
+              key={interval.label}
+              type="button"
+              aria-pressed={technicalInterval === interval.label}
+              title={locked ? `Requires Level ${interval.level}` : `Use ${interval.label} interval`}
+              onClick={() => {
+                if (locked) {
+                  requestUnlock(interval.level >= 3 ? "technicalIntervals" : "historicalData");
+                  return;
+                }
+                setTechnicalInterval(interval.label);
+              }}
+              className={`rounded px-3 py-2 text-[10px] font-medium transition ${
+                technicalInterval === interval.label
+                  ? "bg-slate-100 text-slate-900 shadow-sm"
+                  : locked
+                    ? "cursor-not-allowed text-slate-300 blur-[1px] opacity-55"
+                    : "text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              {interval.label}
+            </button>
+          );
+        })}
       </div>
       <div className="mt-5 grid grid-cols-3 gap-3 max-md:grid-cols-1">
         <CompassGauge
           label="Oscillators"
           score={oscillatorScore}
-          detail={`RSI 14  -  ${instrument.rsi.toFixed(1)}`}
+          detail={`RSI 14  -  ${intervalRsi.toFixed(1)}`}
         />
         <CompassGauge
           label="Moving averages"
           score={movingAverageScore}
-          detail={`1M trend  -  ${instrument.return1m > 0 ? "+" : ""}${instrument.return1m}%`}
+          detail={`${technicalInterval} trend  -  ${intervalReturn > 0 ? "+" : ""}${intervalReturn.toFixed(2)}%`}
         />
         <CompassGauge
           label="Overall summary"
@@ -2913,13 +3019,92 @@ function TechnicalSummary({
         />
       </div>
       <div className="mt-5 rounded-xl bg-slate-50 p-4 text-xs text-slate-600">
-        RSI 14 is {instrument.rsi}. Relative volume is {instrument.rvol}x.
+        RSI 14 is {intervalRsi.toFixed(2)} for {technicalInterval}. Relative volume is {instrument.rvol}x.
         Confidence summarizes demo evidence quality and is not a probability of
         profit.
       </div>
       <div className="mt-5 grid grid-cols-2 gap-6 max-lg:grid-cols-1">
-        <TechnicalTable title="Oscillators" rows={oscillators} />
-        <TechnicalTable title="Moving Averages" rows={averages} />
+        <TechnicalTable
+          title="Oscillators"
+          rows={availableOscillators}
+          visibleCount={visibleTechnicalToolCount}
+          canCustomize={tierLevel >= 3}
+          customPeriod={customOscillatorPeriod}
+          onCustomPeriodChange={setCustomOscillatorPeriod}
+          onAddCustomPeriod={() => {
+            const period = Number.parseInt(customOscillatorPeriod, 10);
+            if (!Number.isInteger(period) || period < 2 || period > 500) {
+              onToast("Enter an oscillator period from 2 to 500.");
+              return;
+            }
+            if (!customOscillatorPeriods.includes(period)) {
+              setCustomOscillatorPeriods((current) => [...current, period].sort((a, b) => a - b));
+            }
+            setCustomOscillatorPeriod("");
+          }}
+          onRemoveCustomPeriod={(period) =>
+            setCustomOscillatorPeriods((current) => current.filter((item) => item !== period))
+          }
+          customLabel="Custom Oscillator"
+          canRemoveBuiltIn={tierLevel >= 3}
+          onRemoveBuiltIn={(name) =>
+            setHiddenTechnicalParameters((current) => [...current, name])
+          }
+        />
+        <TechnicalTable
+          title="Moving Averages"
+          rows={availableAverages}
+          visibleCount={visibleTechnicalToolCount}
+          canCustomize={tierLevel >= 3}
+          customPeriod={customAveragePeriod}
+          onCustomPeriodChange={setCustomAveragePeriod}
+          onAddCustomPeriod={() => {
+            const period = Number.parseInt(customAveragePeriod, 10);
+            if (!Number.isInteger(period) || period < 2 || period > 500) {
+              onToast("Enter a moving-average period from 2 to 500.");
+              return;
+            }
+            if (!customAveragePeriods.includes(period)) {
+              setCustomAveragePeriods((current) => [...current, period].sort((a, b) => a - b));
+            }
+            setCustomAveragePeriod("");
+          }}
+          onRemoveCustomPeriod={(period) =>
+            setCustomAveragePeriods((current) => current.filter((item) => item !== period))
+          }
+          customLabel="Simple Moving Average"
+          canRemoveBuiltIn={tierLevel >= 3}
+          onRemoveBuiltIn={(name) =>
+            setHiddenTechnicalParameters((current) => [...current, name])
+          }
+        />
+      </div>
+      <div className="mt-4 rounded-lg border border-dashed border-slate-200 bg-white p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-[10px] font-semibold text-slate-600">Removed tools</p>
+          <span className="text-[9px] text-slate-400">Restore any parameter</span>
+        </div>
+        {hiddenTechnicalParameters.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {hiddenTechnicalParameters.map((name) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() =>
+                  setHiddenTechnicalParameters((current) =>
+                    current.filter((item) => item !== name),
+                  )
+                }
+                className="rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] text-slate-600 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700"
+                title={`Restore ${name}`}
+              >
+                + {name}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[10px] text-slate-400">No removed tools yet.</p>
+        )}
       </div>
     </section>
   );
@@ -2928,26 +3113,123 @@ function TechnicalSummary({
 function TechnicalTable({
   title,
   rows,
+  visibleCount,
+  canCustomize = false,
+  customPeriod,
+  onCustomPeriodChange,
+  onAddCustomPeriod,
+  onRemoveCustomPeriod,
+  customLabel = "Simple Moving Average",
+  canRemoveBuiltIn = false,
+  onRemoveBuiltIn,
 }: {
   title: string;
   rows: string[][];
+  visibleCount?: number;
+  canCustomize?: boolean;
+  customPeriod?: string;
+  onCustomPeriodChange?: (value: string) => void;
+  onAddCustomPeriod?: () => void;
+  onRemoveCustomPeriod?: (period: number) => void;
+  customLabel?: string;
+  canRemoveBuiltIn?: boolean;
+  onRemoveBuiltIn?: (name: string) => void;
 }) {
+  const { requestUnlock } = useMarketEngagement();
+  const [periodEdits, setPeriodEdits] = useState<Record<string, string[]>>({});
   return (
     <div>
-      <h3 className="mb-2 text-sm font-semibold text-slate-900">{title} ›</h3>
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-slate-900">{title} ›</h3>
+      </div>
       <div className="overflow-hidden rounded-lg border border-slate-200">
-        {rows.map(([name, value, action]) => (
+        {rows.map(([name, value, action, customPeriodValue], rowIndex) => {
+          const locked = rowIndex >= (visibleCount ?? Number.POSITIVE_INFINITY);
+          const periodMatch = name.match(/^(.*)\((\d[^)]*)\)(.*)$/);
+          const periodValues =
+            periodEdits[name] ??
+            periodMatch?.[2].split(",").map((period) => period.trim()) ??
+            [];
+          return (
           <div
             key={name}
-            className="grid grid-cols-[minmax(0,1fr)_70px_52px] items-center gap-2 border-b border-slate-100 px-3 py-2 text-[10px] last:border-b-0"
+            onClick={() => locked && requestUnlock("technicalTools")}
+            role={locked ? "button" : undefined}
+            tabIndex={locked ? 0 : undefined}
+            onKeyDown={(event) => {
+              if (locked && (event.key === "Enter" || event.key === " ")) {
+                event.preventDefault();
+                requestUnlock("technicalTools");
+              }
+            }}
+            title={locked ? "Choose a credit unlock for advanced technical tools" : undefined}
+            className={`grid grid-cols-[minmax(0,1fr)_70px_52px] items-center gap-2 border-b border-slate-100 px-3 py-2 text-[10px] last:border-b-0 ${
+              locked ? "select-none blur-[2px] opacity-45" : ""
+            }`}
           >
-            <span className="text-slate-700">{name}</span>
+            <span className="flex items-center gap-1 text-slate-700">
+              {periodMatch && !customPeriodValue ? (
+                <>
+                  {periodMatch[1]}[
+                  {periodValues.map((period, periodIndex) => (
+                    <input
+                      key={`${name}-${periodIndex}`}
+                      type="number"
+                      min="2"
+                      max="500"
+                      value={period}
+                      onChange={(event) =>
+                        setPeriodEdits((current) => ({
+                          ...current,
+                          [name]: periodValues.map((value, index) =>
+                            index === periodIndex ? event.target.value : value,
+                          ),
+                        }))
+                      }
+                      readOnly={!canCustomize || locked}
+                      onClick={() => (!canCustomize || locked) && requestUnlock("technicalParameters")}
+                      title={!canCustomize ? "Choose a credit unlock to edit custom periods" : "Edit parameter period"}
+                      aria-label={`Edit period ${periodIndex + 1} for ${periodMatch[1].trim()}`}
+                      className="mx-0.5 w-10 min-w-[2.5rem] rounded border border-slate-300 bg-white px-1 text-center text-[10px] outline-none disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                    />
+                  ))}
+                  ]{periodMatch[3]}
+                </>
+              ) : (
+                name
+              )}
+              {!customPeriodValue && !locked && canRemoveBuiltIn && onRemoveBuiltIn && (
+                <button
+                  type="button"
+                  onClick={() => onRemoveBuiltIn(name)}
+                  className="rounded text-slate-400 hover:text-rose-500"
+                  title="Remove this parameter"
+                  aria-label={`Remove ${name}`}
+                >
+                  <Minus size={11} />
+                </button>
+              )}
+              {customPeriodValue && !locked && onRemoveCustomPeriod && (
+                <button
+                  type="button"
+                  onClick={() => onRemoveCustomPeriod(Number(customPeriodValue))}
+                  className="rounded text-slate-400 hover:text-rose-500"
+                  title="Remove custom parameter"
+                  aria-label={`Remove ${customPeriodValue}-period parameter`}
+                >
+                  <Minus size={11} />
+                </button>
+              )}
+            </span>
             <span className="text-right font-medium text-slate-800">{value}</span>
-            <span className={action === "Buy" ? "text-blue-600" : action === "Sell" ? "text-rose-500" : "text-slate-500"}>
-              {action ?? "Neutral"}
+            <span className="flex items-center justify-end gap-1">
+              <span className={action === "Buy" ? "text-blue-600" : action === "Sell" ? "text-rose-500" : "text-slate-500"}>
+                {action ?? "Neutral"}
+              </span>
             </span>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -3111,6 +3393,7 @@ function SeasonalPerformance({
   instrument: Instrument;
   tierLevel: number;
 }) {
+  const { requestUnlock } = useMarketEngagement();
   const [year, setYear] = useState("All years");
   const [dateRange, setDateRange] = useState<"1Y" | "3Y" | "5Y" | "All">("All");
   const [scale, setScale] = useState<"Monthly" | "Quarterly">("Monthly");
@@ -3123,6 +3406,9 @@ function SeasonalPerformance({
         <p className="max-w-sm text-[10px] text-slate-500">
           Year-plus historical analysis is available with Elite access.
         </p>
+        <button type="button" className="primary mt-1 px-3 py-1.5 text-[10px]" onClick={() => requestUnlock("performanceAnalytics")}>
+          Choose credit unlock
+        </button>
       </section>
     );
   }
@@ -3470,8 +3756,8 @@ function WeeklyVoteChart({
   userVote: VoteSide | null;
   tierLevel: number;
 }) {
-  const maximumRange =
-    tierLevel >= 4 ? "1Y" : tierLevel >= 3 ? "6M" : tierLevel >= 2 ? "1M" : "2W";
+  const { requestUnlock } = useMarketEngagement();
+  const maximumRange = tierLevel >= 2 ? "1M" : "2W";
   const [range, setRange] = useState<VoteRange>(maximumRange);
   useEffect(() => {
     setRange(maximumRange);
@@ -3593,7 +3879,9 @@ function WeeklyVoteChart({
                       ? `Requires Level ${option.requiredLevel}`
                       : `Show ${option.label} vote timeline`
                   }
-                  onClick={() => setRange(option.value)}
+                  onClick={() => locked
+                    ? requestUnlock(option.requiredLevel >= 3 ? "performanceAnalytics" : "historicalData")
+                    : setRange(option.value)}
                 >
                   {locked && <Lock className="mr-1 inline size-2.5" />}
                   {option.label}
@@ -3826,6 +4114,7 @@ function FinancialReport({
   tierLevel: number;
   onToast: (message: string) => void;
 }) {
+  const { requestUnlock } = useMarketEngagement();
   const financialAnalysisLocked = tierLevel < 3;
   const [period, setPeriod] = useState<"Annual" | "Quarterly">("Annual");
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
@@ -3891,7 +4180,7 @@ function FinancialReport({
                   key={item}
                   onClick={() => {
                     if (financialAnalysisLocked) {
-                      onToast("Annual and quarterly financial analysis requires Level 3.");
+                      requestUnlock("performanceAnalytics");
                       return;
                     }
                     setPeriod(item);
@@ -4094,7 +4383,7 @@ function FinancialReport({
           <button
             type="button"
             className="absolute inset-0 z-10 flex items-center justify-center gap-2 rounded-2xl bg-white/75 text-xs font-semibold text-violet-700 shadow-sm"
-            onClick={() => onToast("Financial analysis requires Level 3.")}
+            onClick={() => requestUnlock("performanceAnalytics")}
           >
             <Lock size={14} /> Financial analysis · Requires Level 3
           </button>
@@ -4143,7 +4432,11 @@ function ProductsAndBrokersTable({
   const matchedBrokers =
     product === "CFD"
       ? generatedCfdPartners
-      : brokers.filter((broker) => broker.products.includes(product));
+      : brokers.filter(
+          (broker) =>
+            broker.products.includes(product) &&
+            brokerSupportsInstrument(broker, instrument),
+        );
   const productDetails: Record<ProductType, string> = {
     Spot: "Buy or sell the underlying asset for direct settlement.",
     Share: "Whole-share ownership with standard equity market access.",
@@ -4153,15 +4446,6 @@ function ProductsAndBrokersTable({
     CFD: "Track price movement without owning the underlying asset; leverage may apply.",
     Future: "Standardized contract with a defined expiry and contract size.",
     Perpetual: "Derivative contract without expiry; funding charges may apply.",
-  };
-  const productCategories: Record<ProductType, string> = {
-    Spot: "Digital assets",
-    Share: "Equities",
-    "Fractional share": "Equities",
-    "FX spot": "Currencies",
-    CFD: "Leveraged derivatives",
-    Future: "Futures",
-    Perpetual: "Leveraged derivatives",
   };
   return (
     <section className="panel overflow-hidden">
@@ -4176,32 +4460,8 @@ function ProductsAndBrokersTable({
             access.
           </p>
         </div>
-        <div className="mt-4 flex flex-wrap justify-end gap-2">
-          {products.filter((item) => item === "CFD").map((item) => (
-            <span key={item} className="group relative">
-              <button
-                onClick={() => setProduct(item)}
-                aria-describedby={`product-tip-${item.replaceAll(" ", "-")}`}
-                className={`rounded-lg border px-3 py-2 text-[10px] font-medium ${product === item ? "border-violet-300 bg-violet-50 text-violet-700" : "border-border bg-white text-slate-600"}`}
-              >
-                {item}
-              </button>
-              <span className="ml-1 inline-block rounded-full bg-slate-100 px-1.5 py-0.5 text-[8px] text-slate-500">
-                {productCategories[item]}
-              </span>
-              <span
-                id={`product-tip-${item.replaceAll(" ", "-")}`}
-                role="tooltip"
-                className="pointer-events-none absolute left-0 top-full z-30 mt-2 hidden w-56 rounded-lg border border-slate-200 bg-slate-900 p-3 text-left text-[10px] font-normal leading-relaxed text-white shadow-xl group-hover:block group-focus-within:block"
-              >
-                <b className="mb-1 block text-violet-300">{item}</b>
-                {productDetails[item]}
-              </span>
-            </span>
-          ))}
-        </div>
       </div>
-      <div className="w-full overflow-hidden">
+      <div className="w-full overflow-visible">
         <table className="w-full table-fixed text-left text-[9px]">
           <thead className="bg-slate-50 text-slate-500">
             <tr>
@@ -4209,6 +4469,7 @@ function ProductsAndBrokersTable({
               <th className="px-4 py-3">Broker</th>
               <th className="px-4 py-3">Spread</th>
               <th className="px-4 py-3">Minimum</th>
+              <th className="px-4 py-3">Special offer</th>
               <th className="px-5 py-3 text-right">Action</th>
             </tr>
           </thead>
@@ -4225,7 +4486,20 @@ function ProductsAndBrokersTable({
                 }}
               >
                 <td className="w-[11%] px-2 py-3 font-semibold text-violet-700">
-                  {instrument.symbol}
+                  <div className="flex flex-wrap gap-1">
+                    {brokerProductPair(broker, instrument).map((identifier) => (
+                      <span
+                        key={identifier}
+                        className="group/identifier relative rounded border border-violet-100 bg-violet-50 px-1.5 py-1 text-[9px] text-violet-700"
+                        title={productIdentifierDetail(identifier, instrument)}
+                      >
+                        {identifier}
+                        <span className="pointer-events-none absolute bottom-full left-0 z-50 mb-1 hidden w-max max-w-64 rounded-md bg-slate-900 p-2 text-left text-[9px] font-normal leading-relaxed text-white shadow-lg group-hover/identifier:block">
+                          {productIdentifierDetail(identifier, instrument)}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
                 </td>
                 <td
                   className="relative w-[18%] px-2 py-3 font-semibold text-slate-900"
@@ -4262,6 +4536,11 @@ function ProductsAndBrokersTable({
                 </td>
                 <td className="w-[9%] px-2 py-3 text-slate-600">{broker.spread}</td>
                 <td className="w-[8%] px-2 py-3 text-slate-600">{broker.minimum}</td>
+                <td className="w-[18%] px-2 py-3">
+                  <span className="rounded bg-emerald-50 px-2 py-1 text-[9px] font-semibold text-emerald-700">
+                    {brokerSpecialOffer(broker.name)}
+                  </span>
+                </td>
                 <td className="w-[10%] px-2 py-3 text-right">
                   <button
                     onClick={(event) => {
@@ -4329,6 +4608,11 @@ function CryptoBrokerRows({
           </td>
           <td className="w-[9%] px-2 py-3 text-slate-600">From 0.04%</td>
           <td className="w-[8%] px-2 py-3 text-slate-600">$10</td>
+          <td className="w-[18%] px-2 py-3">
+            <span className="rounded bg-emerald-50 px-2 py-1 text-[9px] font-semibold text-emerald-700">
+              {brokerSpecialOffer(row.broker)}
+            </span>
+          </td>
           <td className="w-[10%] px-2 py-3 text-right">
             <button
               onClick={(event) => {
