@@ -505,7 +505,8 @@ export const Header: React.FC<HeaderProps> = ({
                   {/* Profile */}
                   <button
                     onClick={() => {
-                      onOpenViewPlan();
+                      if (onSelectCommunitySubTab) onSelectCommunitySubTab('mypage');
+                      else onOpenViewPlan();
                       setIsProfileMenuOpen(false);
                     }}
                     className="w-full flex items-center gap-3.5 px-2.5 py-2 rounded-xl text-slate-800 hover:bg-slate-50 hover:text-[#5945F1] transition-colors text-left group cursor-pointer"

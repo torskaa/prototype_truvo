@@ -222,7 +222,7 @@ export interface TopContributor {
   alphaCalls: number;
 }
 
-export type CommunitySubTab = 'feeds' | 'topics' | 'articles' | 'my-page' | 'profile';
+export type CommunitySubTab = 'feeds' | 'topics' | 'lives' | 'articles' | 'my-page' | 'profile';
 
 export interface TokenMarketItem {
   id: string;

@@ -234,6 +234,10 @@ function Application() {
         onOpenViewPlan={() => setIsViewPlanOpen(true)}
         onOpenLedger={() => setIsLedgerOpen(true)}
         onOpenBrokerComparison={() => setIsBrokerComparisonOpen(true)}
+        onSelectCommunitySubTab={(tab) => {
+          setActiveTab('community');
+          if (tab === 'mypage') setActiveTab('community');
+        }}
         onOpenCalculator={(calcType) => {
           if (calcType === 'forex') {
             setActiveTab('leverage-calculator');

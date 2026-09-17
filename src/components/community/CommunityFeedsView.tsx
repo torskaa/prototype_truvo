@@ -194,6 +194,17 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
     setExpandedComments((prev) => ({ ...prev, [postId]: true }));
   };
 
+  const handlePredictionVote = (postId: string, vote: 'agree' | 'disagree') => {
+    setPredictionVotes((current) => {
+      if (current[postId] === vote) {
+        const next = { ...current };
+        delete next[postId];
+        return next;
+      }
+      return { ...current, [postId]: vote };
+    });
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 w-full">
       {/* ─── LEFT COLUMN: TOKEN MARKET LIST (3 cols) ─── */}
@@ -413,7 +424,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
         </div>
 
         {/* Posts List */}
-        <div className="community-feed-list space-y-4 xl:grid xl:grid-cols-2 xl:gap-4 xl:space-y-0">
+        <div className="community-feed-list space-y-4">
           {sortedPosts.length === 0 ? (
             <div className="bg-white border border-[#e2e8f0] rounded-2xl p-12 text-center text-[#474556] shadow-xs">
               <Sparkles className="w-8 h-8 text-slate-400 mx-auto mb-2 opacity-50" />
@@ -431,10 +442,15 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
               const coverMarket = assetFilter === 'All' ? getPostMarket(post) : assetFilter;
               const coverSort = feedSort === 'popular' ? 'Popular first' : 'Latest first';
               const agreePercent = 55 + (post.likes % 26);
-              const disagreePercent = 100 - agreePercent;
               const predictionPrecision = post.author.winRate
                 || `${Math.round(65 + ((post.author.influenceScore || 0) % 25))}%`;
               const predictionVote = predictionVotes[post.id];
+              const displayedAgreePercent = predictionVote === 'agree'
+                ? Math.min(99, agreePercent + 1)
+                : predictionVote === 'disagree'
+                  ? Math.max(1, agreePercent - 1)
+                  : agreePercent;
+              const displayedDisagreePercent = 100 - displayedAgreePercent;
               const alertsEnabled = alertSubscriptions[post.author.handle] || false;
               const isSubscribed = authorSubscriptions[post.author.handle] || false;
               const hasDonated = donatedPosts[post.id] || false;
@@ -646,28 +662,35 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                   <div className="flex items-center gap-2.5 flex-wrap py-1 text-[11px] text-[#64748b]">
                     <button
                       type="button"
-                      onClick={() => setPredictionVotes((current) => ({ ...current, [post.id]: 'agree' }))}
+                      onClick={() => handlePredictionVote(post.id, 'agree')}
                       aria-pressed={predictionVote === 'agree'}
+                      aria-label={`Vote agree on ${post.title}`}
                       className={`rounded-md border px-2 py-1 font-semibold transition-colors ${
                         predictionVote === 'agree'
                           ? 'border-emerald-400 bg-emerald-100 text-emerald-700 shadow-sm'
                           : 'border-emerald-100 bg-emerald-50/70 text-emerald-600 hover:border-emerald-300 hover:bg-emerald-100'
                       }`}
                     >
-                      Agree <span className="font-mono">{agreePercent}%</span>
+                      Agree <span className="font-mono">{displayedAgreePercent}%</span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => setPredictionVotes((current) => ({ ...current, [post.id]: 'disagree' }))}
+                      onClick={() => handlePredictionVote(post.id, 'disagree')}
                       aria-pressed={predictionVote === 'disagree'}
+                      aria-label={`Vote disagree on ${post.title}`}
                       className={`rounded-md border px-2 py-1 font-semibold transition-colors ${
                         predictionVote === 'disagree'
                           ? 'border-rose-400 bg-rose-100 text-rose-700 shadow-sm'
                           : 'border-rose-100 bg-rose-50/70 text-rose-600 hover:border-rose-300 hover:bg-rose-100'
                       }`}
                     >
-                      Disagree <span className="font-mono">{disagreePercent}%</span>
+                      Disagree <span className="font-mono">{displayedDisagreePercent}%</span>
                     </button>
+                    {predictionVote && (
+                      <span className="text-[10px] font-semibold text-[#5338ec]" role="status">
+                        Your vote: {predictionVote === 'agree' ? 'Agree' : 'Disagree'}
+                      </span>
+                    )}
                     <span className="text-[10px] text-slate-400">{post.likes + post.commentsCount} votes</span>
                   </div>
 
