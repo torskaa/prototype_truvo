@@ -118,6 +118,16 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
   const [alertSubscriptions, setAlertSubscriptions] = useState<Record<string, boolean>>({});
   const [authorSubscriptions, setAuthorSubscriptions] = useState<Record<string, boolean>>({});
   const [donatedPosts, setDonatedPosts] = useState<Record<string, boolean>>({});
+  const [commentVotes, setCommentVotes] = useState<Record<string, 'agree' | 'disagree' | undefined>>({});
+  const [showOnlyFollowing, setShowOnlyFollowing] = useState(false);
+  const [claimedBonuses, setClaimedBonuses] = useState<Record<string, boolean>>({});
+  const claimBonus = (postId: string, action: string) => {
+    const bonusKey = `${postId}:${action}`;
+    if (claimedBonuses[bonusKey]) return;
+    const bonus = 25 + ((postId.length * 13 + action.length * 7) % 76);
+    setClaimedBonuses((current) => ({ ...current, [bonusKey]: true }));
+    window.dispatchEvent(new CustomEvent('marketsyde-credit-bonus', { detail: { amount: bonus } }));
+  };
   const getPostType = (post: CommunityPost) => {
     const searchablePost = `${post.title} ${post.content} ${post.tags.join(' ')}`.toLowerCase();
     if (/\bpoll\b|\bvote\b|\bquestion\b/.test(searchablePost)) return 'Poll';
@@ -147,6 +157,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
 
   // Filter posts based on token selection, search, or feedTab
   const filteredPosts = posts.filter((post) => {
+    if (showOnlyFollowing && !post.isFollowingAuthor) return false;
     if (selectedTokenSymbol) {
       const mentionsToken = post.tokenMentions?.some(
         (t) => t.symbol.toLowerCase() === selectedTokenSymbol.toLowerCase()
@@ -334,6 +345,10 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
             <h3 className="text-base font-bold text-[#0b1c30] flex items-center gap-1.5 font-display">
               <span>Trending Posts</span>
             </h3>
+            <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#474556]">
+              <input type="checkbox" checked={showOnlyFollowing} onChange={(event) => setShowOnlyFollowing(event.target.checked)} className="h-3.5 w-3.5 accent-[#5338ec]" />
+              Show only your follow
+            </label>
 
             <div className="flex flex-wrap items-center gap-1">
               {[
@@ -438,6 +453,8 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
               const alertsEnabled = alertSubscriptions[post.author.handle] || false;
               const isSubscribed = authorSubscriptions[post.author.handle] || false;
               const hasDonated = donatedPosts[post.id] || false;
+              const bonusAction = ['Like', 'Comment', 'Agree', 'Share'][post.id.length % 4];
+              const bonusAmount = 25 + ((post.id.length * 13 + bonusAction.length * 7) % 76);
 
               return (
                 <article
@@ -646,7 +663,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                   <div className="flex items-center gap-2.5 flex-wrap py-1 text-[11px] text-[#64748b]">
                     <button
                       type="button"
-                      onClick={() => setPredictionVotes((current) => ({ ...current, [post.id]: 'agree' }))}
+                      onClick={() => { setPredictionVotes((current) => ({ ...current, [post.id]: 'agree' })); if (bonusAction === 'Agree') claimBonus(post.id, 'Agree'); }}
                       aria-pressed={predictionVote === 'agree'}
                       className={`rounded-md border px-2 py-1 font-semibold transition-colors ${
                         predictionVote === 'agree'
@@ -658,7 +675,7 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setPredictionVotes((current) => ({ ...current, [post.id]: 'disagree' }))}
+                      onClick={() => { setPredictionVotes((current) => ({ ...current, [post.id]: 'disagree' })); if (bonusAction === 'Agree') claimBonus(post.id, 'Agree'); }}
                       aria-pressed={predictionVote === 'disagree'}
                       className={`rounded-md border px-2 py-1 font-semibold transition-colors ${
                         predictionVote === 'disagree'
@@ -672,12 +689,13 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                   </div>
 
                   {/* Post Engagement Footer */}
-                  <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-[11px] text-[#64748b] pt-1">
+                  <div className="group/bonus relative flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-[11px] text-[#64748b] pt-1">
+                    <span className="pointer-events-none absolute bottom-full left-0 z-10 mb-2 hidden rounded-lg bg-[#0b1c30] px-2.5 py-1.5 text-[10px] font-semibold text-white shadow-lg group-hover/bonus:block">🎁 Marketsyde bonus: click {bonusAction} to get +{bonusAmount} free credits</span>
                     <div className="flex items-center gap-4 sm:gap-5">
                       {/* Like */}
                       <button
                         type="button"
-                        onClick={() => onToggleLike(post.id)}
+                        onClick={() => { onToggleLike(post.id); if (bonusAction === 'Like') claimBonus(post.id, 'Like'); }}
                         className={`flex items-center gap-1 transition-colors ${
                           post.hasLiked ? 'text-rose-500' : 'hover:text-rose-500'
                         }`}
@@ -694,12 +712,12 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
 
                       {/* Comments Toggle */}
                       <button
-                        onClick={() =>
+                        onClick={() => {
                           setExpandedComments((prev) => ({
                             ...prev,
                             [post.id]: !prev[post.id],
-                          }))
-                        }
+                          })); if (bonusAction === 'Comment') claimBonus(post.id, 'Comment');
+                        }}
                         className="flex items-center gap-1 hover:text-[#5338ec] transition-colors"
                       >
                         <MessageSquare className="w-3 h-3" />
@@ -732,18 +750,10 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                     </div>
 
                     <div className="flex items-center gap-3">
-                      {post.tokenMentions?.[0] && (
-                        <button
-                          onClick={() => onOpenAdvancedChart(post.tokenMentions![0].symbol)}
-                          className="inline-flex items-center gap-1 hover:text-[#5338ec] transition-colors"
-                        >
-                          <LineChart className="w-3 h-3" />
-                          <span className="text-[11px]">View chart</span>
-                        </button>
-                      )}
                       <button
                         onClick={() => {
                           navigator.clipboard?.writeText(window.location.href);
+                          if (bonusAction === 'Share') claimBonus(post.id, 'Share');
                         }}
                         className="inline-flex items-center hover:text-[#0b1c30] transition-colors"
                         title="Share link"
@@ -770,14 +780,22 @@ export const CommunityFeedsView: React.FC<CommunityFeedsViewProps> = ({
                               />
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center justify-between">
-                                  <span className="font-semibold text-[#0b1c30]">
+                                  <button
+                                    type="button"
+                                    onClick={() => onSelectInfluencerByHandle(`@${comment.author.toLowerCase().replace(/\s+/g, '')}`)}
+                                    className="font-semibold text-[#5338ec] hover:underline"
+                                  >
                                     {comment.author}
-                                  </span>
+                                  </button>
                                   <span className="text-[10px] text-slate-400 font-mono">
                                     {comment.time}
                                   </span>
                                 </div>
                                 <p className="text-[#474556] mt-0.5">{comment.text}</p>
+                                <div className="mt-1.5 flex items-center gap-2 text-[10px]">
+                                  <button type="button" onClick={() => setCommentVotes((prev) => ({ ...prev, [comment.id]: prev[comment.id] === 'agree' ? undefined : 'agree' }))} className={commentVotes[comment.id] === 'agree' ? 'font-semibold text-emerald-600' : 'text-slate-400 hover:text-emerald-600'}>Agree · {commentVotes[comment.id] === 'agree' ? 1 : 0}</button>
+                                  <button type="button" onClick={() => setCommentVotes((prev) => ({ ...prev, [comment.id]: prev[comment.id] === 'disagree' ? undefined : 'disagree' }))} className={commentVotes[comment.id] === 'disagree' ? 'font-semibold text-rose-500' : 'text-slate-400 hover:text-rose-500'}>Disagree · {commentVotes[comment.id] === 'disagree' ? 1 : 0}</button>
+                                </div>
                               </div>
                             </div>
                           ))}
