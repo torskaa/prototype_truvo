@@ -95,7 +95,7 @@ export interface ActivityLogItem {
   type: 'points' | 'credits' | 'both';
   pointsChange?: number;
   creditsChange?: number;
-  category: 'Mission' | 'Rebate' | 'Conversion' | 'Streak' | 'Bonus';
+  category: 'Mission' | 'Rebate' | 'Conversion' | 'Streak' | 'Bonus' | 'Unlock' | 'Expiration';
 }
 
 export interface PerformanceTimeframeData {
@@ -222,7 +222,7 @@ export interface TopContributor {
   alphaCalls: number;
 }
 
-export type CommunitySubTab = 'feeds' | 'topics' | 'articles' | 'my-page' | 'profile';
+export type CommunitySubTab = 'feeds' | 'topics' | 'media' | 'articles' | 'my-page' | 'profile';
 
 export interface TokenMarketItem {
   id: string;
@@ -282,5 +282,4 @@ export interface CommunityInfluencer {
   followersCount?: number;
   postsCount?: number;
 }
-
 
