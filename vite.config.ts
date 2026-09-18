@@ -5,6 +5,7 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    base: process.env.GITHUB_ACTIONS === 'true' ? '/prototype_truvo/' : '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
