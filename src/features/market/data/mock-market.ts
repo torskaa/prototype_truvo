@@ -1,6 +1,6 @@
 import type { Instrument, InstrumentDetailData, MarketIndex } from '@market/types';
-import { marketTaxonomy } from '@market/data/market-taxonomy';
-import { stockCountries } from '@market/data/stock-countries';
+import { marketTaxonomy } from './market-taxonomy';
+import { stockCountries } from './stock-countries';
 const seedInstruments:Instrument[]=[
  {symbol:'NVDA',name:'NVIDIA',market:'US Stocks',sector:'Technology',primaryMarket:'NASDAQ',region:'North America',country:'United States',subSector:'Semiconductors',price:138.85,change:3.42,volume:298.4,rvol:2.18,rsi:38.4,return1m:12.8,marketCap:3400,sentiment:78,signal:'LONG',confidence:82,pe:54.2},
  {symbol:'MSFT',name:'Microsoft',market:'US Stocks',sector:'Technology',primaryMarket:'NASDAQ',region:'North America',country:'United States',subSector:'Software',price:507.23,change:1.18,volume:22.1,rvol:1.72,rsi:42.1,return1m:6.4,marketCap:3770,sentiment:69,signal:'WATCH',confidence:68,pe:37.8},
