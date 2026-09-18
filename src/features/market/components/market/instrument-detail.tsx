@@ -3400,15 +3400,26 @@ function SeasonalPerformance({
   const [mode, setMode] = useState<"Table" | "Chart">("Table");
   if (tierLevel < 4) {
     return (
-      <section className="panel flex min-h-48 flex-col items-center justify-center gap-2 p-5 text-center">
-        <Lock className="size-5 text-violet-500" />
-        <b className="text-xs text-slate-800">Seasonal performance requires Level 4</b>
-        <p className="max-w-sm text-[10px] text-slate-500">
-          Year-plus historical analysis is available with Elite access.
-        </p>
-        <button type="button" className="primary mt-1 px-3 py-1.5 text-[10px]" onClick={() => requestUnlock("performanceAnalytics")}>
-          Choose credit unlock
-        </button>
+      <section className="panel relative min-h-48 overflow-hidden p-5">
+        <div className="pointer-events-none absolute inset-0 grid content-center gap-3 px-8 opacity-60 blur-[5px]" aria-hidden="true">
+          <div className="flex items-end justify-between gap-2">
+            {[42, 68, 54, 82, 61, 74, 48, 66, 57, 78, 63, 71].map((height, index) => (
+              <div key={index} className="h-24 flex-1 rounded-t bg-violet-300" style={{ height: `${height}%` }} />
+            ))}
+          </div>
+          <div className="h-2 rounded-full bg-slate-200" />
+        </div>
+        <div className="absolute inset-0 bg-white/55" />
+        <div className="relative z-10 flex min-h-36 flex-col items-center justify-center gap-2 text-center">
+          <Lock className="size-5 stroke-[1.5] text-violet-500" />
+          <b className="text-xs text-slate-800">Seasonal performance requires Level 4</b>
+          <p className="max-w-sm text-[10px] text-slate-500">
+            Year-plus historical analysis is available with Elite access.
+          </p>
+          <button type="button" className="primary mt-1 px-3 py-1.5 text-[10px]" onClick={() => requestUnlock("performanceAnalytics")}>
+            Choose credit unlock
+          </button>
+        </div>
       </section>
     );
   }

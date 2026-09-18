@@ -37,22 +37,18 @@ export const CommunityArticlesView: React.FC<CommunityArticlesViewProps> = ({
     if (marketFilter === 'Crypto') return /btc|eth|hype|dex|rails|crypto|token/.test(badge);
     if (marketFilter === 'Stocks') return /aapl|nvda|stock|equity|health/.test(badge);
     if (marketFilter === 'Forex') return /forex|eur|gbp|jpy|fx/.test(badge);
-    if (marketFilter === 'Commodities') return /gold|oil|silver|xau/.test(badge);
-    if (marketFilter === 'Indices') return /index|spx|nasdaq|dax/.test(badge);
+    if (marketFilter === 'Commodities') return /gold|oil|silver|xau|copper/.test(badge);
+    if (marketFilter === 'Indices') return /index|spx|nasdaq|dax|s&p/.test(badge);
     return true;
   };
-  const expandedArticles = [
-    ...articles,
-    ...articles.map((article, index) => ({
-      ...article,
-      id: `generated-${article.id}`,
-      title: `${article.title} — Market Brief`,
-      summary: `Community research update: ${article.summary}`,
-      date: `${12 + index}h ago`,
-      views: article.views + 140 + index * 80,
-      likes: article.likes + 6 + index,
-    })),
+  const generatedArticles: CommunityArticle[] = [
+    { id: 'art-stock-1', title: 'Semiconductor Equipment Orders Point to a Stronger H2', summary: 'Lead times are tightening across chip equipment suppliers as data-center demand broadens beyond the largest cloud platforms.', thumbnail: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80', publisher: { name: 'Equity Lens', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=128&auto=format&fit=crop&q=80', verified: true }, views: 736, likes: 41, tickerBadge: 'NVDA', date: '5h ago', readTime: '6 min read', content: 'A review of semiconductor capital spending, inventory normalization, and the risk factors investors should monitor.' },
+    { id: 'art-crypto-1', title: 'Stablecoin Settlement Gains Ground in Cross-Border Commerce', summary: 'Treasury teams are testing dollar tokens for faster settlement, but liquidity and compliance remain the key adoption hurdles.', thumbnail: 'https://images.unsplash.com/photo-1621416894569-0f39ed31d247?w=600&auto=format&fit=crop&q=80', publisher: { name: 'Chain Research', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=128&auto=format&fit=crop&q=80', verified: true }, views: 982, likes: 57, tickerBadge: 'USDC', date: '7h ago', readTime: '5 min read', content: 'Stablecoin payment volumes are expanding into supplier settlement and remittance corridors.' },
+    { id: 'art-forex-1', title: 'Dollar Volatility Returns as Central Banks Diverge', summary: 'Rate expectations are pulling major currency pairs in opposite directions while traders watch upcoming inflation releases.', thumbnail: 'https://images.unsplash.com/photo-1559526324-593bc073d938?w=600&auto=format&fit=crop&q=80', publisher: { name: 'FX Desk', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=128&auto=format&fit=crop&q=80', verified: true }, views: 618, likes: 34, tickerBadge: 'EUR/USD', date: '9h ago', readTime: '4 min read', content: 'A tactical look at yield spreads, inflation surprises, and the next major support zones.' },
+    { id: 'art-commodities-1', title: 'Copper Inventories Tighten as Grid Investment Accelerates', summary: 'Exchange inventories are falling while electrification projects add a new source of structural demand for refined copper.', thumbnail: 'https://images.unsplash.com/photo-1535320903710-d993d3d77d29?w=600&auto=format&fit=crop&q=80', publisher: { name: 'Raw Materials', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&auto=format&fit=crop&q=80', verified: true }, views: 544, likes: 29, tickerBadge: 'COPPER', date: '11h ago', readTime: '5 min read', content: 'Supply disruptions and grid investment are reshaping the medium-term industrial metals outlook.' },
+    { id: 'art-indices-1', title: 'Global Index Breadth Improves Beneath a Narrow Leadership Rally', summary: 'More constituents are participating in the advance, a healthier signal than headline index gains alone.', thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80', publisher: { name: 'Index Monitor', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=128&auto=format&fit=crop&q=80', verified: true }, views: 801, likes: 46, tickerBadge: 'S&P 500', date: '1d ago', readTime: '7 min read', content: 'Breadth, equal-weight performance, and sector participation provide a broader view of index health.' },
   ];
+  const expandedArticles = [...articles, ...generatedArticles];
   const [articlesList, setArticlesList] = useState<CommunityArticle[]>(expandedArticles);
   const [activeHashtag, setActiveHashtag] = useState(hashtagFilter);
   useEffect(() => {
@@ -116,6 +112,15 @@ export const CommunityArticlesView: React.FC<CommunityArticlesViewProps> = ({
             : ['#Markets', '#Research', '#Macro', '#Analysis', '#Investing'];
     return marketTags.slice(0, 5);
   };
+  const articleCategory = (article: CommunityArticle) => {
+    const badge = article.tickerBadge.toLowerCase();
+    if (/btc|eth|hype|dex|rails|crypto|token/.test(badge)) return 'Crypto';
+    if (/aapl|nvda|stock|equity|health/.test(badge)) return 'Stocks';
+    if (/forex|eur|gbp|jpy|fx/.test(badge)) return 'Forex';
+    if (/gold|oil|silver|xau|copper/.test(badge)) return 'Commodities';
+    if (/index|spx|nasdaq|dax|s&p/.test(badge)) return 'Indices';
+    return 'Macro';
+  };
   const visibleArticles = articlesList.filter((article) => articleMarket(article) && (!activeHashtag || articleHashtags(article).includes(activeHashtag)));
 
   return (
@@ -146,8 +151,8 @@ export const CommunityArticlesView: React.FC<CommunityArticlesViewProps> = ({
       )}
 
       {/* 3-Column Article Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {visibleArticles.map((art) => {
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        {visibleArticles.map((art, index) => {
           const isLiked = likedArticles[art.id];
           const isFollowingAuthor = followedAuthors[art.publisher.name];
           const comments = articleComments[art.id] || [];
@@ -161,10 +166,10 @@ export const CommunityArticlesView: React.FC<CommunityArticlesViewProps> = ({
             <article
               key={art.id}
               onClick={() => setSelectedArticle(art)}
-              className="bg-white border border-[#e2e8f0] rounded-2xl overflow-hidden text-[#0b1c30] shadow-xs hover:border-[#cbd5e1] hover:shadow-sm transition-all cursor-pointer flex flex-col group"
+              className={`grid grid-cols-1 overflow-hidden border border-[#e2e8f0] bg-white text-[#0b1c30] shadow-xs transition-all hover:border-[#cbd5e1] hover:shadow-sm cursor-pointer group md:grid-cols-[minmax(0,1fr)_148px] ${['rounded-2xl', 'rounded-[26px_12px_26px_12px]', 'rounded-[12px_26px_12px_26px]', 'rounded-xl', 'rounded-[18px_6px_18px_6px]'][index % 5]}`}
             >
               {/* Thumbnail header */}
-              <div className="relative aspect-video w-full overflow-hidden bg-slate-100">
+              <div className="relative order-1 aspect-video w-full overflow-hidden bg-slate-100 md:order-2 md:aspect-auto md:min-h-[190px]">
                 <img
                   src={art.thumbnail}
                   alt={art.title}
@@ -182,7 +187,7 @@ export const CommunityArticlesView: React.FC<CommunityArticlesViewProps> = ({
               </div>
 
               {/* Body */}
-              <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+              <div className="order-2 flex min-w-0 flex-1 flex-col justify-between space-y-3 p-4 md:order-1">
                 <div className="space-y-2">
                   <h4 className="text-sm font-bold text-[#0b1c30] group-hover:text-[#5338ec] line-clamp-2 leading-snug transition-colors">
                     {art.title}
@@ -190,7 +195,8 @@ export const CommunityArticlesView: React.FC<CommunityArticlesViewProps> = ({
                   <p className="text-xs text-[#474556] line-clamp-2 leading-relaxed">
                     {art.summary}
                   </p>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap items-center gap-1">
+                    <span className="mr-1 rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-500">{articleCategory(art)}</span>
                     {articleHashtags(art).map((tag) => (
                       <span key={`${art.id}-${tag}`} className="rounded-full bg-violet-50 px-1.5 py-0.5 text-[9px] font-semibold text-violet-700">
                         {tag}
